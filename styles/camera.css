@@ -312,7 +312,7 @@ body.on * {
 /* Barra inferior: 5 botones (Calibrar, Aldeas, Picos, Más lejos, Relieve) */
 body.on #bar {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 5px;
     position: fixed;
     z-index: 5;
@@ -756,3 +756,46 @@ body.on #fdw.v {
     border-color: #bfdbfe;
 }
 body.on #buscarb { display: none; }
+
+
+/* Botón Más en la barra inferior */
+#masb {
+    background: rgba(255,255,255,.2);
+    border: 2px solid rgba(255,255,255,.55);
+}
+
+/* Menú desplegable "Más" */
+#masmenu {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    background: rgba(8, 10, 28, .94);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 12px;
+    padding: 6px;
+    z-index: 6;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(0,0,0,.4);
+}
+#masmenu button {
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255,255,255,.1);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+#masmenu button:active {
+    background: rgba(255,255,255,.25);
+}
+#masmenu button .est {
+    margin-left: auto;
+}
