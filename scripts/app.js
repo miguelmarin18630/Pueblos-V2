@@ -587,25 +587,47 @@ function aplicarBD(datos){
 }
 // La base de pueblos va incluida en esta misma página (no hace falta descargar nada)
 (async function cargarBase(){
-  // Esperar a que pueblos.js haya cargado (carga async, no bloqueante)
+  // 1) Intentar cargar desde IndexedDB (inmediato, sin red)
+  try{
+    var d=await idb();
+    var kv=await new Promise(function(res,rej){
+      var t=d.transaction("kv","readonly"),st=t.objectStore("kv"),q=st.get("pueblosParseados");
+      q.onsuccess=function(){res(q.result)};q.onerror=function(){rej(q.error)}});
+    if(kv&&kv.d&&kv.d.length){
+      aplicarBD(kv.d);
+      $("info").textContent="Datos locales: "+kv.d.length+" localidades";
+      var c=$("cargando");if(c){c.style.display="none"}
+      return;
+    }
+  }catch(e){}
+
+  // 2) No hay nada en IndexedDB: esperar a que pueblos.js termine de cargar (async, no bloqueante)
   var esperado=0;
   while(typeof window.DATOS_PUEBLOS === "undefined"){
     await new Promise(r=>setTimeout(r,100));
     esperado+=100;
-    if(esperado>30000){ // timeout de 30 segundos
-      $("info").textContent="Los datos del país tardan en cargar. Revisa tu conexión.";
-      var c=$("cargando");if(c){c.textContent="No se pudieron cargar los pueblos.";c.className="mal"}
+    if(esperado>30000){
+      $("info").textContent="No se pudo cargar data/pueblos.js (sin conexión o servidor).";
+      var c=$("cargando");if(c){c.textContent="No se cargaron los pueblos. Revisa tu conexión.";c.className="mal"}
       return;
     }
   }
   var txt=window.DATOS_PUEBLOS||"",all={};
   try{
     if(txt)parseLineas(txt,all);
-    aplicarBD(Object.keys(all).map(function(k){return all[k]}));
+    var arr=Object.keys(all).map(function(k){return all[k]});
+    aplicarBD(arr);
+    // Guardar en IndexedDB para la próxima vez (sin red)
+    try{
+      var d2=await idb();
+      var t2=d2.transaction("kv","readwrite"),st2=t2.objectStore("kv");
+      st2.put({d:arr},"pueblosParseados");
+      t2.oncomplete=function(){};
+    }catch(e2){}
   }catch(e){}
   window.DATOS_PUEBLOS=null;
   if(!txt){
-    $("info").textContent="No se pudo cargar data/pueblos.js: solo hay ciudades de la lista basica. Sirve la app por HTTP(s) o revisa la carpeta data.";
+    $("info").textContent="No se pudo cargar data/pueblos.js: solo hay ciudades de la lista basica.";
     var c=$("cargando");if(c){c.textContent="No se cargaron los pueblos (revisa data/pueblos.js).";c.className="mal"}
   }
 })();
