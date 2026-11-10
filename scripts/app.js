@@ -587,7 +587,7 @@ function aplicarBD(datos){
 }
 // La base de pueblos va incluida en esta misma página (no hace falta descargar nada)
 (async function cargarBase(){
-  // 1) Intentar cargar desde IndexedDB (inmediato, sin red)
+  // 1) Intentar desde IndexedDB (inmediato, sin red)
   try{
     var d=await idb();
     var kv=await new Promise(function(res,rej){
@@ -601,23 +601,12 @@ function aplicarBD(datos){
     }
   }catch(e){}
 
-  // 2) No hay nada en IndexedDB: esperar a que pueblos.js termine de cargar (async, no bloqueante)
-  var esperado=0;
-  while(typeof window.DATOS_PUEBLOS === "undefined"){
-    await new Promise(r=>setTimeout(r,100));
-    esperado+=100;
-    if(esperado>30000){
-      $("info").textContent="No se pudo cargar data/pueblos.js (sin conexión o servidor).";
-      var c=$("cargando");if(c){c.textContent="No se cargaron los pueblos. Revisa tu conexión.";c.className="mal"}
-      return;
-    }
-  }
+  // 2) Si no hay nada en IndexedDB, usar pueblos.js si ya cargó (async, no bloqueante)
   var txt=window.DATOS_PUEBLOS||"",all={};
   try{
     if(txt)parseLineas(txt,all);
     var arr=Object.keys(all).map(function(k){return all[k]});
     aplicarBD(arr);
-    // Guardar en IndexedDB para la próxima vez (sin red)
     try{
       var d2=await idb();
       var t2=d2.transaction("kv","readwrite"),st2=t2.objectStore("kv");
@@ -626,9 +615,9 @@ function aplicarBD(datos){
     }catch(e2){}
   }catch(e){}
   window.DATOS_PUEBLOS=null;
-  if(!txt){
-    $("info").textContent="No se pudo cargar data/pueblos.js: solo hay ciudades de la lista basica.";
-    var c=$("cargando");if(c){c.textContent="No se cargaron los pueblos (revisa data/pueblos.js).";c.className="mal"}
+  if(!arr||arr.length===0){
+    $("info").textContent="Datos locales: lista básica (sin pueblos de OSM).";
+    var c=$("cargando");if(c){c.textContent="Usando lista básica de ciudades.";c.className="aviso"}
   }
 })();
 function espera(ms){return new Promise(function(r){setTimeout(r,ms)})}
@@ -2022,10 +2011,19 @@ $("permno").onclick=function(){$("permisos").style.display="none";permInicio=fal
 })();
 // ---- Arranque de la interfaz ----
 (function arrancarUI(){
+  // Ocultar el estado de carga inmediatamente
   var c=$("cargando");
   if(c){c.style.display="none"}
+  var hl=$("hero-loading");
+  if(hl){hl.style.display="none"}
   var g=$("go");
-  if(g){g.disabled=false;g.setAttribute("aria-busy","false");g.innerHTML='<span class="go1">Iniciar identificación</span><span class="go2">Activar GPS y brújula mientras se usa</span>'}
+  if(g){
+    g.disabled=false;
+    g.setAttribute("aria-busy","false");
+    g.innerHTML='<span class="go1">Iniciar identificación</span><span class="go2">Activar GPS y brújula mientras se usa</span>';
+  }
+  var b=$("buscarb");
+  if(b){b.disabled=false;}
 })();
 // ---- App instalable: guarda la página para abrirla sin conexión ----
 if("serviceWorker" in navigator&&location.protocol!=="file:"&&!window.AndroidApp)window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})});
