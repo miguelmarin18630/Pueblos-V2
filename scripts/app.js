@@ -1756,6 +1756,25 @@ $("invCerrar").onclick=desactivarInv;
 $("invTipo").onchange=function(){if(pos)llenarInvDest();};
 
 $("anadirb").onclick=abrirAnadir;
+
+// Botón Buscar en la pantalla de inicio: activa cámara y entra al modo búsqueda
+$("buscarb").onclick = async function() {
+  // Si ya estamos en modo cámara, entrar directamente al modo inverso
+  if (document.body.classList.contains("on")) {
+    $("inverso").style.display = "flex";
+    if (pos) llenarInvDest();
+    return;
+  }
+  // Si no hay cámara, activarla primero
+  $("go").disabled = true;
+  await camara();
+  $("go").disabled = false;
+  if (document.body.classList.contains("on")) {
+    $("inverso").style.display = "flex";
+    if (pos) llenarInvDest();
+  }
+};
+
 $("anadircam").onclick=abrirAnadir;
 $("acerra").onclick=cerrarAnadir;
 $("amodo1").onclick=function(){ponerModo("desde")};
