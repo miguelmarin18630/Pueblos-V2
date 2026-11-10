@@ -799,3 +799,140 @@ body.on #buscarb { display: none; }
 #masmenu button .est {
     margin-left: auto;
 }
+
+
+/* ================= Pantalla de inicio (Hero) ================= */
+#hero {
+    text-align: center;
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.35);
+    color: #ffe25a;
+    font-size: 14px;
+    font-weight: 700;
+    backdrop-filter: blur(4px);
+}
+
+#hero h1 {
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0;
+    color: #fff;
+    letter-spacing: -0.5px;
+}
+
+#hero p {
+    font-size: 16px;
+    color: rgba(255,255,255,.9);
+    margin: 0 0 8px;
+    max-width: 320px;
+}
+
+.hero-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255,255,255,.2);
+    border-top-color: #ffe25a;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+#cargando {
+    font-size: 14px;
+    color: rgba(255,255,255,.85);
+    margin: 0;
+}
+
+.hero-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 300px;
+    margin: 12px 0;
+}
+
+.btn-primary, .btn-secondary {
+    width: 100%;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    transition: transform 0.1s, opacity 0.2s;
+}
+
+.btn-primary:active, .btn-secondary:active {
+    transform: scale(0.96);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(106,17,203,.4);
+}
+
+.btn-primary:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.btn-secondary {
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.35);
+    color: #fff;
+}
+
+.btn-secondary .ic {
+    margin-right: 6px;
+}
+
+.btn-primary .go1, .btn-primary .go2 {
+    display: block;
+}
+
+.btn-primary .go2 {
+    font-size: 12px;
+    opacity: .85;
+}
+
+#autor {
+    font-size: 12px;
+    color: rgba(255,255,255,.6);
+    margin-top: 16px;
+}
+
+/* Ocultar el SVG logo original del hero si existe */
+#hero .logo {
+    display: none;
+}
