@@ -154,8 +154,13 @@
         <button id="zmas" type="button" title="Acercar (más zoom)">＋</button>
         <span id="zval">Zoom ×1</span>
         <button id="zmenos" type="button" title="Alejar (menos zoom)">−</button>
-        <button id="enf" type="button"><span class="ic" aria-hidden="true">◎</span><span>Enfocar</span></button>
+            
+<div id="fdw">
+        <span>Foco</span>
+        <input type="range" id="fdist" min="0" max="1" step="0.01" value="1" aria-label="Distancia de enfoque (cerca a lejos)">
+        <button id="fauto" type="button">Auto</button>
     </div>
+</div>
 
     <nav id="bar" aria-label="Controles de la cámara">
         <button id="calbtn" type="button" title="Ajusta la brújula con un lugar que veas">
@@ -177,12 +182,7 @@
 
     <div id="toast" role="status" aria-live="polite"></div>
 
-    <div id="fdw">
-        <span>Foco</span>
-        <input type="range" id="fdist" min="0" max="1" step="0.01" value="1" aria-label="Distancia de enfoque (cerca a lejos)">
-        <button id="fauto" type="button">Auto</button>
-    </div>
-</main>
+    </main>
 
 <!-- ================= Panel de calibración ================= -->
 <div id="cal" role="dialog" aria-labelledby="calT" class="menu">
