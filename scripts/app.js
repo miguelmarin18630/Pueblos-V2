@@ -332,6 +332,7 @@ function pintarYa(){
   }
   if(document.body.classList.contains("on")&&!fuera)etiquetas(pe,hdc);else limpiarEtq();
   dibujarSilueta(hdc);
+  if(invActivo)pintarInv();
   if(ochoActivo)actOcho();
 }
 // ---- Rumbo: filtro One-Euro ----
@@ -485,6 +486,72 @@ function parseLineas(txt,all){
   });
 }
 // ---- Lugares añadidos a mano o desde OpenStreetMap (se guardan en el móvil) ----
+
+// ---- Modo inverso: buscar pueblo/pico con flechas direccionales ----
+var invActivo=false, invDest=null, invTmr=null;
+function llenarInvDest(){
+  var sel=$("invDest");
+  if(!sel)return;
+  sel.innerHTML="";
+  var tipos=document.getElementById("invTipo").value;
+  var lista=[];
+  // Pueblos de la lista actual (P) y añadidos (MIS, OSMX)
+  (P||[]).forEach(function(p){if(p[3]&&p[3]!=="peak"&&(tipos==="todos"||tipos==="pueblo"))lista.push({n:p[0],la:p[1],lo:p[2],t:p[3],k:dst(pos.latitude,pos.longitude,p[1],p[2])})});
+  (MIS||[]).forEach(function(p){if(tipos==="todos"||tipos==="pueblo")lista.push({n:p.n,la:p.la,lo:p.lo,t:"pueblo",k:dst(pos.latitude,pos.longitude,p.la,p.lo)})});
+  (OSMX||[]).forEach(function(p){if(tipos==="todos"||tipos==="pueblo")lista.push({n:p.n,la:p.la,lo:p.lo,t:"pueblo",k:dst(pos.latitude,pos.longitude,p.la,p.lo)})});
+  // Picos
+  if(tipos==="todos"||tipos==="pico"){
+    (PK||[]).forEach(function(p){if(p)lista.push({n:p.n,la:p.la,lo:p.lo,t:"pico",k:dst(pos.latitude,pos.longitude,p.la,p.lo),e:p.e})});
+    (BASE||[]).forEach(function(p){if(p[3]==="peak")lista.push({n:p[0],la:p[1],lo:p[2],t:"pico",k:dst(pos.latitude,pos.longitude,p[1],p[2]),e:p[4]||0})});
+  }
+  lista.sort(function(a,b){return a.k-b.k});
+  lista.forEach(function(p){
+    var o=document.createElement("option");
+    o.value=p.n+"|"+p.la+"|"+p.lo+"|"+p.t;
+    o.textContent=(p.t==="pico"?"▲ ":"● ")+p.n+(p.k>0?" · "+(p.k<10?p.k.toFixed(1):Math.round(p.k))+" km":""));
+    sel.appendChild(o);
+  });
+  if(!lista.length){o=document.createElement("option");o.textContent="No hay "+(tipos==="pico"?"picos":"pueblos")+" cargados";o.disabled=true;sel.appendChild(o);}
+}
+function activarInv(){
+  if(!pos){$("invEstado").textContent="Espera a tener GPS";return}
+  var sel=$("invDest");
+  if(!sel.value){$("invEstado").textContent="Selecciona un destino";return}
+  var partes=sel.value.split("|");
+  invDest={n:partes[0],la:parseFloat(partes[1]),lo:parseFloat(partes[2]),t:partes[3]};
+  $("inverso").style.display="none";
+  $("invFlecha").style.display="flex";
+  invActivo=true;
+  $("invEstado").textContent="Buscando ""+invDest.n+""";
+  pintarInv();
+}
+function desactivarInv(){
+  invActivo=false;invDest=null;
+  $("invFlecha").style.display="none";
+  $("inverso").style.display="flex";
+  $("invEstado").textContent="";
+}
+function pintarInv(){
+  if(!invActivo||!invDest||!pos)return;
+  var hdc=rumboC();
+  var rumboDest=brg(pos.latitude,pos.longitude,invDest.la,invDest.lo);
+  var difAng=((rumboDest-hdc+540)%360)-180;
+  var girador=$("invFlechaGirador");
+  if(girador)girador.style.transform="rotate("+difAng+"deg)";
+  var dist=dst(pos.latitude,pos.longitude,invDest.la,invDest.lo);
+  $("invDist").textContent=(dist<10?dist.toFixed(1):Math.round(dist))+" km";
+  $("invNombre").textContent=(invDest.t==="pico"?"▲ ":"● ")+invDest.n;
+  // Indicar si está alineado
+  if(Math.abs(difAng)<15){
+    $("invFlechaGirador").style.filter="drop-shadow(0 0 12px #22c55e)";
+  } else {
+    $("invFlechaGirador").style.filter="drop-shadow(0 4px 8px rgba(0,0,0,.6))";
+  }
+  invTmr=requestAnimationFrame(pintarInv);
+}
+
+// Integrar en pintarYa: buscar la línea que actualiza "mejor" y añadir llamada a pintarInv
+
 var MIS=[],OSMX=[];
 function leerLista(k){
   try{
@@ -1683,6 +1750,11 @@ function cerrarAnadir(){
   clearInterval(aTimer);aTimer=null;
   $("anadir").style.display="none";
 }
+
+$("invActivar").onclick=activarInv;
+$("invCerrar").onclick=desactivarInv;
+$("invTipo").onchange=function(){if(pos)llenarInvDest();};
+
 $("anadirb").onclick=abrirAnadir;
 $("anadircam").onclick=abrirAnadir;
 $("acerra").onclick=cerrarAnadir;
