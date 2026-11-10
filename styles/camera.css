@@ -695,3 +695,57 @@ body.on #fdw.v {
     white-space: nowrap;
     padding: 2px 0;
 }
+
+/* Modo inverso: flecha direccional */
+#invFlecha {
+    color: #fff;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+#invFlechaGirador {
+    transition: transform 0.1s linear;
+}
+#invDist {
+    font-variant-numeric: tabular-nums;
+}
+#inverso .caja {
+    max-width: 420px;
+}
+#inverso select {
+    width: 100%;
+    padding: 8px;
+    margin: 6px 0;
+    border: 1px solid rgba(255,255,255,.4);
+    border-radius: 10px;
+    background: rgba(255,255,255,.15);
+    color: #fff;
+    font-size: 15px;
+}
+#inverso select option {
+    background: #0b1026;
+    color: #fff;
+}
+#inverso .btns {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+#inverso .btns button {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid rgba(255,255,255,.5);
+    border-radius: 10px;
+    background: rgba(255,255,255,.2);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+#inverso .btns button:active {
+    background: rgba(255,255,255,.4);
+}
+#invEstado {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #ffe25a;
+    min-height: 1.2em;
+}
