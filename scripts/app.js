@@ -586,7 +586,18 @@ function aplicarBD(datos){
   $("info").textContent=BD?"Base incluida: "+BD.length+" localidades de España":"";
 }
 // La base de pueblos va incluida en esta misma página (no hace falta descargar nada)
-(function cargarBase(){
+(async function cargarBase(){
+  // Esperar a que pueblos.js haya cargado (carga async, no bloqueante)
+  var esperado=0;
+  while(typeof window.DATOS_PUEBLOS === "undefined"){
+    await new Promise(r=>setTimeout(r,100));
+    esperado+=100;
+    if(esperado>30000){ // timeout de 30 segundos
+      $("info").textContent="Los datos del país tardan en cargar. Revisa tu conexión.";
+      var c=$("cargando");if(c){c.textContent="No se pudieron cargar los pueblos.";c.className="mal"}
+      return;
+    }
+  }
   var txt=window.DATOS_PUEBLOS||"",all={};
   try{
     if(txt)parseLineas(txt,all);
