@@ -312,7 +312,7 @@ body.on * {
 /* Barra inferior: 5 botones (Calibrar, Aldeas, Picos, Más lejos, Relieve) */
 body.on #bar {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 5px;
     position: fixed;
     z-index: 5;
@@ -748,4 +748,10 @@ body.on #fdw.v {
     font-size: 13px;
     color: #ffe25a;
     min-height: 1.2em;
+}
+
+
+#buscarb {
+    background: #1d4ed8;
+    border-color: #bfdbfe;
 }
