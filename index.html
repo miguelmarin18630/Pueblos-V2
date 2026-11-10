@@ -168,9 +168,6 @@
         <button id="calbtn" type="button" title="Ajusta la brújula con un lugar que veas">
             <span class="ic" aria-hidden="true">🎯</span><span>Calibrar</span>
         </button>
-        <button id="aldeas" class="tg" type="button" aria-pressed="true" aria-label="Aldeas: se ven pueblos y aldeas" title="Mostrar u ocultar aldeas pequeñas">
-            <span class="ic" aria-hidden="true">🏘</span><span class="est" aria-hidden="true"></span>
-        </button>
         <button id="picosb" class="tg" type="button" aria-pressed="false" title="Mostrar u ocultar nombres de picos">
             <span class="ic" aria-hidden="true">⛰</span><span>Picos</span><span class="est" aria-hidden="true"></span>
         </button>
@@ -180,6 +177,14 @@
         <button id="relb" class="tg" type="button" aria-pressed="true" aria-label="Relieve activado" title="Relieve activado: se ocultan los lugares tapados por montañas">
             <span class="ic" aria-hidden="true">🏔</span><span>Relieve</span><span class="est" aria-hidden="true"></span>
         </button>
+        <button id="masb" type="button" title="Más opciones" aria-label="Más opciones">
+            <span class="ic" aria-hidden="true">⋮</span>
+        </button>
+        <div id="masmenu" style="display:none;">
+            <button id="aldeas" class="tg" type="button" aria-pressed="true" aria-label="Aldeas: se ven pueblos y aldeas" title="Mostrar u ocultar aldeas pequeñas">
+                <span class="ic" aria-hidden="true">🏘</span><span class="est" aria-hidden="true"></span>
+            </button>
+        </div>
     </nav>
 
     <div id="toast" role="status" aria-live="polite"></div>
