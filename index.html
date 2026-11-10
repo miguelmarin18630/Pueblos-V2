@@ -178,6 +178,9 @@
         <button id="relb" class="tg" type="button" aria-pressed="true" aria-label="Relieve activado" title="Relieve activado: se ocultan los lugares tapados por montañas">
             <span class="ic" aria-hidden="true">🏔</span><span>Relieve</span><span class="est" aria-hidden="true"></span>
         </button>
+        <button id="buscarb" type="button" title="Buscar un pueblo o pico y ver hacia dónde apuntar" aria-label="Buscar pueblo o pico">
+            <span class="ic" aria-hidden="true">🔍</span><span>Buscar</span>
+        </button>
     </nav>
 
     <div id="toast" role="status" aria-live="polite"></div>
@@ -324,19 +327,7 @@
             <button id="ausar" type="button">🧭 Usar el rumbo actual</button>
         </div>
 
-        <div id="acoord" class="oculto">
-            <div class="fila">
-                <div>
-                    <label for="alat">Latitud</label>
-                    <input type="number" id="alat" step="0.000001" inputmode="decimal" placeholder="40.417">
-                </div>
-                <div>
-                    <label for="alon">Longitud</label>
-                    <input type="number" id="alon" step="0.000001" inputmode="decimal" placeholder="-3.704">
-                </div>
-            </div>
-            <button id="aqui" type="button">📍 Usar mi posición</button>
-        </div>
+
 
         <div class="btns">
             <button id="aadd" type="button">✓ Añadir</button>
@@ -422,5 +413,46 @@
 <!-- Datos: pueblos (imprescindible) y motor. picos.js se carga solo al activar Picos. -->
 <script defer src="data/pueblos.js"></script>
 <script defer src="scripts/app.js"></script>
+
+<!-- ================= Modo inverso: buscar pueblo/pico ================= -->
+<div id="inverso" role="dialog" aria-modal="true" aria-labelledby="inversoT" style="display:none;">
+    <div class="caja">
+        <h2 id="inversoT">🔍 Buscar pueblo o pico</h2>
+        <p>Selecciona un destino y gira el móvil hasta que la flecha apunte recto hacia adelante.</p>
+
+        <div>
+            <label for="invTipo">Tipo</label>
+            <select id="invTipo">
+                <option value="todos">Todos</option>
+                <option value="pueblo">Pueblos</option>
+                <option value="pico">Picos</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="invDest">Destino</label>
+            <select id="invDest" size="6">
+                <!-- se rellena con JavaScript -->
+            </select>
+        </div>
+
+        <div class="btns">
+            <button id="invActivar" type="button">▶ Activar búsqueda</button>
+            <button id="invCerrar" type="button">Cerrar</button>
+        </div>
+        <div id="invEstado" role="status" aria-live="polite"></div>
+    </div>
+</div>
+
+<!-- Flecha direccional del modo inverso (overlay sobre la cámara) -->
+<div id="invFlecha" style="display:none; position:fixed; inset:0; z-index:40; pointer-events:none; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+    <div id="invFlechaGirador" style="position:relative; width:120px; height:120px; transition:transform 0.15s ease-out;">
+        <div style="position:absolute; left:50%; top:0; width:0; height:0; border-left:20px solid transparent; border-right:20px solid transparent; border-bottom:40px solid #ff2d95; margin-left:-20px; filter:drop-shadow(0 4px 8px rgba(0,0,0,.6));"></div>
+        <div style="position:absolute; left:50%; top:30px; width:0; height:0; border-left:10px solid transparent; border-right:10px solid transparent; border-top:20px solid #fff; margin-left:-10px;"></div>
+        <div style="position:absolute; left:50%; top:55px; width:0; height:0; border-left:8px solid transparent; border-right:8px solid transparent; border-top:14px solid #fff; margin-left:-8px; opacity:.9;"></div>
+    </div>
+    <div id="invDist" style="margin-top:12px; font-size:16px; font-weight:700; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,.8);">— km</div>
+    <div id="invNombre" style="margin-top:4px; font-size:14px; color:#ffe25a; text-shadow:0 1px 4px rgba(0,0,0,.8);">Selecciona un destino</div>
+</div>
 </body>
 </html>
