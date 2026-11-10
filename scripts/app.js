@@ -1752,6 +1752,22 @@ function cerrarAnadir(){
 }
 
 $("invActivar").onclick=activarInv;
+
+// Menú "Más" de la barra inferior
+$("masb").onclick = function(e) {
+  e.stopPropagation();
+  var m = $("masmenu");
+  m.style.display = m.style.display === "flex" ? "none" : "flex";
+};
+// Cerrar el menú al hacer clic fuera
+document.addEventListener("click", function(e) {
+  var m = $("masmenu");
+  var b = $("masb");
+  if (m && b && !b.contains(e.target) && !m.contains(e.target)) {
+    m.style.display = "none";
+  }
+});
+
 $("invCerrar").onclick=desactivarInv;
 $("invTipo").onchange=function(){if(pos)llenarInvDest();};
 
