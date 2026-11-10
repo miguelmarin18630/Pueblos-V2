@@ -853,7 +853,7 @@ function identificarToque(x,y){
   pintar();
 }
 function finToque(){tapSel=null;$("toque").style.display="none";pintar()}
-$("enf").onclick=function(){enfocar(innerWidth/2,innerHeight/2)};
+
 var tToast=null,tCons=null;
 function avisar(txt,ms){var t=$("toast");t.textContent=txt;t.className="";void t.offsetWidth;t.className="v";clearTimeout(tToast);tToast=setTimeout(function(){t.className=""},ms||6200)}
 // Consejos de primera vez: cada uno sale una sola vez y no vuelve (se recuerdan en localStorage)
