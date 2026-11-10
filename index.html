@@ -71,35 +71,27 @@
 <main>
     <button id="plegar" type="button" aria-label="Ocultar o mostrar el panel" aria-expanded="true">▲</button>
 
-    <section id="hero">
-        <svg class="logo" viewBox="0 0 96 96" aria-hidden="true">
-            <defs>
-                <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stop-color="#6a11cb"/>
-                    <stop offset=".5" stop-color="#2575fc"/>
-                    <stop offset="1" stop-color="#00c9a7"/>
-                </linearGradient>
-                <clipPath id="lc"><rect width="96" height="96" rx="22"/></clipPath>
-            </defs>
-            <rect width="96" height="96" rx="22" fill="url(#lg)"/>
-            <g clip-path="url(#lc)">
-                <path d="M0 96V66l22-20 20 24 18-16 36 28v14z" fill="#28105a" opacity=".6"/>
-                <path d="M0 96V78l26-14 22 14 20-10 28 14v14z" fill="#140a3c" opacity=".75"/>
-            </g>
-            <circle cx="48" cy="38" r="20" fill="none" stroke="#fff" stroke-width="4"/>
-            <path d="M48 10v10M48 56v10M20 38h10M66 38h10" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
-            <circle cx="48" cy="38" r="6" fill="#ff2d95"/>
-        </svg>
-        <h1>¿Qué pueblo es?</h1>
-        <p>Apunta con el móvil al horizonte y descubre qué pueblo tienes delante.</p>
-        <small id="autor">Miguel Marín</small>
-        <p id="cargando" role="status">Cargando pueblos y picos…</p>
-        <button id="go" type="button" disabled aria-busy="true">
-            <span class="go1">Cargando datos…</span>
-            <span class="go2">Preparando pueblos y picos</span>
-        <button id="buscarb" type="button" title="Buscar un pueblo o pico y ver hacia dónde apuntar" aria-label="Buscar pueblo o pico">
-            <span class="ic" aria-hidden="true">🔍</span><span>Buscar pueblo o pico</span>
-        </button>
+        <section id="hero">
+        <div class="hero-badge">🌄 ¿Qué pueblo es?</div>
+        <h1>Apunta al horizonte</h1>
+        <p>Descubre qué pueblo o pico tienes delante, con la cámara de tu móvil.</p>
+
+        <div class="hero-loading" id="hero-loading">
+            <div class="spinner"></div>
+            <p id="cargando" role="status">Cargando pueblos y picos…</p>
+        </div>
+
+        <div class="hero-actions">
+            <button id="go" type="button" disabled class="btn-primary">
+                <span class="go1">Cargando datos…</span>
+                <span class="go2">Preparando pueblos y picos</span>
+            </button>
+            <button id="buscarb" type="button" title="Buscar un pueblo o pico y ver hacia dónde apuntar" aria-label="Buscar pueblo o pico" class="btn-secondary">
+                <span class="ic" aria-hidden="true">🔍</span><span>Buscar pueblo o pico</span>
+            </button>
+        </div>
+
+        <small id="autor">Miguel Marín · Datos de OpenStreetMap</small>
     </section>
 
     <div id="fila1">
