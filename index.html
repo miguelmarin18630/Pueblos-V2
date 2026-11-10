@@ -1,27 +1,426 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>¿Qué pueblo es?</title>
-<style>
-  :root{color-scheme:dark}
-  body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b1026;color:#eef2ff;
-       font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:24px}
-  main{max-width:420px;text-align:center}
-  h1{font-size:1.6rem;margin:0 0 .4em}
-  p{opacity:.8;margin:0 0 1.6em}
-  a{display:inline-block;padding:.9em 1.4em;border-radius:999px;background:#ffd60a;color:#12142b;
-    font-weight:700;text-decoration:none}
-  small{display:block;margin-top:2em;opacity:.45}
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Â¿QuÃ© pueblo es?</title>
+<meta name="description" content="Apunta con el mÃ³vil al horizonte y descubre quÃ© pueblo o pico tienes delante.">
+<meta name="theme-color" content="#0b1026">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://marinweb.org/">
+
+<meta property="og:title" content="Â¿QuÃ© pueblo es?">
+<meta property="og:description" content="Apunta con el mÃ³vil al horizonte y descubre quÃ© pueblo o pico tienes delante.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Â¿QuÃ© pueblo es?">
+<meta property="og:locale" content="es_ES">
+<meta property="og:url" content="https://marinweb.org/">
+<meta property="og:image" content="https://marinweb.org/og-image.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Â¿QuÃ© pueblo es? Apunta al horizonte con el mÃ³vil y descubre quÃ© pueblo o pico tienes delante.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Â¿QuÃ© pueblo es?">
+<meta name="twitter:description" content="Apunta con el mÃ³vil al horizonte y descubre quÃ© pueblo o pico tienes delante.">
+<meta name="twitter:image" content="https://marinweb.org/og-image.png">
+<meta name="twitter:image:alt" content="Â¿QuÃ© pueblo es? Apunta al horizonte con el mÃ³vil y descubre quÃ© pueblo o pico tienes delante.">
+
+<!-- El relieve se pide a Open-Meteo nada mÃ¡s arrancar: adelanta la conexiÃ³n TLS -->
+<link rel="preconnect" href="https://api.open-meteo.com" crossorigin>
+
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Â¿QuÃ© pueblo?">
+
+<link rel="stylesheet" href="styles/base.css">
+<link rel="stylesheet" href="styles/portada.css">
+<link rel="stylesheet" href="styles/layout.css">
+<link rel="stylesheet" href="styles/camera.css">
+
+<!-- La base de pueblos se necesita siempre: que empiece a descargarse ya -->
+<link rel="preload" href="data/pueblos.js" as="script">
 </head>
 <body>
+<!-- Capas de cÃ¡mara y etiquetas: se muestran al activar body.on -->
+<video id="cam" playsinline muted autoplay></video>
+<canvas id="sil" aria-hidden="true"></canvas>
+<div id="etq"></div>
+<div id="mira" aria-hidden="true"></div>
+<div id="foco" aria-hidden="true"></div>
+
+<div id="giro" role="status">
+    ðŸ“± Pon el mÃ³vil en vertical
+    <small>La brÃºjula y las etiquetas solo funcionan con el mÃ³vil en posiciÃ³n vertical.</small>
+</div>
+<div id="toque" role="status" aria-live="polite"></div>
+<div id="leyenda" aria-hidden="true">
+    <div id="lgC"><i style="background:#ff4d6d"></i>ciudad</div>
+    <div id="lgP"><i style="background:#ffd60a"></i>pueblo</div>
+    <div id="lgA"><i style="background:#00e5ff"></i>aldea</div>
+    <div id="lgK"><i style="background:#80ed99"></i>pico</div>
+</div>
+
 <main>
-  <h1>¿Qué pueblo es?</h1>
-  <p>Apunta con el móvil al horizonte y descubre qué pueblo o pico tienes delante.</p>
-  <a href="/Pueblos-V2/">Abrir la app</a>
-  <small>También disponible como aplicación Android.</small>
+    <button id="plegar" type="button" aria-label="Ocultar o mostrar el panel" aria-expanded="true">â–²</button>
+
+    <section id="hero">
+        <svg class="logo" viewBox="0 0 96 96" aria-hidden="true">
+            <defs>
+                <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#6a11cb"/>
+                    <stop offset=".5" stop-color="#2575fc"/>
+                    <stop offset="1" stop-color="#00c9a7"/>
+                </linearGradient>
+                <clipPath id="lc"><rect width="96" height="96" rx="22"/></clipPath>
+            </defs>
+            <rect width="96" height="96" rx="22" fill="url(#lg)"/>
+            <g clip-path="url(#lc)">
+                <path d="M0 96V66l22-20 20 24 18-16 36 28v14z" fill="#28105a" opacity=".6"/>
+                <path d="M0 96V78l26-14 22 14 20-10 28 14v14z" fill="#140a3c" opacity=".75"/>
+            </g>
+            <circle cx="48" cy="38" r="20" fill="none" stroke="#fff" stroke-width="4"/>
+            <path d="M48 10v10M48 56v10M20 38h10M66 38h10" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="48" cy="38" r="6" fill="#ff2d95"/>
+        </svg>
+        <h1>Â¿QuÃ© pueblo es?</h1>
+        <p>Apunta con el mÃ³vil al horizonte y descubre quÃ© pueblo tienes delante.</p>
+        <small id="autor">Miguel MarÃ­n</small>
+        <p id="cargando" role="status">Cargando pueblos y picosâ€¦</p>
+        <button id="go" type="button" disabled aria-busy="true">
+            <span class="go1">Cargando datosâ€¦</span>
+            <span class="go2">Preparando pueblos y picos</span>
+        </button>
+    </section>
+
+    <div id="fila1">
+        <div id="rumbo"></div>
+        <button id="anadircam" type="button" title="AÃ±adir un pueblo o pico que no aparezca" aria-label="AÃ±adir un lugar">
+            <span aria-hidden="true">âž•</span><span>AÃ±adir</span>
+        </button>
+        <button id="salir" type="button" title="Termina la identificaciÃ³n y apaga cÃ¡mara, GPS y brÃºjula">
+            <span aria-hidden="true">âœ•</span><span>Terminar</span>
+        </button>
+    </div>
+
+    <div id="estado" aria-label="Estado de GPS, brÃºjula y calibraciÃ³n">
+        <span id="eGps" class="ch n">GPS â€¦</span>
+        <span id="eBrj" class="ch n">BrÃºjula â€¦</span>
+        <span id="eCal" class="ch n">Sin calibrar</span>
+    </div>
+
+    <div id="mejor" aria-live="polite" aria-atomic="true"></div>
+    <div id="lista"></div>
+    <div id="msg" role="status"></div>
+    <div id="brj"></div>
+    <div id="info"></div>
+
+    <section id="extras">
+        <div class="pasos">
+            <div><b aria-hidden="true">1</b>Activa GPS y brÃºjula</div>
+            <div><b aria-hidden="true">2</b>Apunta al horizonte</div>
+            <div><b aria-hidden="true">3</b>Lee el nombre del pueblo</div>
+        </div>
+
+        <button id="probar" type="button">ðŸ”Ž Probar relieve</button>
+        <div id="probres" role="status" aria-live="polite"></div>
+
+        <section id="faltan" aria-labelledby="faltaT">
+            <h3 id="faltaT">Â¿Falta algÃºn pueblo o pico?</h3>
+            <p>Si ves uno que no aparece, puedes traerlo de OpenStreetMap o aÃ±adirlo a mano. Se guarda solo en este mÃ³vil.</p>
+            <button id="osmact" type="button">ðŸ”„ Actualizar desde OpenStreetMap</button>
+            <div id="osmres" role="status" aria-live="polite"></div>
+            <button id="anadirb" type="button">âž• AÃ±adir un lugar a mano</button>
+        </section>
+
+        <button id="vconsejos" type="button">ðŸ’¡ Consejos y avisos</button>
+        <button id="cerrar" type="button">Salir de la app</button>
+
+        <p class="creditos">
+            Datos de pueblos y picos: Â© colaboradores de
+            <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> (ODbL).
+            Relieve: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>.
+        </p>
+    </section>
+
+    <div id="zoom" role="group" aria-label="Zoom y enfoque de la cÃ¡mara">
+        <button id="zmas" type="button" title="Acercar (mÃ¡s zoom)">ï¼‹</button>
+        <span id="zval">Zoom Ã—1</span>
+        <button id="zmenos" type="button" title="Alejar (menos zoom)">âˆ’</button>
+        <button id="enf" type="button"><span class="ic" aria-hidden="true">â—Ž</span><span>Enfocar</span></button>
+    </div>
+
+    <nav id="bar" aria-label="Controles de la cÃ¡mara">
+        <button id="calbtn" type="button" title="Ajusta la brÃºjula con un lugar que veas">
+            <span class="ic" aria-hidden="true">ðŸŽ¯</span><span>Calibrar</span>
+        </button>
+        <button id="aldeas" class="tg" type="button" aria-pressed="true" aria-label="Aldeas: se ven pueblos y aldeas" title="Mostrar u ocultar aldeas pequeÃ±as">
+            <span class="ic" aria-hidden="true">ðŸ˜</span><span class="est" aria-hidden="true"></span>
+        </button>
+        <button id="picosb" class="tg" type="button" aria-pressed="false" title="Mostrar u ocultar nombres de picos">
+            <span class="ic" aria-hidden="true">â›°</span><span>Picos</span><span class="est" aria-hidden="true"></span>
+        </button>
+        <button id="lejosb" class="tg" type="button" aria-pressed="false" aria-label="MÃ¡s lejos: alcance 40 km" title="Alcance 40 km. Pulsa para ampliar a 80 km">
+            <span class="ic" aria-hidden="true">ðŸ”­</span><span>MÃ¡s lejos</span><span class="est" aria-hidden="true"></span>
+        </button>
+        <button id="relb" class="tg" type="button" aria-pressed="true" aria-label="Relieve activado" title="Relieve activado: se ocultan los lugares tapados por montaÃ±as">
+            <span class="ic" aria-hidden="true">ðŸ”</span><span>Relieve</span><span class="est" aria-hidden="true"></span>
+        </button>
+    </nav>
+
+    <div id="toast" role="status" aria-live="polite"></div>
+
+    <div id="fdw">
+        <span>Foco</span>
+        <input type="range" id="fdist" min="0" max="1" step="0.01" value="1" aria-label="Distancia de enfoque (cerca a lejos)">
+        <button id="fauto" type="button">Auto</button>
+    </div>
 </main>
+
+<!-- ================= Panel de calibraciÃ³n ================= -->
+<div id="cal" role="dialog" aria-labelledby="calT" class="menu">
+    <div id="calmenu">
+        <h3 id="calT">Calibrar la brÃºjula</h3>
+        <p>Elige cÃ³mo quieres calibrar. Al pulsar una opciÃ³n te explico los pasos.</p>
+        <button class="cm" id="cm1" type="button">
+            <span class="ic" aria-hidden="true">ðŸŽ¯</span>
+            <span>Con un lugar que veo<small>Recomendado: pones la mira sobre un pueblo conocido.</small></span>
+        </button>
+        <button class="cm" id="cm2" type="button">
+            <span class="ic" aria-hidden="true">ðŸš¶</span>
+            <span>Andando o en coche<small>Se calibra sola al avanzar en lÃ­nea recta.</small></span>
+        </button>
+        <button class="cm" id="cm3" type="button">
+            <span class="ic" aria-hidden="true">8</span>
+            <span>Hacer el 8 en el aire<small>Ajusta el sensor de la brÃºjula del mÃ³vil.</small></span>
+        </button>
+        <button class="cm" id="cm4" type="button">
+            <span class="ic" aria-hidden="true">ðŸ”</span>
+            <span>Con el horizonte<small>Compara las montaÃ±as de la cÃ¡mara con el relieve.</small></span>
+        </button>
+        <button class="cm" id="cm5" type="button">
+            <span class="ic" aria-hidden="true">âš™ï¸</span>
+            <span>Ajustes automÃ¡ticos<small>Afinar sola al moverme, horizonte y silueta.</small></span>
+        </button>
+        <div class="fila2">
+            <button id="calreset" type="button">Quitar calibraciÃ³n</button>
+            <button id="calcerrar" type="button">Cerrar</button>
+        </div>
+    </div>
+
+    <div class="cv" id="calv1">
+        <button class="cback" type="button">â† Otras opciones</button>
+        <h3>ðŸŽ¯ Con un lugar que veo</h3>
+        <div class="cs"><b>1</b>Elige un lugar que veas</div>
+        <select id="calsel" aria-label="Lugar de referencia"></select>
+        <div class="cs"><b>2</b><span>Pon la mira encima (el punto <span style="color:#ff2d95">â—</span> rosa). Solo importa que quede alineada de lado a lado; la altura da igual.</span></div>
+        <div class="cs"><b>3</b>Pulsa Â«EstÃ¡ en la miraÂ»</div>
+        <label class="chk"><input type="checkbox" id="cal2"> Usar dos lugares (mÃ¡s preciso)</label>
+        <button id="calok" type="button">âœ“ EstÃ¡ en la mira</button>
+    </div>
+
+    <div class="cv" id="calv2">
+        <button class="cback" type="button">â† Otras opciones</button>
+        <h3>ðŸš¶ Andando o en coche</h3>
+        <div class="cs"><b>1</b>Pulsa Â«EmpezarÂ»</div>
+        <div class="cs"><b>2</b>Avanza en lÃ­nea recta unos 30 m con el mÃ³vil en vertical apuntando hacia delante (en coche, que lo haga el acompaÃ±ante)</div>
+        <div class="cs"><b>3</b>Al terminar se calibra sola</div>
+        <button id="calgps" type="button">â–¶ Empezar</button>
+    </div>
+
+    <div class="cv" id="calv3">
+        <button class="cback" type="button">â† Otras opciones</button>
+        <h3>8 Hacer el 8 en el aire</h3>
+        <div class="cs"><b>1</b>Dibuja un 8 en el aire girando la muÃ±eca, unos 10 segundos</div>
+        <div class="cs"><b>2</b>Sigue el punto amarillo de la figura</div>
+        <div class="cs"><b>3</b>Cuando diga Â«âœ“ BrÃºjula calibradaÂ», pulsa Â«ListoÂ»</div>
+        <div id="ocho">
+            <svg viewBox="0 0 120 70" width="150" height="88" aria-hidden="true">
+                <path id="p8" d="M15,35 C15,5 55,5 60,35 C65,65 105,65 105,35 C105,5 65,5 60,35 C55,65 15,65 15,35 Z" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="3"/>
+                <circle r="6" fill="#ffe259">
+                    <animateMotion dur="3s" repeatCount="indefinite" path="M15,35 C15,5 55,5 60,35 C65,65 105,65 105,35 C105,5 65,5 60,35 C55,65 15,65 15,35 Z"/>
+                </circle>
+            </svg>
+            <div id="ochot"></div>
+            <button id="ochocerrar" type="button">Listo</button>
+        </div>
+    </div>
+
+    <div class="cv" id="calv4">
+        <button class="cback" type="button">â† Otras opciones</button>
+        <h3>ðŸ” Con el horizonte</h3>
+        <div class="cs"><b>1</b>Apunta a un horizonte despejado con montaÃ±as, con el zoom en Ã—1 y el mÃ³vil recto</div>
+        <div class="cs"><b>2</b>Pulsa Â«Alinear ahoraÂ»</div>
+        <button id="calhor" type="button">ðŸ“· Alinear ahora</button>
+    </div>
+
+    <div class="cv" id="calv5">
+        <button class="cback" type="button">â† Otras opciones</button>
+        <h3>âš™ï¸ Ajustes automÃ¡ticos</h3>
+        <label class="chk"><input type="checkbox" id="auto" checked> Afinar sola al moverme (&gt; 18 km/h)</label>
+        <label class="chk"><input type="checkbox" id="hzauto"> ðŸ“· Corregir el rumbo con el horizonte de la cÃ¡mara</label>
+        <label class="chk"><input type="checkbox" id="hzsil"> ðŸ” Dibujar la silueta del relieve sobre la cÃ¡mara</label>
+    </div>
+
+    <div id="calst" role="status" aria-live="polite"></div>
+</div>
+
+<!-- ================= AÃ±adir un lugar ================= -->
+<div id="anadir" role="dialog" aria-modal="true" aria-labelledby="anadirT">
+    <div class="caja">
+        <h2 id="anadirT">âž• AÃ±adir un lugar</h2>
+        <p>Si ves un pueblo o un pico que no aparece, aÃ±Ã¡delo aquÃ­. Se guarda solo en este mÃ³vil y se puede borrar cuando quieras.</p>
+
+        <div>
+            <label for="anom">Nombre</label>
+            <input type="text" id="anom" maxlength="80" autocomplete="off" placeholder="Ej.: Cerro del Ãguila">
+        </div>
+
+        <div class="fila">
+            <div>
+                <label for="atipo">Tipo</label>
+                <select id="atipo">
+                    <option value="village">Pueblo</option>
+                    <option value="town">Villa o ciudad pequeÃ±a</option>
+                    <option value="city">Ciudad</option>
+                    <option value="hamlet">Aldea</option>
+                    <option value="isolated_dwelling">CaserÃ­o</option>
+                    <option value="peak">Pico</option>
+                </select>
+            </div>
+            <div id="aaltc" class="oculto">
+                <label for="aalt">Altura (m)</label>
+                <input type="number" id="aalt" min="1" max="9000" inputmode="numeric" placeholder="Ej.: 1450">
+            </div>
+        </div>
+
+        <div>
+            <label>CÃ³mo indicar el sitio</label>
+            <div class="seg" role="group" aria-label="Modo de posiciÃ³n">
+                <button id="amodo1" type="button" aria-pressed="true">ðŸ“ Desde aquÃ­</button>
+                <button id="amodo2" type="button" aria-pressed="false">ðŸŒ Con coordenadas</button>
+            </div>
+            <p id="acur">â€”</p>
+        </div>
+
+        <div id="adesde">
+            <div class="fila">
+                <div>
+                    <label for="arumbo">Rumbo (Â°)</label>
+                    <input type="number" id="arumbo" min="0" max="359" step="1" inputmode="numeric" value="0">
+                </div>
+                <div>
+                    <label for="adist">Distancia (km)</label>
+                    <input type="number" id="adist" min="0.05" max="80" step="0.1" inputmode="decimal" placeholder="Ej.: 2,5">
+                </div>
+            </div>
+            <button id="ausar" type="button">ðŸ§­ Usar el rumbo actual</button>
+        </div>
+
+        <div id="acoord" class="oculto">
+            <div class="fila">
+                <div>
+                    <label for="alat">Latitud</label>
+                    <input type="number" id="alat" step="0.000001" inputmode="decimal" placeholder="40.417">
+                </div>
+                <div>
+                    <label for="alon">Longitud</label>
+                    <input type="number" id="alon" step="0.000001" inputmode="decimal" placeholder="-3.704">
+                </div>
+            </div>
+            <button id="aqui" type="button">ðŸ“ Usar mi posiciÃ³n</button>
+        </div>
+
+        <div class="btns">
+            <button id="aadd" type="button">âœ“ AÃ±adir</button>
+            <button id="acerra" type="button">Cerrar</button>
+        </div>
+        <div id="aest" role="status" aria-live="polite"></div>
+
+        <button id="aosm" type="button">ðŸ”„ Buscar en OpenStreetMap los que falten</button>
+        <div id="aosmres" role="status" aria-live="polite"></div>
+
+        <div id="alistac">
+            <h3>Mis lugares aÃ±adidos</h3>
+            <div id="alista" class="lista"></div>
+            <button id="aborrarosm" type="button" hidden>ðŸ—‘ Borrar los traÃ­dos de OpenStreetMap</button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= DiÃ¡logos ================= -->
+<div id="conf" role="alertdialog" aria-modal="true" aria-labelledby="confT">
+    <div class="emoji" aria-hidden="true">ðŸ“·</div>
+    <h2 id="confT">Â¿Terminar la identificaciÃ³n?</h2>
+    <p>Se apagarÃ¡n la cÃ¡mara, el GPS y la brÃºjula.</p>
+    <button id="confno" type="button">Seguir mirando</button>
+    <button id="confsi" type="button">SÃ­, terminar</button>
+</div>
+
+<div id="permisos" role="dialog" aria-modal="true" aria-labelledby="permT">
+    <h2 id="permT">Antes de empezar</h2>
+    <p>Para funcionar, la app necesita tres permisos. Tu mÃ³vil te los pedirÃ¡ al pulsar Â«Iniciar identificaciÃ³nÂ»: pulsa Â«PermitirÂ» en cada uno.</p>
+    <ul>
+        <li><span class="pi" aria-hidden="true">ðŸ§­</span><span><b>BrÃºjula</b><br>Para saber hacia dÃ³nde apuntas. Sin ella no puedo saber quÃ© pueblo tienes delante.</span></li>
+        <li><span class="pi" aria-hidden="true">ðŸ“</span><span><b>UbicaciÃ³n</b><br>Para saber dÃ³nde estÃ¡s y buscar los pueblos y el relieve a tu alrededor. Solo se usa mientras la app estÃ¡ abierta.</span></li>
+        <li><span class="pi" aria-hidden="true">ðŸ“·</span><span><b>CÃ¡mara</b><br>Para ver lo que apuntas y poner los nombres sobre la imagen. La imagen no sale de tu mÃ³vil y no se guarda.</span></li>
+    </ul>
+    <p><b>Los tres son necesarios:</b> si rechazas alguno, la app no podrÃ¡ identificar pueblos. Si lo rechazas sin querer, puedes volver a activarlo en los ajustes del navegador o del mÃ³vil.</p>
+    <button id="permok" type="button">Entendido, continuar</button>
+    <button id="permno" type="button">Ahora no</button>
+</div>
+
+<div id="guia" role="dialog" aria-modal="true" aria-labelledby="guiaT">
+    <h2 id="guiaT">CÃ³mo se usa</h2>
+    <div id="guiaPerm" style="display:none;width:100%;max-width:38ch">
+        <h3>Permisos que te pedirÃ¡ el mÃ³vil</h3>
+        <ul>
+            <li><span class="pi" aria-hidden="true">ðŸ§­</span><span><b>BrÃºjula</b>: para saber hacia dÃ³nde apuntas.</span></li>
+            <li><span class="pi" aria-hidden="true">ðŸ“</span><span><b>UbicaciÃ³n</b>: para saber dÃ³nde estÃ¡s y buscar los pueblos y el relieve.</span></li>
+            <li><span class="pi" aria-hidden="true">ðŸ“·</span><span><b>CÃ¡mara</b>: para ver lo que apuntas. La imagen no sale de tu mÃ³vil.</span></li>
+        </ul>
+    </div>
+    <h3>Consejos</h3>
+    <ul>
+        <li><span class="pi" aria-hidden="true">ðŸ‘†</span><span>Apunta al horizonte con el mÃ³vil en vertical. El nombre grande es el pueblo que estÃ¡ bajo el punto rosa de la mira.</span></li>
+        <li><span class="pi" aria-hidden="true">ðŸŽ¯</span><span>Si el nombre no coincide con lo que ves, calibra la brÃºjula.</span></li>
+        <li><span class="pi" aria-hidden="true">ðŸ“Š</span><span>La franja de arriba dice cuÃ¡ndo fiarte: <b>GPS</b>, <b>BrÃºjula</b> (con su margen de error) y si estÃ¡ <b>Calibrada</b>.</span></li>
+        <li><span class="pi" aria-hidden="true">ðŸ”</span><span>Toca la pantalla para enfocar; pellizca para hacer zoom.</span></li>
+    </ul>
+    <h3>Botones de la cÃ¡mara</h3>
+    <ul>
+        <li><span class="pi" aria-hidden="true">ðŸŽ¯</span><span><b>Calibrar</b>: abre las formas de corregir la brÃºjula y te explica los pasos.</span></li>
+        <li><span class="pi" aria-hidden="true">ðŸ˜</span><span><b>Aldeas</b> (Con aldeas / Solo pueblos): indica si se ven pueblos y aldeas, o solo pueblos.</span></li>
+        <li><span class="pi" aria-hidden="true">â›°</span><span><b>Picos</b> (SÃ­/No): muestra los nombres de los picos con su altura.</span></li>
+        <li><span class="pi" aria-hidden="true">ðŸ”­</span><span><b>MÃ¡s lejos</b> (40 km / 80 km): amplÃ­a hasta dÃ³nde busca pueblos.</span></li>
+        <li><span class="pi" aria-hidden="true">ðŸ”</span><span><b>Relieve</b> (SÃ­/No): oculta los lugares tapados por montaÃ±as. Si lo apagas, se muestran todos por direcciÃ³n.</span></li>
+        <li><span class="pi" aria-hidden="true">âž•</span><span><b>Zoom</b>: acerca o aleja la cÃ¡mara.</span></li>
+        <li><span class="pi" aria-hidden="true">â—Ž</span><span><b>Enfocar</b>: enfoca el centro de la imagen.</span></li>
+        <li><span class="pi" aria-hidden="true">âœ•</span><span><b>Terminar</b> (arriba a la derecha): apaga cÃ¡mara, GPS y brÃºjula.</span></li>
+    </ul>
+    <button id="guiaok" type="button">Entendido</button>
+</div>
+
+<div id="adios" role="dialog" aria-modal="true" aria-labelledby="adiosT">
+    <div class="emoji" aria-hidden="true">ðŸ‘‹</div>
+    <h2 id="adiosT">Hasta pronto</h2>
+    <p>La cÃ¡mara, la ubicaciÃ³n y la brÃºjula estÃ¡n apagadas. Para cerrar del todo, quita la app desde el selector de apps (en iPhone, desliza hacia arriba desde el borde inferior).</p>
+    <button id="volver" type="button">Volver</button>
+</div>
+
+<noscript>
+    <p>Esta app necesita JavaScript para usar la cÃ¡mara, el GPS y la brÃºjula.</p>
+</noscript>
+
+<!-- Datos: pueblos (imprescindible) y motor. picos.js se carga solo al activar Picos. -->
+<script defer src="data/pueblos.js"></script>
+<script defer src="scripts/app.js"></script>
 </body>
 </html>
