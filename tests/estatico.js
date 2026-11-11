@@ -116,6 +116,36 @@ for (const [archivo, variable, minimo] of [
   else ok('todas las líneas tienen formato lat|lon|nombre|tipo');
 }
 
+// ---------- ubicación y salidas de emergencia ----------
+console.log('\nubicación');
+const app = leer('scripts/app.js');
+for (const id of ['ubicaReintentar', 'ubicaRecargar', 'ubicaAjustes', 'ubicaUltima', 'ubicaPueblo', 'ubicaCerrar']) {
+  if (!new RegExp('id="' + id + '"').test(html)) mal('falta el botón #' + id + ' en index.html');
+  else ok('botón #' + id);
+  if (!app.includes('$("' + id + '").onclick')) mal('sin manejador para #' + id);
+  else ok('manejador #' + id);
+}
+const guardados = (app.match(/guardarPosUbic\(/g) || []).length;
+if (guardados >= 6) ok('la posición se guarda en ' + (guardados - 1) + ' puntos');
+else mal('guardarPosUbic solo aparece ' + guardados + ' veces (se esperan definición + 5 usos)');
+const asigna = (app.match(/ultimaPos\s*=\s*(?:pos|P0)/g) || []).length;
+if (asigna >= 5) ok(asigna + ' asignaciones de ultimaPos');
+else mal('solo ' + asigna + ' asignaciones de ultimaPos (se esperaban 5)');
+if (/function posGuardada\(/.test(app) && /function usarPuebloComoUbic\(/.test(app) && /buscarModoUbic/.test(app)) {
+  ok('última ubicación y «elegir mi pueblo» disponibles');
+} else mal('faltan las salidas de emergencia de ubicación');
+
+// Cache-bust coherente: todos los ?v=N deben ser el mismo número
+const vers = [...new Set([
+  ...[...html.matchAll(/\?v=(\d+)/g)].map((m) => m[1]),
+  ...[...sw.matchAll(/\?v=(\d+)/g)].map((m) => m[1]),
+])];
+if (vers.length === 1) ok('cache-bust unificado: ?v=' + vers[0]);
+else mal('cache-bust incoherente: ' + vers.join(', '));
+const vSw = /VERSION = 'v(\d+)'/.exec(sw);
+if (vSw && vSw[1] === vers[0]) ok('sw.js VERSION = v' + vSw[1]);
+else mal('VERSION del sw.js (' + (vSw ? vSw[1] : '?') + ') no coincide con ?v=' + vers.join(','));
+
 // ---------- resultado ----------
 console.log('');
 if (fallos.length) {

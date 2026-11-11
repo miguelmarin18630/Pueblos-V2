@@ -275,9 +275,22 @@ body.on #estado {
     background: linear-gradient(90deg, #15803d, #0f766e);
 }
 
+#ubicaRecargar {
+    background: linear-gradient(90deg, #b45309, #92400e);
+}
+
+#ubicaUltima {
+    background: linear-gradient(90deg, #1d4ed8, #1e40af);
+}
+
+#ubicaPueblo {
+    background: #0f766e;
+    border-color: #5eead4;
+}
+
 #ubicaAjustes {
-    background: #1d4ed8;
-    border-color: #bfdbfe;
+    background: #334155;
+    border-color: #cbd5e1;
 }
 
 #ubicaCerrar {
