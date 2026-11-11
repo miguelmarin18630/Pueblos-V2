@@ -223,8 +223,9 @@ function actOcho(){
   t.textContent=(prec<=10?"✓ Brújula calibrada. Ya puedes pulsar «Listo». ":"Sigue dibujando el 8… ")+"Precisión: ±"+Math.round(prec)+"°"+(prec<=10?"":" (objetivo: ±10° o menos)");
 }
 function cerrarOcho(){ochoActivo=false}
-// Cuenta localidades a menos de km (en cualquier dirección o solo en la que apunta el móvil)
-function contarPueblos(pe,hdc,km,soloDir){
+// Cuenta localidades a menos de km (en cualquier dirección o solo en la que apunta el móvil).
+// «todos» cuenta también las aldeas, para poder explicar «solo hay aldeas aquí».
+function contarPueblos(pe,hdc,km,soloDir,todos){
   var dLa=km/111,dLo=km/(111*Math.max(0.2,Math.cos(pe.latitude*R))),n=0,i,p,k;
   var cand=enRecuadro(pe.latitude,pe.longitude,dLa,dLo);
   for(i=0;i<cand.length;i++){
@@ -232,6 +233,10 @@ function contarPueblos(pe,hdc,km,soloDir){
     if(Math.abs(p[1]-pe.latitude)>=dLa||Math.abs(p[2]-pe.longitude)>=dLo)continue;
     k=dst(pe.latitude,pe.longitude,p[1],p[2]);
     if(k<=0.5||k>km)continue;
+    // Las aldeas y caseríos solo cuentan si el modo «Con aldeas» está activo
+    // (y, como en la pantalla, solo si están a menos de 12 km)
+    var t=p[3]||"city";
+    if(!todos&&(t==="hamlet"||t==="isolated_dwelling")&&(!verAldeas||k>12))continue;
     if(soloDir&&dif(brg(pe.latitude,pe.longitude,p[1],p[2]),hdc)>tolMira())continue;
     n++;
   }
@@ -244,14 +249,18 @@ function sinPueblos(pe,hdc,r){
   var k=[pe.latitude.toFixed(2),pe.longitude.toFixed(2),Math.round(hdc/3),alcance,verAldeas?1:0,P.length].join("|");
   if(spC.k===k)return spC.t;
   var t;
+  var hayTodo=contarPueblos(pe,hdc,alcance,false,true);
+  var hayDirTodo=contarPueblos(pe,hdc,alcance,true,true);
+  var hayDir=contarPueblos(pe,hdc,alcance,true);
   if(!BD&&P.length<=BASE.length){
     t="No tengo los pueblos de esta zona.";
-  }else if(!contarPueblos(pe,hdc,alcance,false)){
+  }else if(!hayTodo){
     t="No tengo pueblos a menos de "+alcance+" km de aquí.";
-    if(alcance<80&&contarPueblos(pe,hdc,80,false)>0)t+=" Prueba con «Más lejos» (80 km).";
-  }else if(!contarPueblos(pe,hdc,alcance,true)){
-    t="No hay pueblos en esa dirección a menos de "+alcance+" km."+((alcance<80&&contarPueblos(pe,hdc,80,true)>0)?" Prueba con «Más lejos» (80 km) o gira hacia otro lado.":" Gira hacia otro lado.");
-  }else t=verAldeas?"No veo ningún pueblo en esa dirección.":"Solo hay aldeas en esa dirección: activa «Aldeas» para verlas.";
+    if(alcance<80&&contarPueblos(pe,hdc,80,false,true)>0)t+=" Prueba con «Más lejos» (80 km).";
+  }else if(!hayDir){
+    if(!verAldeas&&hayDirTodo>0)t="Solo hay aldeas en esa dirección: pulsa «Con aldeas» para verlas.";
+    else t="No hay pueblos en esa dirección a menos de "+alcance+" km."+((alcance<80&&contarPueblos(pe,hdc,80,true)>0)?" Prueba con «Más lejos» (80 km) o gira hacia otro lado.":" Gira hacia otro lado.");
+  }else t="No veo ningún pueblo en esa dirección.";
   spC={k:k,t:t};return t;
 }
 // Indicadores de estado siempre visibles: GPS, brújula y calibración
@@ -282,7 +291,10 @@ function pintar(){
   rafP=requestAnimationFrame(function(){rafP=0;pintarYa()});
 }
 function pintarYa(){
-  if(!pos){return}
+  // La vista de cámara es la única que pinta mira, rumbo y avisos. En la portada
+  // (antes de iniciar) no se escribe nada en #msg: los mensajes de "no veo
+  // pueblos en esa dirección" no tienen sentido allí y tapaban los contadores.
+  if(!pos||!document.body.classList.contains("on"))return;
   var pe=posEfectiva();
   var hdc=rumboC();
   if(!panEnCurso&&Date.now()>=panBloq&&(!pan||pan.alc!==alcance||Math.abs(envolver(hdc-pan.c))>25||dst(pan.la,pan.lo,pos.latitude,pos.longitude)>1.5||(pan.paso>1&&Date.now()-pan.t>8000&&omLibres()>120)))construirPano();
@@ -729,7 +741,7 @@ function botonSalir(){$("cerrar").style.display=""}
 botonSalir();window.addEventListener("load",botonSalir);
 $("volver").onclick=function(){$("adios").style.display="none"};
 // ---- Calibración de la brújula y filtro de aldeas ----
-var off=0,verAldeas=true,prec=null,calList=[];
+var off=0,verAldeas=false,prec=null,calList=[];
 try{var so=parseFloat(localStorage.getItem("off"));if(!isNaN(so))off=so}catch(e){}
 var tab={};
 try{var st0=JSON.parse(localStorage.getItem("tab")||"{}");if(st0&&typeof st0==="object")tab=st0}catch(e){}
@@ -745,7 +757,15 @@ function offPara(h){
   return so/sw;
 }
 function maxDif(a){var m=0;for(var i=1;i<a.length;i++)m=Math.max(m,dif(a[i],a[0]));return m}
-$("aldeas").onclick=function(){verAldeas=!verAldeas;this.setAttribute("aria-pressed",verAldeas?"true":"false");actAldeasBtn();pintar()};
+// Dos botones excluyentes: «Solo pueblos» (por defecto, en verde) y «Con aldeas»
+$("soloPueblos").onclick=function(){
+  if(verPicos)return;
+  verAldeas=false;actAldeasBtn();pintar();
+};
+$("conAldeas").onclick=function(){
+  if(verPicos)return;
+  verAldeas=true;actAldeasBtn();pintar();
+};
 $("calbtn").onclick=function(){
   if(!pos)return;
   calList=P.filter(function(p){return p[3]!=="hamlet"&&p[3]!=="isolated_dwelling"}).map(function(p){return{n:p[0],la:p[1],lo:p[2],k:dst(pos.latitude,pos.longitude,p[1],p[2])}}).filter(function(p){return p.k>0.5&&p.k<60}).sort(function(a,b){return a.k-b.k}).slice(0,15);
@@ -768,14 +788,14 @@ function ajustarMira(){
 if(window.ResizeObserver)new ResizeObserver(ajustarMira).observe($("cal"));
 window.addEventListener("resize",ajustarMira);
 function calVista(v){
-  ["calmenu","calv1","calv2","calv3","calv4","calv5"].forEach(function(id,i){$(id).style.display=(i===v)?"block":"none"});
+  ["calmenu","calv1","calv2","calv3","calv4"].forEach(function(id,i){$(id).style.display=(i===v)?"block":"none"});
   $("cal").className=v===0?"menu":"";
   ajustarMira();
   ochoActivo=(v===3);
   calAnd=null;cal2={b:null,o:null};$("calst").textContent="";
   if(v===3)actOcho();
 }
-[1,2,3,4,5].forEach(function(n){$("cm"+n).onclick=function(){calVista(n)}});
+[1,2,3,4].forEach(function(n){$("cm"+n).onclick=function(){calVista(n)}});
 [].forEach.call(document.querySelectorAll("#cal .cback"),function(b){b.onclick=function(){calVista(0)}});
 var calAnd=null,cal2={b:null,o:null};
 calVista(0);
@@ -836,11 +856,10 @@ function actualizarMarcha(c){
   if(v>=8){velAlta++;velBaja=0}else if(v<2){velBaja++;velAlta=0}
   if(!modoCoche&&velAlta>=3)modoCoche=true;
   if(modoCoche&&velBaja>=20)modoCoche=false;
-  // Autocalibración: una vez calibrada, afina la corrección de cada dirección con el rumbo real del GPS.
+  // Autocalibración siempre activa: afina la corrección de cada dirección con el rumbo real del GPS.
   // Solo si vas a más de 18 km/h, el móvil está quieto y apunta casi hacia delante (menos de 20° de diferencia).
   hdH.push(hd);if(hdH.length>3)hdH.shift();
-  var calibrada=off!==0||Object.keys(tab).length>0;
-  if($("auto").checked!==false&&calibrada&&rumboGPS!==null&&v>=5&&Math.abs(pit)<30&&hdH.length===3&&maxDif(hdH)<=8){
+  if(rumboGPS!==null&&v>=5&&Math.abs(pit)<30&&hdH.length===3&&maxDif(hdH)<=8){
     var base=offPara(hd),d=envolver(rumboGPS-(hd+base+360)%360);
     if(Math.abs(d)<=20){
       var k=Math.round(hd/45)%8;
@@ -850,10 +869,8 @@ function actualizarMarcha(c){
     }
   }
 }
-// El interruptor «Ajustes automáticos» (afinar sola la brújula al moverse) se guarda
-// y se lee cada marcha del GPS; viene activado por defecto
-$("auto").onchange=function(){try{localStorage.setItem("auto",this.checked?"1":"0")}catch(e){}};
-try{if(localStorage.getItem("auto")==="0")$("auto").checked=false}catch(e){}
+// El interruptor «ajustes automáticos» ya no existe: afinar sola al moverse es
+// siempre parte del funcionamiento. Se guarda la corrección de la brújula cada 10 s.
 // Entre dos lecturas del GPS, calcula dónde estás según velocidad y rumbo
 function posEfectiva(){
   if(!pos)return null;
@@ -1353,11 +1370,12 @@ $("lejosb").onclick=function(){
 };
 $("relb").onclick=function(){
   usarRelieve=!usarRelieve;
+  // La silueta del relieve sobre la cámara sigue al botón: Relieve Sí la dibuja,
+  // Relieve No la apaga (y también deja de comprobar si las montañas tapan).
+  hzSil=usarRelieve;
   this.classList.toggle("act",usarRelieve);this.setAttribute("aria-pressed",usarRelieve?"true":"false");
   this.title=usarRelieve?"Relieve activado: se ocultan los lugares tapados por montañas":"Relieve desactivado: se muestran todos los lugares por dirección";
-  avisar(usarRelieve?"🏔 Relieve activado: compruebo si las montañas tapan los pueblos.":"🏔 Relieve desactivado: muestro los pueblos sin comprobar las montañas.",4500);
-  // Si se activa el relieve, la silueta se dibuja automáticamente sobre la cámara
-  if(usarRelieve){try{$("hzsil").checked=true;localStorage.setItem("hzsil","1")}catch(e){}}
+  avisar(usarRelieve?"🏔 Relieve activado: compruebo si las montañas tapan los pueblos y dibujo su silueta.":"🏔 Relieve desactivado: muestro los pueblos sin comprobar las montañas.",4500);
   panBloq=0;pintar();
 };
 $("picosb").onclick=function(){
@@ -1368,7 +1386,20 @@ $("picosb").onclick=function(){
   if(verPicos){pkProx=0;cargarPicos()}
   pintar();
 };
-function actAldeasBtn(){var b=$("aldeas");b.disabled=verPicos;b.style.opacity=verPicos?".45":"";var t=verPicos?"No disponible mientras se muestran los picos":verAldeas?"Se ven pueblos y aldeas. Pulsa para ver solo pueblos":"Se ven solo pueblos. Pulsa para ver también las aldeas";b.title=t;b.setAttribute("aria-label","Aldeas: "+t)}
+function actAldeasBtn(){
+  var s=$("soloPueblos"),c=$("conAldeas");
+  if(!s||!c)return;
+  // Con «Picos» activado no se muestran pueblos ni aldeas: los dos botones se apagan
+  s.disabled=verPicos;c.disabled=verPicos;
+  s.style.opacity=verPicos?".45":"";
+  c.style.opacity=verPicos?".45":"";
+  s.setAttribute("aria-pressed",(!verAldeas&&!verPicos)?"true":"false");
+  c.setAttribute("aria-pressed",(verAldeas&&!verPicos)?"true":"false");
+  s.title=verPicos?"No disponible mientras se muestran los picos":"Se ven solo pueblos (sin aldeas ni caseríos)";
+  c.title=verPicos?"No disponible mientras se muestran los picos":"Se ven pueblos, aldeas y caseríos";
+  s.setAttribute("aria-label","Solo pueblos: "+s.title);
+  c.setAttribute("aria-label","Con aldeas: "+c.title);
+}
 // Pico bajo la mira: dentro del campo vertical de la camara y lo mas centrado
 // posible en pantalla (distancia angular 2D), no solo el que menos se desvia en
 // horizontal. Asi una cumbre cercana que asoma muy alta no le gana a la que de
@@ -1583,11 +1614,9 @@ $("calhor").onclick=function(){
 // Cada 1,5 s compara la silueta cielo/terreno de la imagen con la calculada del relieve. Solo se acepta
 // si la confianza es alta y dos capturas seguidas coinciden; la corrección se aplica poco a poco, vale
 // para la zona de rumbos donde se midió y no se guarda (la calibración guardada no se toca).
-var hzAuto=false,hzSil=false,hzOff=0,hzH=0,hzT=0,hzConf=0,hzPrev=null,hzDet=null;
-try{if(localStorage.getItem("hzAuto")==="1")hzAuto=true;if(localStorage.getItem("hzSil")==="1")hzSil=true}catch(e){}
-$("hzauto").checked=hzAuto;$("hzsil").checked=hzSil;
-$("hzauto").onchange=function(){hzAuto=this.checked;if(!hzAuto){hzOff=0;hzPrev=null}try{localStorage.setItem("hzAuto",hzAuto?"1":"0")}catch(e){}pintar()};
-$("hzsil").onchange=function(){hzSil=this.checked;try{localStorage.setItem("hzSil",hzSil?"1":"0")}catch(e){}pintar()};
+// La corrección del rumbo con el horizonte es siempre automática (ya no hay
+// interruptor). La silueta del relieve se dibuja solo con «Relieve: Sí».
+var hzAuto=true,hzSil=usarRelieve,hzOff=0,hzH=0,hzT=0,hzConf=0,hzPrev=null,hzDet=null;
 // La corrección vale entera cerca del rumbo donde se midió y se desvanece al girar más de 30° (a 90° ya no cuenta)
 function hzPara(h){if(!hzAuto||!hzOff)return 0;var d=dif(h,hzH);return d<=30?hzOff:d>=90?0:hzOff*(90-d)/60}
 function rumboC(){return (hd+offPara(hd)+hzPara(hd)+720)%360}
@@ -1749,6 +1778,11 @@ async function actualizarOSM(btnId){
     try{
       var p=await pedirPos({enableHighAccuracy:true,timeout:20000,maximumAge:60000},21000);
       if(p&&!p.error){P0=p.coords;pos=P0;ultimaPos=P0;posT=Date.now()}
+      else{
+        osmEstado("La ubicación está desactivada: actívala en los ajustes del móvil. Esperando…");
+        var pu=await esperarUbicacion(p&&p.error);
+        if(pu&&!pu.error){P0=pu.coords;pos=P0;ultimaPos=P0;posT=Date.now()}
+      }
     }catch(e){}
     if(!P0){
       osmEstado("No se pudo obtener la ubicación. Activa el GPS del móvil y vuelve a intentarlo.");
@@ -1791,7 +1825,9 @@ async function actualizarOSM(btnId){
     guardarAgregados();
     BDlisto=true;P=unir();
     if(nP){pkCentro=null;pkProx=0;pkCargando=false;if(verPicos)cargarPicos()}
-    pintar();pintarLista();
+    // En la portada no hay cámara: no se pinta la mira ni se escribe en #msg
+    if(document.body.classList.contains("on"))pintar();
+    pintarLista();
     var total=nN+nP,partes=[];
     if(nN)partes.push(plural(nN,"pueblo","pueblos")+(nN===1?" nuevo":" nuevos"));
     if(nP)partes.push(plural(nP,"pico","picos")+(nP===1?" nuevo":" nuevos"));
@@ -2207,6 +2243,94 @@ function msgSinUbic(e){
   if(c===2)return "La ubicación no está disponible ahora. Activa la ubicación/GPS del móvil, sal al exterior si estás bajo techo y vuelve a intentarlo.";
   return "No pude obtener la ubicación (tardó demasiado). Activa el GPS/ubicación del móvil, sal al exterior y vuelve a intentarlo.";
 }
+// ---- Aviso de «la ubicación está desactivada» ----
+// Cuando el móvil tiene el GPS apagado (o el permiso bloqueado) el navegador no
+// puede encenderlo: se muestra un aviso con los pasos, un botón para abrir los
+// ajustes del sistema en Android y un reintento automático cada pocos segundos.
+// Así, en cuanto el usuario activa la ubicación, la app se reanuda sola.
+var ubiEspera=null;
+function ubiPlataforma(){
+  var ua=navigator.userAgent||"";
+  if(/iPhone|iPad|iPod/i.test(ua))return "ios";
+  if(/Android/i.test(ua))return "android";
+  return "otro";
+}
+function ubiPasosHTML(e){
+  var ios=ubiPlataforma()==="ios";
+  var negado=e&&e.code===1;
+  var pasos=[];
+  if(ios){
+    if(negado)pasos.push("En <b>Safari</b>, toca la <b>aA</b> de la barra de direcciones > <b>Ajustes del sitio web</b> y permite la <b>Ubicación</b>.");
+    pasos.push("Abre <b>Ajustes</b> > <b>Privacidad y seguridad</b> > <b>Localización</b> y actívala.");
+    pasos.push("Comprueba que esta web tiene la ubicación en «Al usar la app» y con «Ubicación precisa».");
+  }else{
+    if(negado)pasos.push("Entra en <b>Ajustes</b> > <b>Aplicaciones</b> > <b>¿Qué pueblo es?</b> > <b>Permisos</b> > <b>Ubicación</b> y elige «Permitir».");
+    pasos.push("Abre <b>Ajustes</b> > <b>Ubicación</b> y actívala (en algunos móviles: <b>Google</b> > <b>Ubicación</b>).");
+  }
+  pasos.push("Vuelve a esta app: se reanudará sola en cuanto el móvil dé la posición.");
+  return "<li>"+pasos.join("</li><li>")+"</li>";
+}
+function mostrarAvisoUbicacion(e){
+  $("ubicaPasos").innerHTML=ubiPasosHTML(e);
+  $("ubicaIntro").textContent=(e&&e.code===1)
+    ?"El permiso de ubicación está bloqueado. La app no puede continuar sin saber dónde estás."
+    :"La ubicación del móvil está apagada o no llega señal. Actívala para continuar.";
+  $("ubicaEstado").textContent="Buscando la ubicación…";
+  // En Android se ofrece abrir los ajustes del sistema; en iOS se explica la ruta
+  $("ubicaAjustes").style.display=(ubiPlataforma()==="android")?"block":"none";
+}
+function esperarUbicacion(e){
+  if(ubiEspera)return ubiEspera.p;
+  mostrarAvisoUbicacion(e);
+  $("ubica").style.display="flex";
+  try{$("ubicaReintentar").focus()}catch(err){}
+  var obj={};
+  obj.p=new Promise(function(res){
+    var hecho=false,timer=null,ciclo=null;
+    var fin=function(v){
+      if(hecho)return;
+      hecho=true;clearTimeout(timer);
+      document.removeEventListener("visibilitychange",despertar);
+      $("ubica").style.display="none";
+      $("ubicaEstado").textContent="";
+      ubiEspera=null;
+      res(v);
+    };
+    var despertar=function(){
+      if(hecho)return;
+      if(document.visibilityState==="visible"){clearTimeout(timer);ciclo()}
+    };
+    ciclo=function(){
+      if(hecho)return;
+      $("ubicaEstado").textContent="Buscando la ubicación…";
+      pedirPos({enableHighAccuracy:true,timeout:11000,maximumAge:0},12000).then(function(p){
+        if(hecho)return;
+        if(p&&!p.error){fin(p);return}
+        if(p&&p.error&&p.error.code===1){
+          mostrarAvisoUbicacion(p.error);
+          $("ubicaEstado").textContent="Sin permiso de ubicación: actívalo en los ajustes y vuelve.";
+        }else{
+          $("ubicaEstado").textContent="Todavía sin ubicación. Actívala en los ajustes del móvil y espera unos segundos…";
+        }
+        timer=setTimeout(ciclo,3500);
+      });
+    };
+    obj.reintentar=function(){if(hecho)return;clearTimeout(timer);ciclo()};
+    obj.fin=fin;
+    document.addEventListener("visibilitychange",despertar);
+    ciclo();
+  });
+  ubiEspera=obj;
+  return obj.p;
+}
+$("ubicaReintentar").onclick=function(){if(ubiEspera)ubiEspera.reintentar()};
+$("ubicaCerrar").onclick=function(){if(ubiEspera)ubiEspera.fin(null)};
+$("ubicaAjustes").onclick=function(){
+  // Solo Android: abre los ajustes de ubicación del sistema. Si el navegador no
+  // admite «intent:», se vuelve a esta misma página sin romper nada.
+  var url="intent:#Intent;action=android.settings.LOCATION_SOURCE_SETTINGS;S.browser_fallback_url="+encodeURIComponent(location.href)+";end";
+  try{location.href=url}catch(err){}
+};
 async function iniciar2(){
   $("msg").textContent="Comprobando permisos…";
   try{
@@ -2246,9 +2370,19 @@ async function iniciar2(){
     if(window.AndroidApp){ var pa=posDesdeAndroid(); if(pa){p0=pa;break} }
   }
   if(window.AndroidApp&&(!p0||p0.error)){ var pa2=posDesdeAndroid(); if(pa2)p0=pa2; }
-  if(!p0||p0.error){$("msg").textContent=msgSinUbic(p0&&p0.error);return}
+  if(!p0||p0.error){
+    $("msg").textContent=msgSinUbic(p0&&p0.error);
+    // No se abandona: se abre el aviso de ubicación y se reanuda en cuanto llegue
+    clearTimeout(iniciarTimer);
+    var pu=await esperarUbicacion(p0&&p0.error);
+    if(!pu||pu.error){$("msg").textContent=msgSinUbic(pu&&pu.error);return}
+    p0=pu;
+  }
   (function(p){
     pos=p.coords;ultimaPos=pos;posT=Date.now();$("go").style.display="none";$("msg").textContent="Ubicación obtenida.";
+    // Al iniciar la localización, la corrección con el horizonte y el afinar sola
+    // arrancan siempre desde cero (ya no dependen de ajustes opcionales).
+    hzAuto=true;hzOff=0;hzPrev=null;
     masPueblos();document.body.classList.add("on");camara();pantallaEncendida(true);consejosPrimeraVez();actualizarConteos();
     // Si el usuario pidió una búsqueda direccional antes de tener GPS, se activa ahora
     if(invPendiente&&invDest){

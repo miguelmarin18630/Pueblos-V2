@@ -40,10 +40,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="¿Qué pueblo?">
 
-<link rel="stylesheet" href="styles/base.css?v=21">
-<link rel="stylesheet" href="styles/portada.css?v=21">
-<link rel="stylesheet" href="styles/layout.css?v=21">
-<link rel="stylesheet" href="styles/camera.css?v=21">
+<link rel="stylesheet" href="styles/base.css?v=22">
+<link rel="stylesheet" href="styles/portada.css?v=22">
+<link rel="stylesheet" href="styles/layout.css?v=22">
+<link rel="stylesheet" href="styles/camera.css?v=22">
 
 <!-- La base de pueblos se necesita siempre: que empiece a descargarse ya -->
 <link rel="preload" href="data/pueblos.js" as="script">
@@ -166,9 +166,14 @@
         <button id="relb" class="tg" type="button" aria-pressed="true" aria-label="Relieve activado" title="Relieve activado: se ocultan los lugares tapados por montañas">
             <span class="ic" aria-hidden="true">🏔</span><span>Relieve</span><span class="est" aria-hidden="true"></span>
         </button>
-        <button id="aldeas" class="tg" type="button" aria-pressed="true" aria-label="Aldeas: se ven pueblos y aldeas" title="Mostrar u ocultar aldeas pequeñas">
-            <span class="ic" aria-hidden="true">🏘</span><span class="est" aria-hidden="true"></span>
-        </button>
+        <div id="aldeaGrupo" role="group" aria-label="Qué se muestra: solo pueblos o también aldeas">
+            <button id="soloPueblos" class="tg" type="button" aria-pressed="true" title="Se ven solo pueblos (sin aldeas ni caseríos)">
+                <span>Solo<br>pueblos</span>
+            </button>
+            <button id="conAldeas" class="tg" type="button" aria-pressed="false" title="Se ven pueblos, aldeas y caseríos">
+                <span>Con<br>aldeas</span>
+            </button>
+        </div>
     </nav>
 
     <div id="toast" role="status" aria-live="polite"></div>
@@ -195,10 +200,6 @@
         <button class="cm" id="cm4" type="button">
             <span class="ic" aria-hidden="true">🏔</span>
             <span>Con el horizonte<small>Compara las montañas de la cámara con el relieve.</small></span>
-        </button>
-        <button class="cm" id="cm5" type="button">
-            <span class="ic" aria-hidden="true">⚙️</span>
-            <span>Ajustes automáticos<small>Afinar sola al moverme, horizonte y silueta.</small></span>
         </button>
         <div class="fila2">
             <button id="calreset" type="button">Quitar calibración</button>
@@ -250,14 +251,6 @@
         <div class="cs"><b>1</b>Apunta a un horizonte despejado con montañas, con el zoom en ×1 y el móvil recto</div>
         <div class="cs"><b>2</b>Pulsa «Alinear ahora»</div>
         <button id="calhor" type="button">📷 Alinear ahora</button>
-    </div>
-
-    <div class="cv" id="calv5">
-        <button class="cback" type="button">← Otras opciones</button>
-        <h3>⚙️ Ajustes automáticos</h3>
-        <label class="chk"><input type="checkbox" id="auto" checked> Afinar sola al moverme (&gt; 18 km/h)</label>
-        <label class="chk"><input type="checkbox" id="hzauto"> 📷 Corregir el rumbo con el horizonte de la cámara</label>
-        <label class="chk"><input type="checkbox" id="hzsil"> 🏔 Dibujar la silueta del relieve sobre la cámara</label>
     </div>
 
     <div id="calst" role="status" aria-live="polite"></div>
@@ -352,6 +345,18 @@
     <button id="permno" type="button">Ahora no</button>
 </div>
 
+<!-- ================= Aviso: la ubicación está desactivada ================= -->
+<div id="ubica" role="alertdialog" aria-modal="true" aria-labelledby="ubicaT">
+    <div class="emoji" aria-hidden="true">📍</div>
+    <h2 id="ubicaT">Activa la ubicación del móvil</h2>
+    <p id="ubicaIntro">La app necesita saber dónde estás para buscar los pueblos, las aldeas y los picos que tienes alrededor.</p>
+    <ol id="ubicaPasos"></ol>
+    <p id="ubicaEstado" role="status" aria-live="polite"></p>
+    <button id="ubicaAjustes" type="button">⚙️ Abrir ajustes de ubicación</button>
+    <button id="ubicaReintentar" type="button">🔄 Reintentar</button>
+    <button id="ubicaCerrar" type="button">Cerrar</button>
+</div>
+
 <div id="guia" role="dialog" aria-modal="true" aria-labelledby="guiaT">
     <h2 id="guiaT">Cómo se usa</h2>
     <div id="guiaPerm" style="display:none;width:100%;max-width:38ch">
@@ -372,7 +377,7 @@
     <h3>Botones de la cámara</h3>
     <ul>
         <li><span class="pi" aria-hidden="true">🎯</span><span><b>Calibrar</b>: abre las formas de corregir la brújula y te explica los pasos.</span></li>
-        <li><span class="pi" aria-hidden="true">🏘</span><span><b>Aldeas</b> (Con aldeas / Solo pueblos): indica si se ven pueblos y aldeas, o solo pueblos.</span></li>
+        <li><span class="pi" aria-hidden="true">🏘</span><span><b>Solo pueblos / Con aldeas</b>: elige si quieres ver solo pueblos (por defecto) o también aldeas y caseríos.</span></li>
         <li><span class="pi" aria-hidden="true">⛰</span><span><b>Picos</b> (Sí/No): muestra los nombres de los picos con su altura.</span></li>
         <li><span class="pi" aria-hidden="true">🔭</span><span><b>Más lejos</b> (40 km / 80 km): amplía hasta dónde busca pueblos.</span></li>
         <li><span class="pi" aria-hidden="true">🏔</span><span><b>Relieve</b> (Sí/No): oculta los lugares tapados por montañas. Si lo apagas, se muestran todos por dirección.</span></li>
@@ -440,7 +445,7 @@ setTimeout(__comprobarMotor, 9000);
 
 <!-- Datos: la base de pueblos (3,8 MB) se descarga una vez y queda guardada en el móvil.
      El motor (app.js) la pide por su cuenta y no bloquea la pantalla. -->
-<script defer src="scripts/app.js?v=21"></script>
+<script defer src="scripts/app.js?v=22"></script>
 
 <!-- ================= Diálogo de búsqueda: buscar pueblo o pico por nombre ================= -->
 <div id="buscar" role="dialog" aria-modal="true" aria-labelledby="buscarT" style="display:none;">

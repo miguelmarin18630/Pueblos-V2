@@ -5,7 +5,7 @@
     "description": "Apunta con el móvil al horizonte y descubre qué pueblo o pico tienes delante.",
     "lang": "es",
     "dir": "ltr",
-    "version": "1.4.0",
+    "version": "1.6.0",
     "start_url": "./",
     "scope": "./",
     "display": "standalone",

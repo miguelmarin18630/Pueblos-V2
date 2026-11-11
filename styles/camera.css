@@ -322,7 +322,7 @@ body.on * {
     display: none;
 }
 
-/* Barra inferior: 5 botones (Calibrar, Aldeas, Picos, Más lejos, Relieve) */
+/* Barra inferior: 5 huecos (Calibrar, Picos, Más lejos, Relieve y el grupo de aldeas) */
 body.on #bar {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -518,23 +518,35 @@ body.on #anadircam {
     content: "No";
 }
 
-/* Aldeas: dice qué se ve en vez de Sí/No */
-#aldeas .est {
+/* Aldeas: dos botones apilados en el mismo hueco de la barra.
+   «Solo pueblos» (por defecto) en verde y «Con aldeas» apagado en oscuro. */
+#aldeaGrupo {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
     min-width: 0;
-    padding: 1px 5px;
-    font-size: 10px;
-    line-height: 1.1;
+}
+
+#aldeaGrupo button {
+    flex: 1;
+    min-height: 0;
+    padding: 2px 1px;
+    border-width: 1.5px;
+    border-radius: 10px;
+    font-size: 9.5px;
+    line-height: 1.12;
+    letter-spacing: .1px;
     white-space: normal;
-    text-align: center;
-    border-radius: 9px;
 }
 
-#aldeas[aria-pressed="true"] .est::after {
-    content: "Con aldeas";
+#aldeaGrupo button span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-#aldeas[aria-pressed="false"] .est::after {
-    content: "Solo pueblos";
+#aldeaGrupo button:disabled {
+    cursor: default;
 }
 
 /* Más lejos: muestra el alcance real */

@@ -210,6 +210,82 @@ body.on #estado {
     box-shadow: none;
 }
 
+/* Aviso de ubicación desactivada */
+#ubica {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 24px;
+    color: #fff;
+    text-align: center;
+    background: rgba(5, 7, 20, .97);
+    overflow: auto;
+}
+
+#ubica h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+#ubica p {
+    max-width: 34ch;
+    margin: 0;
+    color: #dfe6ff;
+    font-size: 15px;
+}
+
+#ubica ol {
+    max-width: 34ch;
+    margin: 0;
+    padding-left: 22px;
+    color: #dfe6ff;
+    font-size: 15px;
+    line-height: 1.45;
+    text-align: left;
+}
+
+#ubica ol li {
+    margin-bottom: 6px;
+}
+
+#ubica b {
+    color: #fff;
+}
+
+#ubicaEstado {
+    min-height: 1.3em;
+    color: #ffe259 !important;
+    font-size: 14px !important;
+}
+
+#ubica button {
+    width: 100%;
+    max-width: 320px;
+    min-height: 52px;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+#ubicaReintentar {
+    background: linear-gradient(90deg, #15803d, #0f766e);
+}
+
+#ubicaAjustes {
+    background: #1d4ed8;
+    border-color: #bfdbfe;
+}
+
+#ubicaCerrar {
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, .6);
+    box-shadow: none;
+}
+
 #conf {
     display: none;
     position: fixed;
