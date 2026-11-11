@@ -570,7 +570,12 @@ function aplicarBD(datos){
   BD=datos.length?datos:null;BDlisto=false;
   if(BD&&pos){P=unir();BDlisto=true}
   $("info").textContent=BD?"Base incluida: "+BD.length+" localidades de España":"";
+  // Aviso a quien espere la base (por ejemplo, el buscador)
+  if(alTenerBase){var f=alTenerBase;alTenerBase=null;try{f()}catch(e){}}
 }
+// Se avisa cuando la base de pueblos ya está lista (para el buscador y para la versión)
+var alTenerBase=null;
+function baseLista(){return !!(BD&&BD.length)}
 // La base de pueblos va incluida en esta misma página (no hace falta descargar nada)
 // La base de pueblos se guarda en el móvil (IndexedDB) la primera vez.
 // A partir de ahí se lee del propio teléfono: no hay que descargarla ni esperar.
@@ -1801,6 +1806,12 @@ function abrirBuscar(){
   $("buscarEstado").textContent = "Cargando la base de pueblos y picos…";
   llenarBuscarLista("");
   $("buscarTexto").focus();
+  // La base de pueblos puede tardar unos segundos la primera vez: se espera y se rellena sola
+  if(!baseLista()){
+    alTenerBase=function(){
+      if($("buscar").style.display==="flex")llenarBuscarLista($("buscarTexto").value);
+    };
+  }
   // Los picos de España están en un archivo aparte: se carga en segundo plano
   precargarPicosBase().then(function(){
     if($("buscar").style.display==="flex")llenarBuscarLista($("buscarTexto").value);
@@ -1876,9 +1887,13 @@ function llenarBuscarLista(filtro){
   });
   if(!mostrados){
     var o=document.createElement("option");
-    o.textContent=f?"No hay coincidencias con «"+filtro+"»":"Escribe un nombre para buscar";
+    o.textContent=!baseLista()?"Cargando la base de pueblos…":f?"No hay coincidencias con «"+filtro+"»":"Escribe un nombre para buscar";
     o.disabled=true;
     sel.appendChild(o);
+  }
+  if(!baseLista()){
+    $("buscarEstado").textContent="Cargando la base de pueblos… (la primera vez tarda unos segundos)";
+    return;
   }
   $("buscarEstado").textContent=mostrados+" resultado"+(mostrados!==1?"s":"");
 }
@@ -2077,6 +2092,19 @@ var gpsAvT=0;
 // Antes de pedir permisos, la primera vez se explica para qué sirve cada uno
 $("go").onclick=function(){
   if(iniciando||watchId!==null)return;
+  // Feedback inmediato: el botón responde al instante aunque tarden los permisos
+  var g1=$("go").querySelector(".go1"),g2=$("go").querySelector(".go2");
+  if(g1)g1.textContent="Activando…";
+  if(g2)g2.textContent="Acepta los permisos del móvil";
+  var restore=function(){
+    if(g1)g1.textContent="Iniciar identificación";
+    if(g2)g2.textContent="Activa GPS y brújula mientras la usas";
+  };
+  // Se restaura el texto en cuanto la cámara arranca (o a los 2 s si tarda)
+  setTimeout(restore,2000);
+  var restoreAlArrancar=function(){if(document.body.classList.contains("on"))restore()};
+  setInterval(restoreAlArrancar,500);
+  setTimeout(function(){clearInterval(restoreAlArrancar)},30000);
   var visto=false;try{visto=localStorage.getItem("permisosVistos")==="1"}catch(e){}
   if(visto){iniciar();return}
   // Si el aviso ya está en pantalla, seguir con los permisos
@@ -2100,6 +2128,10 @@ $("permno").onclick=function(){$("permisos").style.display="none";permInicio=fal
 })();
 // ---- Arranque de la interfaz ----
 (function arrancarUI(){
+  // El motor ha arrancado: se quita el vigilante de "no se pudo cargar"
+  window.__motorListo = true;
+  var f=document.getElementById("__falla");
+  if(f)f.remove();
   // Nunca debe quedarse bloqueada la portada
   var g=$("go");
   if(g){
