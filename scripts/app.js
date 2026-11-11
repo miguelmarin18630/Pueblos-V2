@@ -2253,7 +2253,7 @@ function pedirPosWatch(opts,ms){
 function msgSinPermisoUbic(){
   return window.AndroidApp
     ?"Sin permiso de ubicación. Ve a Ajustes de Android > Aplicaciones > ¿Qué pueblo es? > Permisos > Ubicación y permítelo (mejor «Solo al usar la app»), con la ubicación del móvil activada."
-    :"Sin permiso de ubicación. Actívalo en los ajustes del navegador o del móvil (icono del candado del sitio) y vuelve a intentarlo.";
+    :"Sin permiso de ubicación. Actívalo en los ajustes del navegador o del móvil y vuelve a intentarlo; si sigue bloqueado, en el aviso puedes elegir tu pueblo de la lista y entrar igualmente.";
 }
 function msgSinUbic(e){
   var c=e&&e.code;
