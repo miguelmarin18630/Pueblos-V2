@@ -412,6 +412,30 @@ body.on #salir {
     display: none;
 }
 
+/* Buscar desde la cámara */
+#buscar2 {
+    display: none;
+}
+
+body.on #buscar2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    flex: none;
+    width: auto;
+    min-width: 44px;
+    min-height: 36px;
+    padding: 4px 10px;
+    border: 2px solid #bfdbfe;
+    border-radius: 999px;
+    background: #1d4ed8;
+    box-shadow: none;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+}
+
 body.on #anadircam {
     display: flex;
     align-items: center;
@@ -507,7 +531,7 @@ body.on #anadircam {
     content: "No";
 }
 
-/* Zoom + foco: panel compacto en la esquina, no ocupa centro de pantalla */
+/* Zoom + foco: en vertical, compactos y en la parte baja (no pisan el panel de arriba) */
 body.on #zoom {
     display: flex;
     flex-direction: column;
@@ -516,10 +540,10 @@ body.on #zoom {
     position: fixed;
     z-index: 6;
     right: 8px;
-    top: 8px;
-    padding: 6px 4px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 92px);
+    padding: 5px 4px;
     border-radius: 14px;
-    background: rgba(0, 0, 0, .55);
+    background: rgba(0, 0, 0, .5);
     width: auto;
     min-width: auto;
 }
@@ -528,12 +552,12 @@ body.on #zoom {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
+    width: 42px;
+    height: 42px;
     padding: 0;
     border: 2px solid rgba(255, 255, 255, .6);
     border-radius: 12px;
-    font-size: 22px;
+    font-size: 21px;
     line-height: 1;
     background: rgba(255, 255, 255, .2);
     box-shadow: none;
@@ -546,6 +570,41 @@ body.on #zoom {
     white-space: nowrap;
 }
 
+/* Foco manual: solo aparece si la cámara lo permite (clase .v) */
+#fdw {
+    display: none;
+}
+body.on #fdw.v {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    position: fixed;
+    z-index: 6;
+    left: 8px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 92px);
+    width: auto;
+    min-width: 132px;
+    max-width: 46vw;
+    padding: 5px 8px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, .7);
+    font-size: 13px;
+    font-weight: 600;
+}
+#fdw input {
+    width: 100%;
+    min-width: 0;
+    height: 30px;
+}
+#fdw button {
+    width: 100%;
+    min-height: 36px;
+    padding: 5px 10px;
+    font-size: 13px;
+    box-shadow: none;
+    background: rgba(255, 255, 255, .3);
+}
 
 #toast {
     display: none;
@@ -658,52 +717,6 @@ body.on #zoom {
     opacity: .9;
 }
 
-#fdw {
-    display: none;
-}
-
-body.on #fdw.v {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 4px;
-    position: fixed;
-    z-index: 6;
-    left: 8px;
-    top: 60px;
-    width: auto;
-    min-width: 140px;
-    padding: 5px 8px;
-    border-radius: 12px;
-    background: rgba(0, 0, 0, .7);
-    font-size: 13px;
-    font-weight: 600;
-}
-
-#fdw input {
-    width: 100%;
-    min-width: 0;
-    height: 30px;
-}
-
-#fdw button {
-    width: 100%;
-    min-height: 36px;
-    padding: 5px 10px;
-    font-size: 13px;
-    box-shadow: none;
-    background: rgba(255, 255, 255, .3);
-}
-
-#zval {
-    font-size: 13px;
-    font-weight: 800;
-    color: #fff;
-    text-shadow: 0 1px 3px #000;
-    white-space: nowrap;
-    padding: 2px 0;
-}
-
 /* Modo inverso: flecha direccional */
 #invFlecha {
     color: #fff;
@@ -715,47 +728,92 @@ body.on #fdw.v {
 #invDist {
     font-variant-numeric: tabular-nums;
 }
-#inverso .caja {
-    max-width: 420px;
+/* ================= Diálogo de búsqueda ================= */
+#buscar {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 38;
+    flex-direction: column;
+    align-items: center;
+    padding: calc(env(safe-area-inset-top, 0px) + 14px) 14px calc(env(safe-area-inset-bottom, 0px) + 18px);
+    color: #fff;
+    background: rgba(5, 7, 20, .97);
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
 }
-#inverso select {
+#buscar .caja {
     width: 100%;
-    padding: 8px;
-    margin: 6px 0;
-    border: 1px solid rgba(255,255,255,.4);
+    max-width: 42ch;
+    display: grid;
+    gap: 12px;
+}
+#buscar h2 {
+    margin: 0;
+    font-size: 22px;
+    text-align: center;
+}
+#buscar p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #dfe6ff;
+}
+#buscar label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #ffe259;
+}
+#buscar input[type="text"],
+#buscar select {
+    width: 100%;
+    padding: 9px;
+    border: 1px solid rgba(255, 255, 255, .4);
     border-radius: 10px;
-    background: rgba(255,255,255,.15);
+    background: rgba(255, 255, 255, .15);
     color: #fff;
+    font-family: inherit;
     font-size: 15px;
+    box-sizing: border-box;
 }
-#inverso select option {
-    background: #0b1026;
+#buscar select[size] {
+    min-height: 132px;
+}
+#buscar select option {
+    background: #131a3a;
     color: #fff;
 }
-#inverso .btns {
+#buscar input::placeholder {
+    color: rgba(255, 255, 255, .55);
+}
+#buscar .btns {
     display: flex;
     gap: 8px;
-    margin-top: 10px;
 }
-#inverso .btns button {
+#buscar .btns button {
     flex: 1;
+    min-height: 48px;
     padding: 10px;
-    border: 1px solid rgba(255,255,255,.5);
+    border: 1px solid rgba(255, 255, 255, .5);
     border-radius: 10px;
-    background: rgba(255,255,255,.2);
+    background: rgba(255, 255, 255, .2);
     color: #fff;
+    font-family: inherit;
     font-size: 15px;
     font-weight: 700;
     cursor: pointer;
 }
-#inverso .btns button:active {
-    background: rgba(255,255,255,.4);
+#buscar .btns button:active {
+    background: rgba(255, 255, 255, .4);
 }
-#invEstado {
-    margin-top: 8px;
-    font-size: 13px;
-    color: #ffe25a;
+#buscarEstado {
     min-height: 1.2em;
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffe259;
+    text-align: center;
 }
 
 
@@ -765,48 +823,7 @@ body.on #fdw.v {
 }
 body.on #buscarb { display: none; }
 
-
-/* Botón Más en la barra inferior */
-#masb {
-    background: rgba(255,255,255,.2);
-    border: 2px solid rgba(255,255,255,.55);
-}
-
-/* Menú desplegable "Más" */
-#masmenu {
-    position: absolute;
-    bottom: calc(100% + 8px);
-    right: 0;
-    background: rgba(8, 10, 28, .94);
-    border: 1px solid rgba(255,255,255,.2);
-    border-radius: 12px;
-    padding: 6px;
-    z-index: 6;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 4px 12px rgba(0,0,0,.4);
-}
-#masmenu button {
-    width: 100%;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 8px;
-    background: rgba(255,255,255,.1);
-    color: #fff;
-    font-size: 14px;
-    font-weight: 700;
-    text-align: left;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-#masmenu button:active {
-    background: rgba(255,255,255,.25);
-}
-#masmenu button .est {
-    margin-left: auto;
-}
+/* ================= Pantalla de inicio (Hero) ================= */
 
 
 /* ================= Pantalla de inicio (Hero) ================= */
@@ -848,33 +865,6 @@ body.on #buscarb { display: none; }
     color: rgba(255,255,255,.9);
     margin: 0;
     max-width: 34ch;
-}
-
-.hero-loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    margin: 16px 0;
-}
-
-.spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid rgba(255,255,255,.2);
-    border-top-color: #ffe25a;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-#cargando {
-    font-size: 14px;
-    color: rgba(255,255,255,.85);
-    margin: 0;
 }
 
 .hero-actions {
