@@ -4,13 +4,13 @@ Apunta con el móvil al horizonte y la app te dice **qué pueblo o pico tienes d
 poniendo los nombres sobre la imagen de la cámara. Funciona en el navegador y se puede
 instalar como aplicación (PWA) en Android e iPhone.
 
-**Demo:** https://miguelmarin18630.github.io/Pueblos-V2/
+**Demo:** https://pueblos.marinweb.org/
 
 ---
 
 ## Aplicación Android (APK)
 
-**[Descargar Pueblos-V2-1.5.0.apk](https://github.com/miguelmarin18630/Pueblos-V2/releases/download/v1.5.0/Pueblos-V2-1.5.0.apk)**
+**[Descargar Pueblos-V2-1.6.0.apk](https://github.com/miguelmarin18630/Pueblos-V2/releases/download/v1.6.0/Pueblos-V2-1.6.0.apk)**
 (1,78 MB · Android 7.0 o superior)
 
 El APK es una **Trusted Web Activity**: abre la misma PWA con Chrome a pantalla
@@ -18,11 +18,11 @@ completa, así que la cámara, el GPS y la brújula se comportan igual que en el
 Para instalar, descarga el archivo en el móvil y permite la instalación desde esa fuente
 cuando Android lo pregunte.
 
-- Paquete: `io.github.laotra18630cmd.pueblos` · versión 1.5.0 (código 6)
+- Paquete: `io.github.laotra18630cmd.pueblos` · versión 1.6.0 (código 7)
 - Se compila con Bubblewrap a partir del manifest de la PWA. El proyecto Android
   (keystore incluido) está en `C:\apppueblos\03_PROYECTO_ANDROID\Pueblos-Android`.
 - Chrome comprueba la firma con
-  <https://miguelmarin18630.github.io/.well-known/assetlinks.json>, que se publica desde
+  <https://pueblos.marinweb.org/.well-known/assetlinks.json>, que se publica desde
   el repositorio raíz `miguelmarin18630.github.io`. Sin ese archivo la app abriría con la
   barra de direcciones del navegador.
 
@@ -102,7 +102,7 @@ El repositorio ya está preparado para servirse desde la **raíz** de la rama `m
 3. *Branch*: `main` · carpeta `/` (root)
 4. Guardar y esperar 1–2 minutos.
 
-La app queda en `https://<usuario>.github.io/Pueblos-V2/`.
+La app queda en `https://pueblos.marinweb.org/` (lo indica el archivo `CNAME`).
 
 El archivo `.nojekyll` está incluido para que GitHub no procese los archivos con Jekyll.
 

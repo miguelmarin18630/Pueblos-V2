@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://miguelmarin18630.github.io/Pueblos-V2/sitemap.xml
+Sitemap: https://pueblos.marinweb.org/sitemap.xml
