@@ -2439,10 +2439,17 @@ function usarPuebloComoUbic(o){
   else $("msg").textContent="Ubicación puesta en "+o.n+" (aproximada). Pulsa «Iniciar identificación».";
 }
 $("ubicaAjustes").onclick=function(){
-  // Solo Android: abre los permisos de la propia app, que es donde está la ubicación.
-  // Si el navegador no admite «intent:», se vuelve a esta misma página sin romper nada.
-  var url="intent:#Intent;action=android.settings.APPLICATION_DETAILS_SETTINGS;data=package:io.github.laotra18630cmd.pueblos;S.browser_fallback_url="+encodeURIComponent(location.href)+";end";
+  // Chrome no deja abrir Ajustes desde un enlace web: solo lanza actividades
+  // marcadas como navegables. La app Android 1.6.1 trae una actividad propia
+  // (esquema pueblos://ajustes) que sí abre los permisos; en versiones viejas
+  // el intent no se resuelve y se explican los pasos a mano.
+  $("ubicaEstado").textContent="Abriendo los ajustes del móvil…";
+  var url="intent://ajustes#Intent;scheme=pueblos;package=io.github.laotra18630cmd.pueblos;end";
   try{location.href=url}catch(err){}
+  setTimeout(function(){
+    if(document.visibilityState!=="visible")return;
+    $("ubicaEstado").textContent="Si no se han abierto: Ajustes > Aplicaciones > ¿Qué pueblo es? > Permisos > Ubicación > Permitir (o Ajustes > Ubicación).";
+  },2500);
 };
 async function iniciar2(){
   $("msg").textContent="Comprobando permisos…";
