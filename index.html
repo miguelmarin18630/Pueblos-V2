@@ -40,10 +40,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="¿Qué pueblo?">
 
-<link rel="stylesheet" href="styles/base.css?v=18">
-<link rel="stylesheet" href="styles/portada.css?v=18">
-<link rel="stylesheet" href="styles/layout.css?v=18">
-<link rel="stylesheet" href="styles/camera.css?v=18">
+<link rel="stylesheet" href="styles/base.css?v=19">
+<link rel="stylesheet" href="styles/portada.css?v=19">
+<link rel="stylesheet" href="styles/layout.css?v=19">
+<link rel="stylesheet" href="styles/camera.css?v=19">
 
 <!-- La base de pueblos se necesita siempre: que empiece a descargarse ya -->
 <link rel="preload" href="data/pueblos.js" as="script">
@@ -126,7 +126,7 @@
 
         <section id="faltan" aria-labelledby="faltaT">
             <h3 id="faltaT">¿Falta algún pueblo o pico?</h3>
-            <p>Si ves uno que no aparece, puedes traerlo de OpenStreetMap o añadirlo a mano. Se guarda solo en este móvil.</p>
+            <p>Si ves uno que no aparece, puedes traerlo de OpenStreetMap o añadirlo a mano. Se guarda solo en este móvil. Para buscar te pido la ubicación (solo para saber qué hay cerca de ti).</p>
             <button id="osmact" type="button">🔄 Actualizar desde OpenStreetMap</button>
             <div id="osmres" role="status" aria-live="polite"></div>
             <button id="anadirb" type="button">➕ Añadir un lugar a mano</button>
@@ -441,13 +441,13 @@ setTimeout(__comprobarMotor, 9000);
 
 <!-- Datos: la base de pueblos (3,8 MB) se descarga una vez y queda guardada en el móvil.
      El motor (app.js) la pide por su cuenta y no bloquea la pantalla. -->
-<script defer src="scripts/app.js?v=18"></script>
+<script defer src="scripts/app.js?v=19"></script>
 
 <!-- ================= Diálogo de búsqueda: buscar pueblo o pico por nombre ================= -->
 <div id="buscar" role="dialog" aria-modal="true" aria-labelledby="buscarT" style="display:none;">
     <div class="caja">
         <h2 id="buscarT">🔍 Buscar pueblo o pico</h2>
-        <p>Escribe parte del nombre y elige uno de la lista. La flecha te mostrará hacia dónde está.</p>
+        <p>Escribe parte del nombre y elige uno de la lista. Solo se muestran los lugares a menos de 80 km de ti (para eso te pido la ubicación). La flecha te dirá hacia dónde está.</p>
 
         <div>
             <label for="buscarTipo">Tipo</label>
@@ -465,7 +465,7 @@ setTimeout(__comprobarMotor, 9000);
 
         <div>
             <label for="buscarLista">Resultados</label>
-            <select id="buscarLista" size="6">
+            <select id="buscarLista" size="5">
                 <!-- se rellena con JavaScript al escribir -->
             </select>
         </div>
@@ -478,16 +478,18 @@ setTimeout(__comprobarMotor, 9000);
     </div>
 </div>
 
-<!-- Flecha direccional del modo inverso (overlay sobre la cámara) -->
-<div id="invFlecha" style="display:none; position:fixed; inset:0; z-index:40; pointer-events:none; flex-direction:column; align-items:center; justify-content:center;">
-    <div id="invFlechaGirador" style="position:relative; width:120px; height:120px; transition:transform 0.15s ease-out;">
-        <div style="position:absolute; left:50%; top:0; width:0; height:0; border-left:20px solid transparent; border-right:20px solid transparent; border-bottom:40px solid #ff2d95; margin-left:-20px; filter:drop-shadow(0 4px 8px rgba(0,0,0,.6));"></div>
-        <div style="position:absolute; left:50%; top:30px; width:0; height:0; border-left:10px solid transparent; border-right:10px solid transparent; border-top:20px solid #fff; margin-left:-10px;"></div>
-        <div style="position:absolute; left:50%; top:55px; width:0; height:0; border-left:8px solid transparent; border-right:8px solid transparent; border-top:14px solid #fff; margin-left:-8px; opacity:.9;"></div>
+<!-- Pantalla de flecha direccional (modo inverso) -->
+<div id="invFlecha" role="status" aria-live="polite" style="display:none;">
+    <div id="invPanel">
+        <div id="invNombre">Selecciona un destino</div>
+        <div id="invDist">— km</div>
+        <button id="invSalir" type="button">✕ Salir de la búsqueda</button>
     </div>
-    <div id="invDist" style="margin-top:12px; font-size:16px; font-weight:700; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,.8);">— km</div>
-    <div id="invNombre" style="margin-top:4px; font-size:14px; color:#ffe25a; text-shadow:0 1px 4px rgba(0,0,0,.8);">Selecciona un destino</div>
-    <button id="invSalir" type="button" style="margin-top:16px; padding:9px 20px; border-radius:999px; border:1px solid rgba(255,255,255,.6); background:rgba(0,0,0,.75); color:#fff; font-size:15px; font-weight:700; pointer-events:auto; cursor:pointer;">✕ Salir</button>
+    <div id="invFlechaGirador">
+        <div class="inv-punta"></div>
+        <div class="inv-punta inv-punta-2"></div>
+        <div class="inv-punta inv-punta-3"></div>
+    </div>
 </div>
 </body>
 </html>
