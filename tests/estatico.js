@@ -135,6 +135,31 @@ if (/function posGuardada\(/.test(app) && /function usarPuebloComoUbic\(/.test(a
   ok('última ubicación y «elegir mi pueblo» disponibles');
 } else mal('faltan las salidas de emergencia de ubicación');
 
+// ---------- filtros: Picos / Solo pueblos / Con aldeas ----------
+console.log('\nfiltros');
+for (const id of ['picosb', 'soloPueblos', 'conAldeas']) {
+  if (!new RegExp('id="' + id + '"').test(html)) mal('falta el botón #' + id + ' en index.html');
+  else ok('botón #' + id);
+}
+if (/function fijarPicos\(/.test(app)) ok('función fijarPicos');
+else mal('falta fijarPicos: el estado de «Picos» no se puede coordinar');
+if (/function filtroSegunTipo\(/.test(app)) ok('función filtroSegunTipo');
+else mal('falta filtroSegunTipo: la búsqueda no ajusta los filtros');
+const soloM = /\.onclick\s*=\s*function\s*\(\)\s*\{\s*fijarPicos\(false\)/.test(app);
+const aldeaM = /fijarPicos\(false\);[\s\S]{0,120}verAldeas=true/.test(app);
+if (soloM && aldeaM) ok('«Solo pueblos» y «Con aldeas» apagan «Picos»');
+else mal('los botones de pueblo no apagan «Picos» directamente');
+if (/if\s*\(\s*verPicos\s*\)\s*return/.test(app)) mal('los filtros de pueblo siguen bloqueados con «Picos» encendido');
+else ok('los filtros de pueblo nunca se bloquean');
+if (/disabled\s*=\s*verPicos/.test(app)) mal('«Solo pueblos»/«Con aldeas» se deshabilitan con «Picos»');
+else ok('los botones de pueblo no se deshabilitan');
+if (/\$\(\s*["']picosb["']\s*\)\.onclick\s*=\s*function\s*\(\)\s*\{\s*fijarPicos\(!verPicos\)/.test(app)) ok('el botón «Picos» usa fijarPicos');
+else mal('el botón «Picos» no usa fijarPicos');
+if (/filtroSegunTipo\(buscarSel\.t\)/.test(app)) ok('al activar la búsqueda se ajustan los filtros al tipo buscado');
+else mal('la búsqueda no ajusta los filtros al tipo buscado');
+if (/t==="hamlet"\|\|t==="isolated_dwelling"/.test(app)) ok('una aldea pone «Con aldeas»');
+else mal('no se reconoce una aldea en la búsqueda');
+
 // Cache-bust coherente: todos los ?v=N deben ser el mismo número
 const vers = [...new Set([
   ...[...html.matchAll(/\?v=(\d+)/g)].map((m) => m[1]),

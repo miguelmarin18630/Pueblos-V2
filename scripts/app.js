@@ -757,13 +757,14 @@ function offPara(h){
   return so/sw;
 }
 function maxDif(a){var m=0;for(var i=1;i<a.length;i++)m=Math.max(m,dif(a[i],a[0]));return m}
-// Dos botones excluyentes: «Solo pueblos» (por defecto, en verde) y «Con aldeas»
+// Tres filtros excluyentes: «Picos», «Solo pueblos» (por defecto, en verde) y «Con aldeas».
+// Tocar «Solo pueblos» o «Con aldeas» apaga «Picos» directamente, sin tener que ir a apagarlo.
 $("soloPueblos").onclick=function(){
-  if(verPicos)return;
+  fijarPicos(false);
   verAldeas=false;actAldeasBtn();pintar();
 };
 $("conAldeas").onclick=function(){
-  if(verPicos)return;
+  fijarPicos(false);
   verAldeas=true;actAldeasBtn();pintar();
 };
 $("calbtn").onclick=function(){
@@ -1378,27 +1379,44 @@ $("relb").onclick=function(){
   avisar(usarRelieve?"🏔 Relieve activado: compruebo si las montañas tapan los pueblos y dibujo su silueta.":"🏔 Relieve desactivado: muestro los pueblos sin comprobar las montañas.",4500);
   panBloq=0;pintar();
 };
-$("picosb").onclick=function(){
-  verPicos=!verPicos;
-  this.classList.toggle("act",verPicos);this.setAttribute("aria-pressed",verPicos?"true":"false");
-  document.body.classList.toggle("picos",verPicos);
+// Enciende o apaga «Picos» desde cualquier sitio: su botón, los filtros de pueblo
+// o la búsqueda. El botón, el cuerpo (clase «picos») y los otros dos filtros quedan
+// siempre coordinados; si se enciende, se descargan los picos de la zona.
+function fijarPicos(on){
+  on=!!on;
+  if(verPicos===on)return;
+  verPicos=on;
+  $("picosb").classList.toggle("act",on);
+  $("picosb").setAttribute("aria-pressed",on?"true":"false");
+  document.body.classList.toggle("picos",on);
+  if(on){pkProx=0;cargarPicos()}
   actAldeasBtn();
-  if(verPicos){pkProx=0;cargarPicos()}
+}
+$("picosb").onclick=function(){
+  fijarPicos(!verPicos);
   pintar();
 };
 function actAldeasBtn(){
   var s=$("soloPueblos"),c=$("conAldeas");
   if(!s||!c)return;
-  // Con «Picos» activado no se muestran pueblos ni aldeas: los dos botones se apagan
-  s.disabled=verPicos;c.disabled=verPicos;
-  s.style.opacity=verPicos?".45":"";
-  c.style.opacity=verPicos?".45":"";
+  // Picos, «Solo pueblos» y «Con aldeas» son excluyentes: al tocar uno se apagan
+  // los otros, así que estos dos nunca se deshabilitan ni se quedan en gris.
+  s.disabled=false;c.disabled=false;
+  s.style.opacity="";c.style.opacity="";
   s.setAttribute("aria-pressed",(!verAldeas&&!verPicos)?"true":"false");
   c.setAttribute("aria-pressed",(verAldeas&&!verPicos)?"true":"false");
-  s.title=verPicos?"No disponible mientras se muestran los picos":"Se ven solo pueblos (sin aldeas ni caseríos)";
-  c.title=verPicos?"No disponible mientras se muestran los picos":"Se ven pueblos, aldeas y caseríos";
+  s.title="Se ven solo pueblos (sin aldeas ni caseríos)";
+  c.title="Se ven pueblos, aldeas y caseríos";
   s.setAttribute("aria-label","Solo pueblos: "+s.title);
   c.setAttribute("aria-label","Con aldeas: "+c.title);
+}
+// Al activar una búsqueda, los filtros se ponen solos como lo buscado:
+// un pueblo deja «Solo pueblos», una aldea pone «Con aldeas» y un pico enciende «Picos».
+function filtroSegunTipo(t){
+  var aldea=(t==="hamlet"||t==="isolated_dwelling");
+  fijarPicos(t==="pico");
+  verAldeas=aldea;
+  actAldeasBtn();
 }
 // Pico bajo la mira: dentro del campo vertical de la camara y lo mas centrado
 // posible en pantalla (distancia angular 2D), no solo el que menos se desvia en
@@ -2147,6 +2165,7 @@ $("buscarLista").onclick=function(ev){
 $("buscarIr").onclick=function(){
   if(buscarModoUbic){$("buscarEstado").textContent="Toca tu pueblo en la lista para usarlo como ubicación.";return}
   if(!buscarSel){$("buscarEstado").textContent="Selecciona un pueblo o pico de la lista.";return}
+  filtroSegunTipo(buscarSel.t);
   activarInv(buscarSel);
 };
 $("buscarCerrar").onclick=function(){
