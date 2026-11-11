@@ -52,9 +52,20 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
     event.waitUntil((async () => {
         const keys = await caches.keys();
-        // Se borran las versiones antiguas del código; la caché de datos se conserva
+        const datos = await caches.open(CACHE_DATOS);
+        // Se aprovechan los datos que ya estaban guardados en versiones anteriores
+        for (const k of keys) {
+            if (k === CACHE_DATOS) continue;
+            const vieja = await caches.open(k);
+            for (const url of DATOS) {
+                if (await datos.match(url)) continue;
+                const r = await vieja.match(url);
+                if (r) await datos.put(url, r).catch(() => {});
+            }
+        }
+        // Se borran las cachés antiguas de código; la de datos se conserva
         await Promise.all(keys
-            .filter((k) => k.startsWith('que-pueblo-cod-') && k !== CACHE_CODIGO)
+            .filter((k) => k !== CACHE_DATOS && k !== CACHE_CODIGO)
             .map((k) => caches.delete(k)));
         await self.clients.claim();
     })());
