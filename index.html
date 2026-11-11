@@ -40,10 +40,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="¿Qué pueblo?">
 
-<link rel="stylesheet" href="styles/base.css?v=16">
-<link rel="stylesheet" href="styles/portada.css?v=16">
-<link rel="stylesheet" href="styles/layout.css?v=16">
-<link rel="stylesheet" href="styles/camera.css?v=16">
+<link rel="stylesheet" href="styles/base.css?v=17">
+<link rel="stylesheet" href="styles/portada.css?v=17">
+<link rel="stylesheet" href="styles/layout.css?v=17">
+<link rel="stylesheet" href="styles/camera.css?v=17">
 
 <!-- La base de pueblos se necesita siempre: que empiece a descargarse ya -->
 <link rel="preload" href="data/pueblos.js" as="script">
@@ -396,9 +396,36 @@
     <p>Esta app necesita JavaScript para usar la cámara, el GPS y la brújula.</p>
 </noscript>
 
+<script>
+/* Vigilante: si el motor de la app no arranca (caché vieja, error, sin conexión),
+   se avisa con un botón de recarga en vez de dejar botones muertos. */
+window.__motorListo = false;
+window.__errorMotor = [];
+window.addEventListener('error', function (e) {
+  window.__errorMotor.push((e.message || '') + ' @ ' + (e.filename || '') + ':' + (e.lineno || ''));
+});
+window.addEventListener('unhandledrejection', function (e) {
+  window.__errorMotor.push('promesa: ' + ((e.reason && e.reason.message) || e.reason));
+});
+function __comprobarMotor() {
+  if (window.__motorListo) return;
+  var d = document.getElementById('__falla');
+  if (!d) {
+    d = document.createElement('div');
+    d.id = '__falla';
+    d.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:99;padding:14px;background:#b91c1c;color:#fff;font:15px/1.4 system-ui,sans-serif;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.5)';
+    document.body.appendChild(d);
+  }
+  d.innerHTML = '<b>No se pudo cargar el motor de la app.</b><br>Pulsa para recargar.' +
+    '<br><small>' + (window.__errorMotor[0] || 'El archivo app.js no se ha descargado o está en caché antigua.') + '</small>';
+  d.onclick = function () { location.reload(true); };
+}
+setTimeout(__comprobarMotor, 4000);
+</script>
+
 <!-- Datos: pueblos (se descarga una vez y queda guardado) y motor. picos.js se carga solo al activar Picos. -->
 <script async src="data/pueblos.js"></script>
-<script defer src="scripts/app.js?v=16"></script>
+<script defer src="scripts/app.js?v=17"></script>
 
 <!-- ================= Diálogo de búsqueda: buscar pueblo o pico por nombre ================= -->
 <div id="buscar" role="dialog" aria-modal="true" aria-labelledby="buscarT" style="display:none;">
