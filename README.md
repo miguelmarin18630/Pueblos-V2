@@ -10,24 +10,25 @@ instalar como aplicación (PWA) en Android e iPhone.
 
 ## Aplicación Android (APK)
 
-**[Descargar Pueblos-V2-1.6.1.apk](https://github.com/miguelmarin18630/Pueblos-V2/releases/download/v1.6.1/Pueblos-V2-1.6.1.apk)**
+**[Descargar Pueblos-V2-1.6.2.apk](https://github.com/miguelmarin18630/Pueblos-V2/releases/download/v1.6.2/Pueblos-V2-1.6.2.apk)**
 (2,08 MB · Android 7.0 o superior)
 
-El APK es una **Trusted Web Activity**: abre la misma PWA con Chrome a pantalla
-completa, así que la cámara, el GPS y la brújula se comportan igual que en el navegador.
-Para instalar, descarga el archivo en el móvil y permite la instalación desde esa fuente
-cuando Android lo pregunte.
+El APK lleva la web dentro de un **WebView propio** (como la app antigua) y abre
+<https://pueblos.marinweb.org> a pantalla completa. Es la app la que concede la
+**ubicación y la cámara**, así que no depende del permiso por sitio de Chrome: basta con
+el permiso de la app, que se pide solo al abrirla. Para instalar, descarga el archivo en el
+móvil y permite la instalación desde esa fuente cuando Android lo pregunte.
 
-- Paquete: `io.github.laotra18630cmd.pueblos` · versión 1.6.1 (código 8)
-- La ubicación va **delegada a la app**: el permiso se pide con el diálogo de Android
-  (como en la app antigua), no con el permiso por sitio de Chrome. El aviso de ubicación
-  incluye un botón que abre los ajustes del móvil (`pueblos://ajustes`).
+- Paquete: `io.github.laotra18630cmd.pueblos` · versión 1.6.2 (código 9)
+- Si el permiso de la app se retiró, el aviso de ubicación incluye el botón
+  **«Permitir ubicación y cámara»**, que vuelve a mostrar el diálogo de Android sin salir
+  a los ajustes. Al concederlo, la app sigue sola.
+- Usa la última ubicación conocida del móvil al arrancar y, si no hay GPS, permite
+  **elegir el pueblo en la lista** y entrar con él.
 - Se compila con Bubblewrap a partir del manifest de la PWA. El proyecto Android
   (keystore incluido) está en `C:\apppueblos\03_PROYECTO_ANDROID\Pueblos-Android`.
-- Chrome comprueba la firma con
-  <https://pueblos.marinweb.org/.well-known/assetlinks.json>, que se publica desde
-  el repositorio raíz `miguelmarin18630.github.io`. Sin ese archivo la app abriría con la
-  barra de direcciones del navegador.
+- La firma sigue siendo la misma que en las versiones anteriores, así que se instala
+  encima sin desinstalar.
 
 ---
 
