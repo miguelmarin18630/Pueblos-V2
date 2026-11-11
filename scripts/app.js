@@ -2161,6 +2161,8 @@ $("buscarLista").onclick=function(ev){
     return;
   }
   $("buscarEstado").textContent="Seleccionado: "+esc(buscarSel?buscarSel.n:"");
+  // En cuanto se toca un resultado, la barra de filtros se pone como ese lugar
+  if(buscarSel)filtroSegunTipo(buscarSel.t);
 };
 $("buscarIr").onclick=function(){
   if(buscarModoUbic){$("buscarEstado").textContent="Toca tu pueblo en la lista para usarlo como ubicación.";return}

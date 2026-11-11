@@ -155,10 +155,14 @@ if (/disabled\s*=\s*verPicos/.test(app)) mal('«Solo pueblos»/«Con aldeas» se
 else ok('los botones de pueblo no se deshabilitan');
 if (/\$\(\s*["']picosb["']\s*\)\.onclick\s*=\s*function\s*\(\)\s*\{\s*fijarPicos\(!verPicos\)/.test(app)) ok('el botón «Picos» usa fijarPicos');
 else mal('el botón «Picos» no usa fijarPicos');
-if (/filtroSegunTipo\(buscarSel\.t\)/.test(app)) ok('al activar la búsqueda se ajustan los filtros al tipo buscado');
+const filtroSegunTipoUsos = (app.match(/filtroSegunTipo\(buscarSel\.t\)/g) || []).length;
+if (/filtroSegunTipo\(buscarSel\.t\)/.test(app)) ok('al elegir y activar la búsqueda se ajustan los filtros al tipo buscado');
 else mal('la búsqueda no ajusta los filtros al tipo buscado');
 if (/t==="hamlet"\|\|t==="isolated_dwelling"/.test(app)) ok('una aldea pone «Con aldeas»');
 else mal('no se reconoce una aldea en la búsqueda');
+
+if (filtroSegunTipoUsos >= 2) ok('los filtros siguen al tipo al elegir y al activar (' + filtroSegunTipoUsos + ' usos)');
+else mal('filtroSegunTipo solo se usa ' + filtroSegunTipoUsos + ' vez');
 
 // Cache-bust coherente: todos los ?v=N deben ser el mismo número
 const vers = [...new Set([
