@@ -8,6 +8,8 @@
    ============================================================ */
 (function(){
 "use strict";
+// El motor ha empezado a ejecutarse: el vigilante del HTML ya no espera el archivo
+try{window.__motorCargado=true}catch(e){}
 // [nombre, lat, lon] — localidades de España (aprox.)
 var BASE=[["Madrid",40.417,-3.704],["Barcelona",41.387,2.170],["Valencia",39.470,-0.376],["Sevilla",37.389,-5.984],["Zaragoza",41.649,-0.887],["Málaga",36.721,-4.421],["Murcia",37.992,-1.131],["Palma",39.570,2.650],["Bilbao",43.263,-2.935],["Alicante",38.346,-0.483],["Córdoba",37.888,-4.779],["Valladolid",41.652,-4.724],["Vigo",42.240,-8.721],["Gijón",43.532,-5.661],["A Coruña",43.362,-8.411],["Granada",37.177,-3.599],["Vitoria",42.847,-2.673],["Elche",38.267,-0.698],["Oviedo",43.361,-5.849],["Cartagena",37.600,-0.986],["Jerez de la Frontera",36.686,-6.137],["Pamplona",42.812,-1.645],["Almería",36.834,-2.464],["San Sebastián",43.318,-1.981],["Burgos",42.344,-3.697],["Santander",43.462,-3.810],["Castellón",39.986,-0.037],["Albacete",38.995,-1.859],["Logroño",42.466,-2.445],["Badajoz",38.879,-6.970],["Salamanca",40.970,-5.664],["Huelva",37.261,-6.945],["Lleida",41.617,0.620],["Tarragona",41.119,1.245],["León",42.599,-5.567],["Cádiz",36.527,-6.289],["Jaén",37.779,-3.785],["Ourense",42.336,-7.864],["Girona",41.979,2.821],["Lugo",43.012,-7.556],["Cáceres",39.476,-6.372],["Toledo",39.863,-4.027],["Ciudad Real",38.986,-3.927],["Guadalajara",40.633,-3.167],["Cuenca",40.070,-2.137],["Segovia",40.943,-4.109],["Ávila",40.656,-4.700],["Soria",41.764,-2.469],["Teruel",40.345,-1.107],["Huesca",42.140,-0.408],["Palencia",42.010,-4.531],["Zamora",41.503,-5.744],["Pontevedra",42.431,-8.644],["Santiago de Compostela",42.878,-8.544],["Ronda",36.742,-5.167],["Marbella",36.510,-4.886],["Antequera",37.019,-4.561],["Úbeda",38.013,-3.370],["Baeza",37.994,-3.470],["Guadix",37.300,-3.140],["Motril",36.745,-3.518],["Lorca",37.671,-1.701],["Benidorm",38.538,-0.131],["Dénia",38.841,0.106],["Gandía",38.968,-0.181],["Sagunto",39.680,-0.278],["Xàtiva",38.990,-0.520],["Alcoy",38.705,-0.474],["Aranjuez",40.031,-3.603],["Alcalá de Henares",40.482,-3.364],["Talavera de la Reina",39.963,-4.831],["Mérida",38.916,-6.343],["Plasencia",40.030,-6.088],["Peñíscola",40.358,0.408],["Morella",40.620,-0.100],["Albarracín",40.408,-1.442],["Calatayud",41.353,-1.643],["Tortosa",40.812,0.521],["Reus",41.156,1.107],["Vic",41.930,2.255],["Figueres",42.267,2.961],["Manresa",41.730,1.826],["Andújar",38.039,-4.051],["Linares",38.095,-3.636],["Lucena",37.409,-4.485],["Écija",37.542,-5.082],["Carmona",37.471,-5.646],["Algeciras",36.133,-5.455],["Tarifa",36.014,-5.606],["Sanlúcar de Barrameda",36.778,-6.352],["Vélez-Málaga",36.775,-4.100],["Nerja",36.745,-3.875],["Baza",37.490,-2.771],["Loja",37.168,-4.150],["Órgiva",36.900,-3.425],["Mojácar",37.139,-1.851]];
 var P=BASE.slice();
@@ -497,7 +499,8 @@ function activarInv(dest){
   if(!pos){
     // Sin GPS todavía: se pide la ubicación y la brújula, y la flecha se activa al tenerlas
     invPendiente=true;
-    $("buscar").style.display="none";
+    invDest=dest;
+    $("buscarEstado").textContent="Esperando GPS y brújula… (acepta los permisos del móvil)";
     if(!document.body.classList.contains("on")){
       var visto=false;try{visto=localStorage.getItem("permisosVistos")==="1"}catch(e){}
       if(visto)iniciar();
@@ -576,8 +579,7 @@ function aplicarBD(datos){
 // Se avisa cuando la base de pueblos ya está lista (para el buscador y para la versión)
 var alTenerBase=null;
 function baseLista(){return !!(BD&&BD.length)}
-// La base de pueblos va incluida en esta misma página (no hace falta descargar nada)
-// La base de pueblos se guarda en el móvil (IndexedDB) la primera vez.
+// La base de pueblos (data/pueblos.js) se guarda en el móvil (IndexedDB) la primera vez.
 // A partir de ahí se lee del propio teléfono: no hay que descargarla ni esperar.
 (function cargarBase(){
   var aplicado=false;
@@ -591,17 +593,17 @@ function baseLista(){return !!(BD&&BD.length)}
     try{parseLineas(txt,all)}catch(e){}
     return Object.keys(all).map(function(k){return all[k]});
   }
-  // Espera a que data/pueblos.js termine de cargar (nunca bloquea la interfaz)
-  function esperarDatos(ms){
-    return new Promise(function(res){
-      var t=0;
-      (function ver(){
-        if(window.DATOS_PUEBLOS!==undefined&&window.DATOS_PUEBLOS!==null){
-          var txt=window.DATOS_PUEBLOS;window.DATOS_PUEBLOS=null;res(txt||"");return;
-        }
-        if(t>=ms){res("");return}
-        t+=100;setTimeout(ver,100);
-      })();
+  // Descarga el archivo y saca el texto de datos que lleva dentro
+  // (es un script que asigna window.DATOS_PUEBLOS="...")
+  function descargar(){
+    return fetch("data/pueblos.js",{cache:"default"}).then(function(r){
+      if(!r.ok)throw new Error("HTTP "+r.status);
+      return r.text();
+    }).then(function(crudo){
+      var m=/window\.DATOS_PUEBLOS\s*=\s*"([\s\S]*)"\s*;?\s*$/.exec(crudo);
+      if(!m)throw new Error("formato desconocido");
+      // Se deshacen los escapes del literal de JavaScript
+      return m[1].replace(/\\n/g,"\n").replace(/\\"/g,'"').replace(/\\\\/g,"\\");
     });
   }
   (async function(){
@@ -611,25 +613,23 @@ function baseLista(){return !!(BD&&BD.length)}
       if(kv&&kv.d)kv=kv.d;
       if(kv&&kv.length){aplicar(kv);return}
     }catch(e){}
-    // 2) Primera apertura: esperar a data/pueblos.js en segundo plano
-    var txt=await esperarDatos(20000);
-    if(!txt){
-      // Si la descarga falló, un único reintento silencioso
-      try{
-        await new Promise(function(res){
-          var sc=document.createElement("script");
-          sc.src="data/pueblos.js?r="+Date.now();
-          sc.onload=res;sc.onerror=res;
-          document.head.appendChild(sc);
-        });
-        txt=await esperarDatos(20000);
-      }catch(e){}
+    // 2) Primera apertura: se descarga en segundo plano (la interfaz nunca se bloquea)
+    var intentos=0;
+    while(intentos<3){
+      intentos++;
+      var txt="";
+      try{txt=await descargar()}catch(e){txt=""}
+      if(txt){
+        var arr=parsear(txt);
+        if(arr.length){
+          aplicar(arr);
+          try{await bdSet("pueblosParseados",arr)}catch(e2){}
+          return;
+        }
+      }
+      // Reintento con espera creciente (red lenta o servidor ocupado)
+      if(intentos<3)await new Promise(function(r){setTimeout(r,intentos*3000)});
     }
-    if(!txt)return;
-    var arr=parsear(txt);
-    if(!arr.length)return;
-    aplicar(arr);
-    try{await bdSet("pueblosParseados",arr)}catch(e){}
   })().catch(function(){});
 })();
 function espera(ms){return new Promise(function(r){setTimeout(r,ms)})}
@@ -1226,12 +1226,16 @@ var pkBaseP=null;
 function cargarPicosBase(){
   if(PKALL)return Promise.resolve();
   if(pkBaseP)return pkBaseP;
-  pkBaseP=new Promise(function(res){
-    var el=document.createElement("script");
-    el.src="data/picos.js";el.async=true;
-    el.onload=function(){res()};
-    el.onerror=function(){pkBaseP=null;res()};
-    document.head.appendChild(el);
+  pkBaseP=fetch("data/picos.js",{cache:"default"}).then(function(r){
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    return r.text();
+  }).then(function(crudo){
+    var m=/window\.DATOS_PICOS\s*=\s*"([\s\S]*)"\s*;?\s*$/.exec(crudo);
+    if(!m)throw new Error("formato desconocido");
+    PKALL=parsePicos(m[1].replace(/\\n/g,"\n").replace(/\\"/g,'"').replace(/\\\\/g,"\\"));
+  }).catch(function(e){
+    pkBaseP=null;
+    PKALL=PKALL||[];
   });
   return pkBaseP;
 }
