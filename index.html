@@ -40,10 +40,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="¿Qué pueblo?">
 
-<link rel="stylesheet" href="styles/base.css">
-<link rel="stylesheet" href="styles/portada.css">
-<link rel="stylesheet" href="styles/layout.css">
-<link rel="stylesheet" href="styles/camera.css">
+<link rel="stylesheet" href="styles/base.css?v=14">
+<link rel="stylesheet" href="styles/portada.css?v=14">
+<link rel="stylesheet" href="styles/layout.css?v=14">
+<link rel="stylesheet" href="styles/camera.css?v=14">
 
 <!-- La base de pueblos se necesita siempre: que empiece a descargarse ya -->
 <link rel="preload" href="data/pueblos.js" as="script">
@@ -74,20 +74,15 @@
         <section id="hero">
         <div class="hero-badge">🌄 ¿Qué pueblo es?</div>
         <h1>Apunta al horizonte</h1>
-        <p>Descubre qué pueblo o pico tienes delante, con la cámara de tu móvil.</p>
-
-        <div class="hero-loading" id="hero-loading">
-            <div class="spinner"></div>
-            <p id="cargando" role="status">Cargando pueblos y picos…</p>
-        </div>
+        <p>Descubre qué pueblo o pico tienes delante con la cámara de tu móvil.</p>
 
         <div class="hero-actions">
             <button id="go" type="button" class="btn-primary">
-                <span class="go1">Cargando datos…</span>
-                <span class="go2">Preparando pueblos y picos</span>
+                <span class="go1">Iniciar identificación</span>
+                <span class="go2">Activa GPS y brújula mientras la usas</span>
             </button>
-            <button id="buscarb" type="button" title="Buscar un pueblo o pico y ver hacia dónde apuntar" aria-label="Buscar pueblo o pico" class="btn-secondary">
-                <span class="ic" aria-hidden="true">🔍</span><span>Buscar pueblo o pico</span>
+            <button id="buscarb" type="button" class="btn-secondary" title="Buscar un pueblo o pico y ver hacia dónde apuntar" aria-label="Buscar pueblo o pico">
+                <span class="ic" aria-hidden="true">🔍</span><span class="bs">Buscar pueblo o pico</span>
             </button>
         </div>
 
@@ -406,9 +401,9 @@
     <p>Esta app necesita JavaScript para usar la cámara, el GPS y la brújula.</p>
 </noscript>
 
-<!-- Datos: pueblos (imprescindible) y motor. picos.js se carga solo al activar Picos. -->
-<script defer src="data/pueblos.js"></script>
-<script defer src="scripts/app.js"></script>
+<!-- Datos: pueblos (se descarga una vez y queda guardado) y motor. picos.js se carga solo al activar Picos. -->
+<script async src="data/pueblos.js"></script>
+<script defer src="scripts/app.js?v=14"></script>
 
 <!-- ================= Modo inverso: buscar pueblo/pico ================= -->
 <div id="inverso" role="dialog" aria-modal="true" aria-labelledby="inversoT" style="display:none;">
