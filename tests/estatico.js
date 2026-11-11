@@ -181,7 +181,28 @@ else mal('elegir el pueblo no arranca la identificación');
 if (/buscarTipoFila/.test(html) && /buscarTipoFila/.test(app)) ok('el filtro de tipo se oculta al elegir el pueblo');
 else mal('no se oculta el filtro de tipo en modo ubicación');
 
-// ---------- app Android: permisos desde dentro ----------
+// ---------- limpieza de datos de versiones anteriores ----------
+console.log('\ncaché y datos viejos');
+if (/function limpiarDatosViejos\(/.test(app)) ok('función limpiarDatosViejos');
+else mal('falta limpiarDatosViejos: no se limpian los datos de otras versiones');
+if (/VERSION_DATOS\s*=\s*["'][^"']+["']/.test(app)) ok('marca de versión de datos');
+else mal('falta VERSION_DATOS');
+if (/versionDatos/.test(app)) ok('guarda la versión de datos aplicada');
+else mal('no se guarda la versión de datos');
+for (const k of ['pueblosParseados', 'picos', 'elevP', 'demIdx3']) {
+  if (new RegExp('bdDel\\(\\[[^\\]]*["\']' + k + '["\']').test(app)) ok('borra la copia derivada «' + k + '»');
+  else mal('no se borra la copia derivada «' + k + '»');
+}
+if (app.includes('bdAll("dem3:")')) ok('borra el relieve guardado');
+else mal('no se borra el relieve guardado');
+if (/misLugares|osmExtra|ubiUltima/.test(app) && !/bdDel\([^)]*misLugares/.test(app)) ok('conserva los pueblos añadidos y la última ubicación');
+else mal('la limpieza podría borrar datos del usuario');
+if (/limpiarDatosViejos\(\)[\s\S]{0,200}bdGet\("pueblosParseados"\)/.test(app))
+  ok('limpia antes de leer la base guardada');
+else mal('se lee la base guardada antes de limpiar');
+if (/cache:recargarDatos\?"reload":"default"/.test(app)) ok('fuerza la descarga de datos tras limpiar');
+else mal('no se fuerza la descarga de datos tras limpiar');
+
 console.log('\napp Android');
 if (/AndroidApp\.pedirPermisos/.test(app)) ok('la web puede volver a pedir los permisos de Android sin salir a los ajustes');
 else mal('falta la llamada a AndroidApp.pedirPermisos');

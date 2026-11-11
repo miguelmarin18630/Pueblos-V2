@@ -643,6 +643,44 @@ function actualizarConteos(){
   else t+=" · picos no disponibles.";
   el.textContent=t;
 }
+// ---- Versión de los datos guardados ----
+// Al abrir una versión nueva se borran las copias derivadas (base parseada, picos,
+// relieve y cachés del navegador) y se vuelven a descargar. Se conservan los pueblos
+// añadidos a mano, los ajustes y la última ubicación, que son datos del usuario.
+var VERSION_DATOS="1.6.3-v28";
+var recargarDatos=false;
+function limpiarDatosViejos(){
+  var ya=false;
+  try{ya=localStorage.getItem("versionDatos")===VERSION_DATOS}catch(e){}
+  if(ya)return Promise.resolve(false);
+  // Cachés del navegador y service worker de versiones anteriores
+  try{
+    if(window.caches&&caches.keys)caches.keys().then(function(ks){
+      ks.forEach(function(k){try{caches.delete(k)}catch(e){}});
+    },function(){});
+  }catch(e){}
+  try{
+    if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)navigator.serviceWorker.getRegistrations().then(function(rs){
+      rs.forEach(function(r){try{r.unregister()}catch(e){}});
+    },function(){});
+  }catch(e){}
+  // Relieve guardado en el móvil (localStorage) y copias derivadas (IndexedDB)
+  try{
+    Object.keys(localStorage).forEach(function(k){if(k.indexOf("dem:")===0)localStorage.removeItem(k)});
+  }catch(e){}
+  var tareas=[];
+  try{
+    tareas.push(bdAll("dem3:").then(function(todo){
+      var ks=Object.keys(todo||{});
+      return ks.length?bdDel(ks):null;
+    }));
+    tareas.push(bdDel(["pueblosParseados","picos","elevP","demIdx3"]));
+  }catch(e){}
+  return Promise.all(tareas).catch(function(){}).then(function(){
+    try{localStorage.setItem("versionDatos",VERSION_DATOS)}catch(e){}
+    return true;
+  });
+}
 // La base de pueblos (data/pueblos.js) se guarda en el móvil (IndexedDB) la primera vez.
 // A partir de ahí se lee del propio teléfono: no hay que descargarla ni esperar.
 (function cargarBase(){
@@ -660,7 +698,7 @@ function actualizarConteos(){
   // Descarga el archivo y saca el texto de datos que lleva dentro
   // (es un script que asigna window.DATOS_PUEBLOS="...")
   function descargar(){
-    return fetch("data/pueblos.js",{cache:"default"}).then(function(r){
+    return fetch("data/pueblos.js",{cache:recargarDatos?"reload":"default"}).then(function(r){
       if(!r.ok)throw new Error("HTTP "+r.status);
       return r.text();
     }).then(function(crudo){
@@ -671,6 +709,8 @@ function actualizarConteos(){
     });
   }
   (async function(){
+    // 0) Si la versión es nueva, se borran las copias derivadas de la anterior
+    try{recargarDatos=await limpiarDatosViejos()||recargarDatos}catch(e){}
     // 1) Datos ya guardados en el móvil: instantáneo y sin red
     try{
       var kv=await bdGet("pueblosParseados");
@@ -1300,7 +1340,7 @@ var pkBaseP=null;
 function cargarPicosBase(){
   if(PKALL)return Promise.resolve();
   if(pkBaseP)return pkBaseP;
-  pkBaseP=fetch("data/picos.js",{cache:"default"}).then(function(r){
+  pkBaseP=fetch("data/picos.js",{cache:recargarDatos?"reload":"default"}).then(function(r){
     if(!r.ok)throw new Error("HTTP "+r.status);
     return r.text();
   }).then(function(crudo){
