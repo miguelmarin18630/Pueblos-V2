@@ -26,10 +26,10 @@ function tolMira(){
   if(typeof prec!=="number"||!isFinite(prec)||prec<0||prec>25)return TOL;
   return Math.max(1.5,Math.min(TOL,1+0.25*prec));
 }
-// Orden de los candidatos de la mira: manda el angulo. La distancia solo desempata
-// dentro del mismo cuarto de grado, para que un pueblo lejano a 0,2° gane a uno
-// cercano a 0,3° (antes se sumaba 0,04° por km y ganaba siempre el de al lado).
-function cmpMira(a,b){var ca=Math.round(a.d*4),cb=Math.round(b.d*4);return (ca-cb)||(a.k-b.k)}
+// Orden de los candidatos de la mira: manda la distancia (el lugar mas cercano que
+// este en la mira y visible se considera el que se esta apuntando). El angulo solo
+// desempata cuando la distancia es igual.
+function cmpMira(a,b){return (a.k-b.k)||(a.d-b.d)}
 // Índice espacial: cuadrícula de 0,1° que se recalcula solo cuando P cambia de lista
 var GRID=0.1,gridP=null,gridM=null;
 function gridKey(i,j){return i*4000+j}
@@ -566,8 +566,13 @@ function guardarAgregados(){
     localStorage.setItem("osmExtra",JSON.stringify(OSMX));
   }catch(e){}
 }
+var normCache={};
 function normNombre(n){
-  return String(n||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim();
+  var k=String(n||"").toLowerCase();
+  if(normCache[k]!==undefined)return normCache[k];
+  var r=k.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim();
+  normCache[k]=r;
+  return r;
 }
 function agregados(){return MIS.concat(OSMX)}
 function misPueblos(){
@@ -582,6 +587,7 @@ function unir(){return fusionar(misPueblos(),fusionar(BD||[],BASE))}
 function aplicarBD(datos){
   BD=datos.length?datos:null;BDlisto=false;
   if(BD&&pos){P=unir();BDlisto=true}
+  actualizarConteos();
   $("info").textContent=BD?"Base incluida: "+BD.length+" localidades de España":"";
   // Aviso a quien espere la base (por ejemplo, el buscador)
   if(alTenerBase){var f=alTenerBase;alTenerBase=null;try{f()}catch(e){}}
@@ -589,6 +595,12 @@ function aplicarBD(datos){
 // Se avisa cuando la base de pueblos ya está lista (para el buscador y para la versión)
 var alTenerBase=null;
 function baseLista(){return !!(BD&&BD.length)}
+// Indica la cantidad de pueblos y picos de la base de datos (pantalla principal)
+function actualizarConteos(){
+  var el=$("cnt");if(!el)return;
+  var np=((BD||[]).concat(BASE||[])).length,nk=(PKALL?PKALL.length:0);
+  el.textContent="Base de datos: "+(np||0).toLocaleString("es-ES")+" localidades y "+(nk||0).toLocaleString("es-ES")+" picos.";
+}
 // La base de pueblos (data/pueblos.js) se guarda en el móvil (IndexedDB) la primera vez.
 // A partir de ahí se lee del propio teléfono: no hay que descargarla ni esperar.
 (function cargarBase(){
@@ -815,6 +827,10 @@ function actualizarMarcha(c){
     }
   }
 }
+// El interruptor «Ajustes automáticos» (afinar sola la brújula al moverse) se guarda
+// y se lee cada marcha del GPS; viene activado por defecto
+$("auto").onchange=function(){try{localStorage.setItem("auto",this.checked?"1":"0")}catch(e){}};
+try{if(localStorage.getItem("auto")==="0")$("auto").checked=false}catch(e){}
 // Entre dos lecturas del GPS, calcula dónde estás según velocidad y rumbo
 function posEfectiva(){
   if(!pos)return null;
@@ -987,7 +1003,7 @@ function consejosPrimeraVez(){
   if(visto)return;
   clearTimeout(tCons);
   tCons=setTimeout(function(){
-    if(!document.body.classList.contains("on"))return;
+    if($("permisos").style.display==="flex")return; // no pisa el aviso de permisos en la misma primera visita
     try{localStorage.setItem("guiaVista","1")}catch(e){}
     mostrarGuia(false);
   },1500);
@@ -1314,6 +1330,8 @@ $("relb").onclick=function(){
   this.classList.toggle("act",usarRelieve);this.setAttribute("aria-pressed",usarRelieve?"true":"false");
   this.title=usarRelieve?"Relieve activado: se ocultan los lugares tapados por montañas":"Relieve desactivado: se muestran todos los lugares por dirección";
   avisar(usarRelieve?"🏔 Relieve activado: compruebo si las montañas tapan los pueblos.":"🏔 Relieve desactivado: muestro los pueblos sin comprobar las montañas.",4500);
+  // Si se activa el relieve, la silueta se dibuja automáticamente sobre la cámara
+  if(usarRelieve){try{$("hzsil").checked=true;localStorage.setItem("hzsil","1")}catch(e){}}
   panBloq=0;pintar();
 };
 $("picosb").onclick=function(){
@@ -1865,7 +1883,6 @@ function pedirUbicacionParaBuscar(){
     },{enableHighAccuracy:false,timeout:12000,maximumAge:300000});
   }catch(e){}
 }
-$("buscarb").onclick = abrirBuscar;
 $("buscar2").onclick = abrirBuscar;
 
 // Diálogo de búsqueda: escribir y buscar coincidencias en pueblos y picos
@@ -2196,7 +2213,7 @@ async function iniciar2(){
   if(!p0||p0.error){$("msg").textContent=msgSinUbic(p0&&p0.error);return}
   (function(p){
     pos=p.coords;ultimaPos=pos;posT=Date.now();$("go").style.display="none";$("msg").textContent="Ubicación obtenida.";
-    masPueblos();document.body.classList.add("on");camara();pantallaEncendida(true);consejosPrimeraVez();
+    masPueblos();document.body.classList.add("on");camara();pantallaEncendida(true);consejosPrimeraVez();actualizarConteos();
     // Si el usuario pidió una búsqueda direccional antes de tener GPS, se activa ahora
     if(invPendiente&&invDest){
       invPendiente=false;
@@ -2270,8 +2287,8 @@ $("permno").onclick=function(){$("permisos").style.display="none";permInicio=fal
     g.setAttribute("aria-busy","false");
     g.style.opacity="";
   }
-  var b=$("buscarb");
-  if(b){b.disabled=false;}
+  // En la primera apertura se muestra la guía de uso una sola vez
+  consejosPrimeraVez();
 })();
 // ---- App instalable: guarda la página para abrirla sin conexión ----
 if("serviceWorker" in navigator&&location.protocol!=="file:"&&!window.AndroidApp)window.addEventListener("load",function(){

@@ -178,11 +178,12 @@ console.log('\nOrden de los pueblos en la mira');
 {
   const cmpMira = montar(fragCmp, null, 'cmpMira');
   const a = { d: 0.2, k: 39 }, b = { d: 0.4, k: 1.5 };
-  if (cmpMira(a, b) < 0) ok('a 0,2° y 39 km gana a 0,4° y 1,5 km (manda el ángulo)');
-  else mal('un pueblo a 0,4° gana al de 0,2°');
+  // La distancia manda: gana el lugar más cercano que está en la mira (1,5 km), no el lejano (39 km)
+  if (cmpMira(b, a) < 0) ok('el pueblo más cercano (1,5 km) gana al más lejano (39 km)');
+  else mal('un pueblo a 39 km sigue ganando a uno a 1,5 km');
   const c = { d: 0.21, k: 39 }, d = { d: 0.24, k: 1.5 };
-  if (cmpMira(c, d) > 0) ok('dentro del mismo cuarto de grado desempata la distancia');
-  else mal('con ángulos casi iguales no desempata la distancia');
+  if (cmpMira(c, d) > 0) ok('manda la distancia, el ángulo solo desempata si es igual');
+  else mal('el ángulo manda sobre la distancia');
   if (cmpMira({ d: 0.5, k: 3 }, { d: 0.5, k: 3 }) === 0) ok('mismo ángulo y distancia: orden estable');
   else mal('el comparador no devuelve 0 para dos candidatos idénticos');
 }

@@ -201,6 +201,11 @@ body.on main {
     padding: calc(env(safe-area-inset-top, 0px) + 6px) 12px 8px;
 }
 
+/* El panel no debe quedar cortado por la barra inferior fija: deja hueco para ella */
+body.on main {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 96px);
+}
+
 body.on #rumbo {
     font-size: 14px;
     margin: 4px 0 2px;
@@ -459,6 +464,17 @@ body.on #anadircam {
 #bar .tg[aria-pressed="true"] {
     background: #15803d;
     border-color: #86efac;
+}
+
+/* Picos y Relieve se distinguen entre sí con su estado activo (verde vs cian) */
+#bar #picosb[aria-pressed="true"] {
+    background: #15803d;
+    border-color: #86efac;
+}
+
+#bar #relb[aria-pressed="true"] {
+    background: #0e7490;
+    border-color: #a5f3fc;
 }
 
 #bar .tg[aria-pressed="false"] {
@@ -940,12 +956,6 @@ body.on #fdw.v {
     text-align: center;
 }
 
-
-#buscarb {
-    background: #1d4ed8;
-    border-color: #bfdbfe;
-}
-body.on #buscarb { display: none; }
 
 /* ================= Pantalla de inicio (Hero) ================= */
 
