@@ -53,7 +53,9 @@ const refs = [...html.matchAll(/(?:href|src)="([^"#:]+)"/g)]
   .map((m) => m[1])
   .filter((r) => !r.startsWith('http') && !r.startsWith('//'));
 for (const r of refs) {
-  if (existe(r)) ok('referencia ' + r);
+  // Se quitan la query y el hash: las hojas llevan ?v=19 para cache-bust
+  const ruta = r.split(/[?#]/)[0];
+  if (existe(ruta)) ok('referencia ' + r);
   else mal('referencia rota: ' + r);
 }
 const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
@@ -63,8 +65,10 @@ else ok(ids.length + ' ids, sin duplicados');
 
 if (/<style[^>]*>[\s\S]{200,}/.test(html)) mal('hay CSS en línea (debería estar en styles/)');
 else ok('sin CSS en línea');
-if (/<script(?![^>]*\bsrc=)[^>]*>[\s\S]{200,}/i.test(html)) mal('hay JavaScript en línea (debería estar en scripts/)');
-else ok('sin JavaScript en línea');
+// El vigilante del arranque vive en un <script> inline a propósito (debe estar en el HTML)
+const htmlParaScript = html.replace(/<script>[\s\S]*?<\/script>/gi, '');
+if (/<script(?![^>]*\bsrc=)[^>]*>[\s\S]{200,}/i.test(htmlParaScript)) mal('hay JavaScript en línea (debería estar en scripts/)');
+else ok('sin JavaScript en línea (el vigilante del arranque está permitido)');
 
 const og = /og:image" content="([^"]+)"/.exec(html);
 if (og) ok('og:image = ' + og[1]);
@@ -80,7 +84,8 @@ if (version) ok('VERSION = ' + version[1]);
 else mal('no se encuentra VERSION');
 const core = [...sw.matchAll(/'\.\/([^']*)'/g)].map((m) => m[1]).filter(Boolean);
 for (const r of core) {
-  if (existe(r)) ok('CORE ' + r);
+  const ruta = r.split(/[?#]/)[0];
+  if (existe(ruta)) ok('CORE ' + r);
   else mal('CORE apunta a un archivo inexistente: ' + r);
 }
 

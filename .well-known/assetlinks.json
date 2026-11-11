@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.github.laotra18630cmd.pueblos",
+      "sha256_cert_fingerprints": [
+        "C6:9E:40:3D:02:E6:18:7D:5A:49:D1:EC:D5:5A:96:AB:DA:48:FF:8A:49:0B:9B:BB:21:5E:B0:4D:4D:74:3D:EB"
+      ]
+    }
+  }
+]

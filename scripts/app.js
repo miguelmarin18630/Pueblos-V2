@@ -8,6 +8,8 @@
    ============================================================ */
 (function(){
 "use strict";
+// El motor ha empezado a ejecutarse: el vigilante del HTML ya no espera el archivo
+try{window.__motorCargado=true}catch(e){}
 // [nombre, lat, lon] — localidades de España (aprox.)
 var BASE=[["Madrid",40.417,-3.704],["Barcelona",41.387,2.170],["Valencia",39.470,-0.376],["Sevilla",37.389,-5.984],["Zaragoza",41.649,-0.887],["Málaga",36.721,-4.421],["Murcia",37.992,-1.131],["Palma",39.570,2.650],["Bilbao",43.263,-2.935],["Alicante",38.346,-0.483],["Córdoba",37.888,-4.779],["Valladolid",41.652,-4.724],["Vigo",42.240,-8.721],["Gijón",43.532,-5.661],["A Coruña",43.362,-8.411],["Granada",37.177,-3.599],["Vitoria",42.847,-2.673],["Elche",38.267,-0.698],["Oviedo",43.361,-5.849],["Cartagena",37.600,-0.986],["Jerez de la Frontera",36.686,-6.137],["Pamplona",42.812,-1.645],["Almería",36.834,-2.464],["San Sebastián",43.318,-1.981],["Burgos",42.344,-3.697],["Santander",43.462,-3.810],["Castellón",39.986,-0.037],["Albacete",38.995,-1.859],["Logroño",42.466,-2.445],["Badajoz",38.879,-6.970],["Salamanca",40.970,-5.664],["Huelva",37.261,-6.945],["Lleida",41.617,0.620],["Tarragona",41.119,1.245],["León",42.599,-5.567],["Cádiz",36.527,-6.289],["Jaén",37.779,-3.785],["Ourense",42.336,-7.864],["Girona",41.979,2.821],["Lugo",43.012,-7.556],["Cáceres",39.476,-6.372],["Toledo",39.863,-4.027],["Ciudad Real",38.986,-3.927],["Guadalajara",40.633,-3.167],["Cuenca",40.070,-2.137],["Segovia",40.943,-4.109],["Ávila",40.656,-4.700],["Soria",41.764,-2.469],["Teruel",40.345,-1.107],["Huesca",42.140,-0.408],["Palencia",42.010,-4.531],["Zamora",41.503,-5.744],["Pontevedra",42.431,-8.644],["Santiago de Compostela",42.878,-8.544],["Ronda",36.742,-5.167],["Marbella",36.510,-4.886],["Antequera",37.019,-4.561],["Úbeda",38.013,-3.370],["Baeza",37.994,-3.470],["Guadix",37.300,-3.140],["Motril",36.745,-3.518],["Lorca",37.671,-1.701],["Benidorm",38.538,-0.131],["Dénia",38.841,0.106],["Gandía",38.968,-0.181],["Sagunto",39.680,-0.278],["Xàtiva",38.990,-0.520],["Alcoy",38.705,-0.474],["Aranjuez",40.031,-3.603],["Alcalá de Henares",40.482,-3.364],["Talavera de la Reina",39.963,-4.831],["Mérida",38.916,-6.343],["Plasencia",40.030,-6.088],["Peñíscola",40.358,0.408],["Morella",40.620,-0.100],["Albarracín",40.408,-1.442],["Calatayud",41.353,-1.643],["Tortosa",40.812,0.521],["Reus",41.156,1.107],["Vic",41.930,2.255],["Figueres",42.267,2.961],["Manresa",41.730,1.826],["Andújar",38.039,-4.051],["Linares",38.095,-3.636],["Lucena",37.409,-4.485],["Écija",37.542,-5.082],["Carmona",37.471,-5.646],["Algeciras",36.133,-5.455],["Tarifa",36.014,-5.606],["Sanlúcar de Barrameda",36.778,-6.352],["Vélez-Málaga",36.775,-4.100],["Nerja",36.745,-3.875],["Baza",37.490,-2.771],["Loja",37.168,-4.150],["Órgiva",36.900,-3.425],["Mojácar",37.139,-1.851]];
 var P=BASE.slice();
@@ -42,6 +44,8 @@ function enRecuadro(la,lo,dLa,dLo){
   return out; // candidatos de las celdas tocadas: quien llama aplica su filtro exacto
 }
 var $=function(i){return document.getElementById(i)};
+// Failsafe: la portada debe quedar usable aunque algo falle más abajo
+try{var _g=document.getElementById("go");if(_g){_g.disabled=false;_g.removeAttribute("aria-busy")}}catch(e){}
 var R=Math.PI/180;
 function brg(a,b,c,d){var L=(d-b)*R,y=Math.sin(L)*Math.cos(c*R),x=Math.cos(a*R)*Math.sin(c*R)-Math.sin(a*R)*Math.cos(c*R)*Math.cos(L);return (Math.atan2(y,x)/R+360)%360}
 function dst(a,b,c,d){var p=(c-a)*R,q=(d-b)*R,h=Math.sin(p/2)*Math.sin(p/2)+Math.cos(a*R)*Math.cos(c*R)*Math.sin(q/2)*Math.sin(q/2);return 12742*Math.atan2(Math.sqrt(h),Math.sqrt(1-h))}
@@ -332,6 +336,7 @@ function pintarYa(){
   }
   if(document.body.classList.contains("on")&&!fuera)etiquetas(pe,hdc);else limpiarEtq();
   dibujarSilueta(hdc);
+  if(invActivo)pintarInv();
   if(ochoActivo)actOcho();
 }
 // ---- Rumbo: filtro One-Euro ----
@@ -485,6 +490,67 @@ function parseLineas(txt,all){
   });
 }
 // ---- Lugares añadidos a mano o desde OpenStreetMap (se guardan en el móvil) ----
+
+// ---- Modo inverso: buscar pueblo/pico con flechas direccionales ----
+var invActivo=false, invDest=null, invTmr=null, invPendiente=false;
+// Activa el modo flecha con un destino {n, la, lo, t}
+function activarInv(dest){
+  if(!dest)return;
+  if(!pos){
+    // Sin GPS todavía: se pide la ubicación y la brújula, y la flecha se activa al tenerlas
+    invPendiente=true;
+    invDest=dest;
+    $("buscarEstado").textContent="Esperando GPS y brújula… (acepta los permisos del móvil)";
+    if(!document.body.classList.contains("on")){
+      var visto=false;try{visto=localStorage.getItem("permisosVistos")==="1"}catch(e){}
+      if(visto)iniciar();
+      else{$("permisos").style.display="flex";$("permok").focus()}
+    }
+    avisar("📍 Activando GPS y brújula para mostrar la flecha…",4000);
+    return;
+  }
+  invPendiente=false;
+  invDest=dest;
+  $("buscar").style.display="none";
+  $("invFlecha").style.display="flex";
+  $("invFlecha").classList.remove("alcanzado");
+  invActivo=true;
+  // Si está muy lejos, se avisa: la app solo muestra lugares hasta 80 km
+  var d=dst(pos.latitude,pos.longitude,dest.la,dest.lo);
+  if(d>BUSCAR_KM)avisar("⚠ "+dest.n+" está a "+Math.round(d)+" km. La app solo muestra lugares hasta "+BUSCAR_KM+" km.",6000);
+  pintarInv();
+}
+function desactivarInv(){
+  invActivo=false;invDest=null;invPendiente=false;
+  $("invFlecha").style.display="none";
+  $("invFlecha").classList.remove("alcanzado");
+}
+function pintarInv(){
+  if(!invActivo||!invDest||!pos)return;
+  var hdc=rumboC();
+  var rumboDest=brg(pos.latitude,pos.longitude,invDest.la,invDest.lo);
+  var difAng=((rumboDest-hdc+540)%360)-180;
+  var girador=$("invFlechaGirador");
+  if(girador)girador.style.transform="rotate("+difAng+"deg)";
+  var dist=dst(pos.latitude,pos.longitude,invDest.la,invDest.lo);
+  $("invDist").textContent=(dist<10?dist.toFixed(1):Math.round(dist))+" km";
+  $("invNombre").textContent=(invDest.t==="pico"?"▲ ":"● ")+invDest.n;
+  // ¿El destino ya está en la mira? Entonces la flecha sobra y el nombre parpadea
+  var alcance=invDest.t==="pico"?2.5:3.5;   // margen en grados según el tamaño del lugar
+  var alcanzado=Math.abs(difAng)<=alcance;
+  var fx=$("invFlecha");
+  if(fx)fx.classList.toggle("alcanzado",alcanzado);
+  // Verde cuando está alineado; verde suave cuando ya lo tienes delante
+  if(girador){
+    if(alcanzado)girador.style.filter="drop-shadow(0 0 16px #22c55e)";
+    else if(Math.abs(difAng)<15)girador.style.filter="drop-shadow(0 0 12px #22c55e)";
+    else girador.style.filter="drop-shadow(0 4px 10px rgba(0,0,0,.7))";
+  }
+  invTmr=requestAnimationFrame(pintarInv);
+}
+
+// Integrar en pintarYa: buscar la línea que actualiza "mejor" y añadir llamada a pintarInv
+
 var MIS=[],OSMX=[];
 function leerLista(k){
   try{
@@ -517,19 +583,64 @@ function aplicarBD(datos){
   BD=datos.length?datos:null;BDlisto=false;
   if(BD&&pos){P=unir();BDlisto=true}
   $("info").textContent=BD?"Base incluida: "+BD.length+" localidades de España":"";
+  // Aviso a quien espere la base (por ejemplo, el buscador)
+  if(alTenerBase){var f=alTenerBase;alTenerBase=null;try{f()}catch(e){}}
 }
-// La base de pueblos va incluida en esta misma página (no hace falta descargar nada)
+// Se avisa cuando la base de pueblos ya está lista (para el buscador y para la versión)
+var alTenerBase=null;
+function baseLista(){return !!(BD&&BD.length)}
+// La base de pueblos (data/pueblos.js) se guarda en el móvil (IndexedDB) la primera vez.
+// A partir de ahí se lee del propio teléfono: no hay que descargarla ni esperar.
 (function cargarBase(){
-  var txt=window.DATOS_PUEBLOS||"",all={};
-  try{
-    if(txt)parseLineas(txt,all);
-    aplicarBD(Object.keys(all).map(function(k){return all[k]}));
-  }catch(e){}
-  window.DATOS_PUEBLOS=null;
-  if(!txt){
-    $("info").textContent="No se pudo cargar data/pueblos.js: solo hay ciudades de la lista basica. Sirve la app por HTTP(s) o revisa la carpeta data.";
-    var c=$("cargando");if(c){c.textContent="No se cargaron los pueblos (revisa data/pueblos.js).";c.className="mal"}
+  var aplicado=false;
+  function aplicar(datos){
+    if(aplicado||!datos||!datos.length)return;
+    aplicado=true;
+    try{aplicarBD(datos)}catch(e){}
   }
+  function parsear(txt){
+    var all={};
+    try{parseLineas(txt,all)}catch(e){}
+    return Object.keys(all).map(function(k){return all[k]});
+  }
+  // Descarga el archivo y saca el texto de datos que lleva dentro
+  // (es un script que asigna window.DATOS_PUEBLOS="...")
+  function descargar(){
+    return fetch("data/pueblos.js",{cache:"default"}).then(function(r){
+      if(!r.ok)throw new Error("HTTP "+r.status);
+      return r.text();
+    }).then(function(crudo){
+      var m=/window\.DATOS_PUEBLOS\s*=\s*"([\s\S]*)"\s*;?\s*$/.exec(crudo);
+      if(!m)throw new Error("formato desconocido");
+      // Se deshacen los escapes del literal de JavaScript
+      return m[1].replace(/\\n/g,"\n").replace(/\\"/g,'"').replace(/\\\\/g,"\\");
+    });
+  }
+  (async function(){
+    // 1) Datos ya guardados en el móvil: instantáneo y sin red
+    try{
+      var kv=await bdGet("pueblosParseados");
+      if(kv&&kv.d)kv=kv.d;
+      if(kv&&kv.length){aplicar(kv);return}
+    }catch(e){}
+    // 2) Primera apertura: se descarga en segundo plano (la interfaz nunca se bloquea)
+    var intentos=0;
+    while(intentos<3){
+      intentos++;
+      var txt="";
+      try{txt=await descargar()}catch(e){txt=""}
+      if(txt){
+        var arr=parsear(txt);
+        if(arr.length){
+          aplicar(arr);
+          try{await bdSet("pueblosParseados",arr)}catch(e2){}
+          return;
+        }
+      }
+      // Reintento con espera creciente (red lenta o servidor ocupado)
+      if(intentos<3)await new Promise(function(r){setTimeout(r,intentos*3000)});
+    }
+  })().catch(function(){});
 })();
 function espera(ms){return new Promise(function(r){setTimeout(r,ms)})}
 function salir(){try{clearTimeout(tTap);tapSel=null;$("toque").style.display="none"}catch(e){}camErr="";camBusy=false;camSes++;iniciando=false;$("go").disabled=false;
@@ -540,6 +651,8 @@ function salir(){try{clearTimeout(tTap);tapSel=null;$("toque").style.display="no
   $("cam").srcObject=null;
   document.body.classList.remove("on");
   cerrarOcho();$("cal").style.display="none";
+  // Cerrar búsqueda y modo flecha
+  $("buscar").style.display="none";buscarSel=null;desactivarInv();
   $("go").style.display="";
   limpiarEtq();pan=null;hzOff=0;hzPrev=null;hzDet=null;dibujarSilueta(0);
   verPicos=false;actAldeasBtn();document.body.classList.remove("picos");$("picosb").classList.remove("act");$("picosb").setAttribute("aria-pressed","false");
@@ -553,7 +666,13 @@ function pedirTerminar(){$("conf").style.display="flex";$("confno").focus()}
 $("salir").onclick=pedirTerminar;
 $("confno").onclick=function(){$("conf").style.display="none"};
 $("confsi").onclick=function(){$("conf").style.display="none";salir()};
-document.addEventListener("keydown",function(e){if(e.key==="Escape"){$("conf").style.display="none";$("permisos").style.display="none";$("guia").style.display="none";if($("anadir").style.display==="flex")cerrarAnadir();if($("cal").style.display==="block")$("calcerrar").onclick()}});
+document.addEventListener("keydown",function(e){
+  if(e.key!=="Escape")return;
+  $("conf").style.display="none";$("permisos").style.display="none";$("guia").style.display="none";
+  if($("buscar").style.display==="flex")$("buscarCerrar").onclick();
+  if($("anadir").style.display==="flex")cerrarAnadir();
+  if($("cal").style.display==="block")$("calcerrar").onclick();
+});
 function cerrar(){
   if(document.body.classList.contains("on"))salir();
   if(window.AndroidApp&&AndroidApp.cerrar){guardarVis(true);AndroidApp.cerrar();return} // app Android: cierra de verdad
@@ -853,7 +972,7 @@ function identificarToque(x,y){
   pintar();
 }
 function finToque(){tapSel=null;$("toque").style.display="none";pintar()}
-$("enf").onclick=function(){enfocar(innerWidth/2,innerHeight/2)};
+
 var tToast=null,tCons=null;
 function avisar(txt,ms){var t=$("toast");t.textContent=txt;t.className="";void t.offsetWidth;t.className="v";clearTimeout(tToast);tToast=setTimeout(function(){t.className=""},ms||6200)}
 // Consejos de primera vez: cada uno sale una sola vez y no vuelve (se recuerdan en localStorage)
@@ -1117,22 +1236,35 @@ var pkBaseP=null;
 function cargarPicosBase(){
   if(PKALL)return Promise.resolve();
   if(pkBaseP)return pkBaseP;
-  pkBaseP=new Promise(function(res){
-    var el=document.createElement("script");
-    el.src="data/picos.js";el.async=true;
-    el.onload=function(){res()};
-    el.onerror=function(){pkBaseP=null;res()};
-    document.head.appendChild(el);
+  pkBaseP=fetch("data/picos.js",{cache:"default"}).then(function(r){
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    return r.text();
+  }).then(function(crudo){
+    var m=/window\.DATOS_PICOS\s*=\s*"([\s\S]*)"\s*;?\s*$/.exec(crudo);
+    if(!m)throw new Error("formato desconocido");
+    PKALL=parsePicos(m[1].replace(/\\n/g,"\n").replace(/\\"/g,'"').replace(/\\\\/g,"\\"));
+  }).catch(function(e){
+    pkBaseP=null;
+    PKALL=PKALL||[];
   });
   return pkBaseP;
 }
-function picosCerca(la,lo,km){
+// Todos los picos de la base local (para la búsqueda por nombre)
+function basePicosTodos(){
   if(!PKALL){
     try{PKALL=parsePicos(window.DATOS_PICOS||"")}catch(e){PKALL=[]}
     window.DATOS_PICOS=null;
   }
+  return PKALL;
+}
+// Carga la base de picos en segundo plano (no bloquea la interfaz)
+function precargarPicosBase(){
+  return cargarPicosBase().then(function(){basePicosTodos()}).catch(function(){});
+}
+function picosCerca(la,lo,km){
+  var todos=basePicosTodos();
   var dLa=km/111,dLo=km/(111*Math.max(0.2,Math.cos(la*R))),out=[];
-  for(var i=0;i<PKALL.length;i++){var k=PKALL[i];if(Math.abs(k[1]-la)<dLa&&Math.abs(k[2]-lo)<dLo&&dst(la,lo,k[1],k[2])<=km)out.push(k)}
+  for(var i=0;i<todos.length;i++){var k=todos[i];if(Math.abs(k[1]-la)<dLa&&Math.abs(k[2]-lo)<dLo&&dst(la,lo,k[1],k[2])<=km)out.push(k)}
   return out;
 }
 async function cargarPicos(){
@@ -1565,9 +1697,21 @@ function osmEstado(t){
 }
 async function actualizarOSM(btnId){
   var B=$(btnId||"osmact"),P0=pos||ultimaPos;
-  if(!P0){osmEstado("Primero activa la ubicación («Iniciar identificación»).");return}
   if(B&&B.disabled)return;
   if(B)B.disabled=true;
+  // Si no hay ubicación, se pide: el botón no deja de funcionar por eso
+  if(!P0){
+    osmEstado("Pidiendo tu ubicación… (acepta el permiso del móvil)");
+    try{
+      var p=await pedirPos({enableHighAccuracy:true,timeout:20000,maximumAge:60000},21000);
+      if(p&&!p.error){P0=p.coords;pos=P0;ultimaPos=P0;posT=Date.now()}
+    }catch(e){}
+    if(!P0){
+      osmEstado("No se pudo obtener la ubicación. Activa el GPS del móvil y vuelve a intentarlo.");
+      if(B)B.disabled=false;
+      return;
+    }
+  }
   osmEstado("Consultando OpenStreetMap (15 km alrededor y picos hasta 50 km)…");
   try{
     var els=await pedirOSM(consultaOSM(P0.latitude,P0.longitude));
@@ -1626,18 +1770,14 @@ function actTipo(){
   if(!pk)$("aalt").value="";
 }
 function ponerModo(m){
-  aModo=m;
-  $("amodo1").classList.toggle("on",m==="desde");
-  $("amodo2").classList.toggle("on",m==="coord");
-  $("amodo1").setAttribute("aria-pressed",m==="desde"?"true":"false");
-  $("amodo2").setAttribute("aria-pressed",m==="coord"?"true":"false");
-  $("adesde").classList.toggle("oculto",m!=="desde");
-  $("acoord").classList.toggle("oculto",m!=="coord");
+  // Solo existe el modo «desde aquí» (rumbo + distancia)
+  aModo="desde";
+  var d=$("adesde");if(d)d.classList.remove("oculto");
 }
 function actCursor(){
   var c=$("acur");if(!c)return;
   var P0=pos||ultimaPos;
-  if(!P0){c.textContent="Sin ubicación: activa «Iniciar identificación» para usar el rumbo y la distancia, o elige «Con coordenadas».";return}
+  if(!P0){c.textContent="Sin ubicación: activa «Iniciar identificación» para usar el rumbo y la distancia.";return}
   var pre=(P0.accuracy?"GPS ±"+Math.round(P0.accuracy)+" m":"GPS")+(pos?"":" · última posición conocida");
   c.textContent="Ahora apuntas a "+Math.round(rumboC())+"° · "+pre+".";
 }
@@ -1672,10 +1812,9 @@ function abrirAnadir(){
   $("anadir").style.display="flex";
   $("aest").textContent="";$("aosmres").textContent="";
   actTipo();
+  ponerModo("desde");
   var P0=pos||ultimaPos;
-  if(P0){ponerModo("desde");$("arumbo").value=Math.round(rumboC())%360}
-  else ponerModo("coord");
-  if(P0&&!$("alat").value){$("alat").value=P0.latitude.toFixed(6);$("alon").value=P0.longitude.toFixed(6)}
+  if(P0)$("arumbo").value=Math.round(rumboC())%360;
   actCursor();pintarLista();
   clearInterval(aTimer);aTimer=setInterval(actCursor,800);
 }
@@ -1683,22 +1822,246 @@ function cerrarAnadir(){
   clearInterval(aTimer);aTimer=null;
   $("anadir").style.display="none";
 }
+
 $("anadirb").onclick=abrirAnadir;
+
+// Botón Buscar (portada y barra de la cámara): abre el diálogo de búsqueda por nombre
+function abrirBuscar(){
+  $("buscar").style.display = "flex";
+  $("buscarTexto").value = "";
+  $("buscarEstado").textContent = "Cargando la base de pueblos y picos…";
+  llenarBuscarLista("");
+  $("buscarTexto").focus();
+  // La base de pueblos puede tardar unos segundos la primera vez: se espera y se rellena sola
+  if(!baseLista()){
+    alTenerBase=function(){
+      if($("buscar").style.display==="flex")llenarBuscarLista($("buscarTexto").value);
+    };
+  }
+  // Sin ubicación no se puede filtrar por distancia: se pide
+  if(!pos&&!ultimaPos){
+    $("buscarEstado").textContent="Pido tu ubicación para buscar solo lo que tienes cerca…";
+    pedirUbicacionParaBuscar();
+  }
+  // Los picos de España están en un archivo aparte: se carga en segundo plano
+  precargarPicosBase().then(function(){
+    if($("buscar").style.display==="flex")llenarBuscarLista($("buscarTexto").value);
+  });
+}
+// Pide la ubicación (sin abrir la cámara) para poder filtrar la búsqueda por distancia
+function pedirUbicacionParaBuscar(){
+  if(pos||ultimaPos)return;
+  if(typeof navigator.geolocation==="undefined"||!navigator.geolocation.getCurrentPosition)return;
+  try{
+    navigator.geolocation.getCurrentPosition(function(p){
+      pos=p.coords;ultimaPos=pos;posT=Date.now();
+      if($("buscar").style.display==="flex"){
+        llenarBuscarLista($("buscarTexto").value);
+        avisar("📍 Búsqueda filtrada a "+BUSCAR_KM+" km a tu alrededor.",3500);
+      }
+    },function(e){
+      var est=$("buscarEstado");
+      if(est)est.textContent="Sin ubicación: se buscan todos los pueblos. Activa el GPS para filtrar por distancia.";
+    },{enableHighAccuracy:false,timeout:12000,maximumAge:300000});
+  }catch(e){}
+}
+$("buscarb").onclick = abrirBuscar;
+$("buscar2").onclick = abrirBuscar;
+
+// Diálogo de búsqueda: escribir y buscar coincidencias en pueblos y picos
+var buscarSel = null; // {n, la, lo, t} del resultado seleccionado
+
+// Todas las localidades disponibles (base local + lista actual + añadidos)
+// P solo incluye la base completa cuando ya hay GPS, así que en la búsqueda
+// se usa la unión de todo para que funcione también desde la portada.
+function todasLasPueblos(){
+  var v=(P||[]).slice(),m={};
+  v.forEach(function(p){m[p[0]+"|"+p[1].toFixed(4)+"|"+p[2].toFixed(4)]=1});
+  (BD||[]).forEach(function(p){var k=p[0]+"|"+p[1].toFixed(4)+"|"+p[2].toFixed(4);if(!m[k]){m[k]=1;v.push(p)}});
+  return v;
+}
+
+// Radio de búsqueda alrededor de la ubicación (km)
+var BUSCAR_KM=80;
+
+// Índice espacial de búsqueda: cuadrícula de 0,1° sobre todos los pueblos.
+// Así el filtro de 80 km y el de nombre solo miran las celdas cercanas, en vez
+// de recorrer las 86.000 localidades en cada pulsación.
+var busGrid=null, busGridFirma=null, busGridPueblos=null;
+var BGRID=0.1;
+function indiceBusqueda(){
+  var firma=BD?BD.length+"/"+BD[0][0]:(P?P.length:"0");
+  if(busGrid&&busGridFirma===firma)return busGrid;
+  busGridFirma=firma;
+  var todos=todasLasPueblos();
+  var grid=new Map();
+  for(var i=0;i<todos.length;i++){
+    var p=todos[i];
+    if(!p[3]||p[3]==="peak")continue;
+    var k=Math.floor(p[1]/BGRID)*4000+Math.floor(p[2]/BGRID);
+    var c=grid.get(k);
+    if(c)c.push(p);else grid.set(k,[p]);
+  }
+  busGrid=grid;
+  busGridPueblos=todos;
+  return grid;
+}
+
+// Pueblos dentro de un radio (en km) alrededor de un punto
+function pueblosCerca(la,lo,km){
+  var grid=indiceBusqueda();
+  var dLa=km/111,dLo=km/(111*Math.max(0.2,Math.cos(la*R)));
+  var i0=Math.floor((la-dLa)/BGRID),i1=Math.floor((la+dLa)/BGRID);
+  var j0=Math.floor((lo-dLo)/BGRID),j1=Math.floor((lo+dLo)/BGRID);
+  var out=[],i,j,c,n;
+  for(i=i0;i<=i1;i++)for(j=j0;j<=j1;j++){
+    c=grid.get(i*4000+j);
+    if(c)for(n=0;n<c.length;n++)out.push(c[n]);
+  }
+  return out;
+}
+
+// Grid de picos de la base local, para filtrar por distancia sin recorrerlos todos
+var pkGrid=null, pkGridFirma=null;
+function indicePicos(){
+  var todos=basePicosTodos();
+  var firma=todos.length+"/"+(todos[0]?todos[0][0]:"");
+  if(pkGrid&&pkGridFirma===firma)return pkGrid;
+  pkGridFirma=firma;
+  var grid=new Map();
+  for(var i=0;i<todos.length;i++){
+    var p=todos[i];
+    var k=Math.floor(p[1]/BGRID)*4000+Math.floor(p[2]/BGRID);
+    var c=grid.get(k);
+    if(c)c.push(p);else grid.set(k,[p]);
+  }
+  pkGrid=grid;
+  return grid;
+}
+// Picos de la base local dentro de un radio (km)
+function picosBaseCerca(la,lo,km){
+  var grid=indicePicos();
+  var dLa=km/111,dLo=km/(111*Math.max(0.2,Math.cos(la*R)));
+  var i0=Math.floor((la-dLa)/BGRID),i1=Math.floor((la+dLa)/BGRID);
+  var j0=Math.floor((lo-dLo)/BGRID),j1=Math.floor((lo+dLo)/BGRID);
+  var out=[],i,j,c,n;
+  for(i=i0;i<=i1;i++)for(j=j0;j<=j1;j++){
+    c=grid.get(i*4000+j);
+    if(c)for(n=0;n<c.length;n++)out.push(c[n]);
+  }
+  return out;
+}
+
+// Rellena la lista de resultados: solo lugares a menos de BUSCAR_KM de la ubicación.
+// Con el filtro por nombre se acota mucho la lista y la búsqueda va rápida.
+function llenarBuscarLista(filtro){
+  var sel=$("buscarLista");
+  if(!sel)return;
+  sel.innerHTML="";
+  buscarSel=null;
+  var tipos=document.getElementById("buscarTipo").value;
+  var f=normNombre(filtro);
+  var P0=pos||ultimaPos;
+  var lista=[];
+  // Pueblos: si hay ubicación, solo los del radio; si no, todos
+  var candidatos;
+  if(P0)candidatos=pueblosCerca(P0.latitude,P0.longitude,BUSCAR_KM);
+  else candidatos=(busGridPueblos||todasLasPueblos()).filter(function(p){return p[3]&&p[3]!=="peak"});
+  for(var i=0;i<candidatos.length;i++){
+    var p=candidatos[i];
+    if(f&&normNombre(p[0]).indexOf(f)<0)continue;
+    lista.push({n:p[0],la:p[1],lo:p[2],t:p[3],k:P0?dst(P0.latitude,P0.longitude,p[1],p[2]):0});
+  }
+  (MIS||[]).forEach(function(p){
+    if(tipos==="todos"||tipos==="pueblo"){
+      if(!f||normNombre(p.n).indexOf(f)>=0)lista.push({n:p.n,la:p.la,lo:p.lo,t:"pueblo",k:P0?dst(P0.latitude,P0.longitude,p.la,p.lo):0});
+    }
+  });
+  (OSMX||[]).forEach(function(p){
+    if(tipos==="todos"||tipos==="pueblo"){
+      if(!f||normNombre(p.n).indexOf(f)>=0)lista.push({n:p.n,la:p.la,lo:p.lo,t:"pueblo",k:P0?dst(P0.latitude,P0.longitude,p.la,p.lo):0});
+    }
+  });
+  // Picos: los cargados + los de la base local + los añadidos a mano
+  if(tipos==="todos"||tipos==="pico"){
+    (PK||[]).forEach(function(p){if(p){if(!f||normNombre(p.n).indexOf(f)>=0)lista.push({n:p.n,la:p.la,lo:p.lo,t:"pico",k:P0?dst(P0.latitude,P0.longitude,p.la,p.lo):0,e:p.e});}});
+    // Base local de picos de España (archivo aparte): solo los del radio
+    var pkC=P0?picosBaseCerca(P0.latitude,P0.longitude,BUSCAR_KM):basePicosTodos();
+    for(var pi=0;pi<pkC.length;pi++){
+      var pp=pkC[pi];
+      if(f&&normNombre(pp[0]).indexOf(f)<0)continue;
+      lista.push({n:pp[0],la:pp[1],lo:pp[2],t:"pico",k:P0?dst(P0.latitude,P0.longitude,pp[1],pp[2]):0,e:pp[3]});
+    }
+    (BASE||[]).forEach(function(p){if(p[3]==="peak"){if(!f||normNombre(p[0]).indexOf(f)>=0)lista.push({n:p[0],la:p[1],lo:p[2],t:"pico",k:P0?dst(P0.latitude,P0.longitude,p[1],p[2]):0,e:p[4]||0});}});
+    misPicos().forEach(function(p){if(!f||normNombre(p[0]).indexOf(f)>=0)lista.push({n:p[0],la:p[1],lo:p[2],t:"pico",k:P0?dst(P0.latitude,P0.longitude,p[1],p[2]):0,e:p[3]});});
+  }
+  // Quitar duplicados (mismo nombre y muy cerca)
+  var vistos={},limpio=[];
+  lista.forEach(function(p){
+    var k=normNombre(p.n)+"|"+p.la.toFixed(3)+"|"+p.lo.toFixed(3);
+    if(vistos[k])return;vistos[k]=1;limpio.push(p);
+  });
+  lista=limpio;
+  // Filtro por distancia (los picos también)
+  if(P0)lista=lista.filter(function(p){return p.k<=BUSCAR_KM});
+  lista.sort(function(a,b){return a.k-b.k});
+  var mostrados=0;
+  lista.forEach(function(p){
+    var o=document.createElement("option");
+    o.value=JSON.stringify({n:p.n,la:p.la,lo:p.lo,t:p.t});
+    var lbl=(p.t==="pico"?"▲ ":"● ")+p.n;
+    if(p.k>0)lbl+=" · "+(p.k<10?p.k.toFixed(1):Math.round(p.k))+" km";
+    o.textContent=lbl;
+    sel.appendChild(o);
+    mostrados++;
+  });
+  if(!mostrados){
+    var o=document.createElement("option");
+    o.textContent=!baseLista()?"Cargando la base de pueblos…":f?("No hay coincidencias con «"+filtro+"»"):"Escribe un nombre para buscar";
+    o.disabled=true;
+    sel.appendChild(o);
+  }
+  var est=$("buscarEstado");
+  if(est){
+    if(!baseLista())est.textContent="Cargando la base de pueblos… (la primera vez tarda unos segundos)";
+    else if(P0)est.textContent=mostrados+" resultado"+(mostrados!==1?"s":"")+" a menos de "+BUSCAR_KM+" km";
+    else est.textContent=mostrados+" resultado"+(mostrados!==1?"s":"")+" (sin ubicación: no se filtra por distancia)";
+  }
+}
+
+$("buscarTexto").oninput=function(){
+  llenarBuscarLista(this.value);
+};
+$("buscarTipo").onchange=function(){
+  llenarBuscarLista($("buscarTexto").value);
+};
+$("buscarLista").onchange=function(){
+  var o=this.options[this.selectedIndex];
+  if(o&&o.value&&!o.disabled){
+    try{buscarSel=JSON.parse(o.value)}catch(e){buscarSel=null}
+    $("buscarEstado").textContent="Seleccionado: "+esc(buscarSel?buscarSel.n:"");
+  }
+};
+$("buscarIr").onclick=function(){
+  if(!buscarSel){$("buscarEstado").textContent="Selecciona un pueblo o pico de la lista.";return}
+  activarInv(buscarSel);
+};
+$("buscarCerrar").onclick=function(){
+  $("buscar").style.display="none";
+  buscarSel=null;
+};
+// Salir del modo flecha
+$("invSalir").onclick=function(){
+  desactivarInv();
+};
+
 $("anadircam").onclick=abrirAnadir;
 $("acerra").onclick=cerrarAnadir;
-$("amodo1").onclick=function(){ponerModo("desde")};
-$("amodo2").onclick=function(){ponerModo("coord")};
 $("atipo").onchange=actTipo;
 $("ausar").onclick=function(){
   if(!pos){aEstado("La brújula está apagada o no hay GPS. Activa la identificación para usar el rumbo actual.");return}
   $("arumbo").value=Math.round(rumboC())%360;actCursor();
   aEstado("Rumbo puesto: "+Math.round(rumboC())+"°.");
-};
-$("aqui").onclick=function(){
-  var P0=pos||ultimaPos;
-  if(!P0){aEstado("No tengo ninguna posición. Activa la ubicación.");return}
-  $("alat").value=P0.latitude.toFixed(6);$("alon").value=P0.longitude.toFixed(6);
-  aEstado(pos?"Posición puesta.":"Puesta la última posición conocida.");
 };
 $("osmact").onclick=function(){actualizarOSM("osmact")};
 $("aosm").onclick=function(){actualizarOSM("aosm")};
@@ -1714,18 +2077,12 @@ $("aadd").onclick=async function(){
   var n=$("anom").value.trim(),tipo=tipoSel(),pk=tipo==="peak";
   if(!n){aEstado("Escribe un nombre.");$("anom").focus();return}
   var P0=pos||ultimaPos,la,lo;
-  if(aModo==="desde"){
-    if(!P0){aEstado("Sin ubicación no puedo calcular el sitio. Usa «Con coordenadas».");return}
-    var az=parseFloat($("arumbo").value),km=parseFloat(String($("adist").value).replace(",","."));
-    if(!isFinite(az)||az<0||az>360){aEstado("El rumbo tiene que estar entre 0 y 360 grados.");return}
-    if(!isFinite(km)||km<=0){aEstado("Pon una distancia en km mayor que 0.");return}
-    if(km>80){aEstado("La app solo muestra lugares hasta 80 km. Pon una distancia menor.");return}
-    var q=lugarDesde(P0.latitude,P0.longitude,az,km);la=q[0];lo=q[1];
-  }else{
-    la=parseFloat(String($("alat").value).replace(",","."));
-    lo=parseFloat(String($("alon").value).replace(",","."));
-    if(!isFinite(la)||!isFinite(lo)||la<-90||la>90||lo<-180||lo>180){aEstado("Latitud o longitud no válidas.");return}
-  }
+  if(!P0){aEstado("Sin ubicación no puedo calcular el sitio. Activa «Iniciar identificación» para usar el GPS.");return}
+  var az=parseFloat($("arumbo").value),km=parseFloat(String($("adist").value).replace(",","."));
+  if(!isFinite(az)||az<0||az>360){aEstado("El rumbo tiene que estar entre 0 y 360 grados.");return}
+  if(!isFinite(km)||km<=0){aEstado("Pon una distancia en km mayor que 0.");return}
+  if(km>80){aEstado("La app solo muestra lugares hasta 80 km. Pon una distancia menor.");return}
+  var q=lugarDesde(P0.latitude,P0.longitude,az,km);la=q[0];lo=q[1];
   B.disabled=true;
   var alt=parseFloat(String($("aalt").value).replace(",","."));
   if(pk){
@@ -1840,6 +2197,13 @@ async function iniciar2(){
   (function(p){
     pos=p.coords;ultimaPos=pos;posT=Date.now();$("go").style.display="none";$("msg").textContent="Ubicación obtenida.";
     masPueblos();document.body.classList.add("on");camara();pantallaEncendida(true);consejosPrimeraVez();
+    // Si el usuario pidió una búsqueda direccional antes de tener GPS, se activa ahora
+    if(invPendiente&&invDest){
+      invPendiente=false;
+      $("invFlecha").style.display="flex";
+      invActivo=true;
+      pintarInv();
+    }
     // Sigue tu posición y recarga los pueblos al alejarte 30 km de la última descarga
     watchId=navigator.geolocation.watchPosition(function(q){
       pos=q.coords;ultimaPos=pos;posT=Date.now();actualizarMarcha(q.coords);calAndar(q.coords);
@@ -1859,6 +2223,19 @@ var gpsAvT=0;
 // Antes de pedir permisos, la primera vez se explica para qué sirve cada uno
 $("go").onclick=function(){
   if(iniciando||watchId!==null)return;
+  // Feedback inmediato: el botón responde al instante aunque tarden los permisos
+  var g1=$("go").querySelector(".go1"),g2=$("go").querySelector(".go2");
+  if(g1)g1.textContent="Activando…";
+  if(g2)g2.textContent="Acepta los permisos del móvil";
+  var restore=function(){
+    if(g1)g1.textContent="Iniciar identificación";
+    if(g2)g2.textContent="Activa GPS y brújula mientras la usas";
+  };
+  // Se restaura el texto en cuanto la cámara arranca (o a los 2 s si tarda)
+  setTimeout(restore,2000);
+  var restoreAlArrancar=function(){if(document.body.classList.contains("on"))restore()};
+  setInterval(restoreAlArrancar,500);
+  setTimeout(function(){clearInterval(restoreAlArrancar)},30000);
   var visto=false;try{visto=localStorage.getItem("permisosVistos")==="1"}catch(e){}
   if(visto){iniciar();return}
   // Si el aviso ya está en pantalla, seguir con los permisos
@@ -1882,11 +2259,25 @@ $("permno").onclick=function(){$("permisos").style.display="none";permInicio=fal
 })();
 // ---- Arranque de la interfaz ----
 (function arrancarUI(){
-  var c=$("cargando");
-  if(c){c.style.display="none"}
+  // El motor ha arrancado: se quita el vigilante de "no se pudo cargar"
+  window.__motorListo = true;
+  var f=document.getElementById("__falla");
+  if(f)f.remove();
+  // Nunca debe quedarse bloqueada la portada
   var g=$("go");
-  if(g){g.disabled=false;g.setAttribute("aria-busy","false");g.innerHTML='<span class="go1">Iniciar identificación</span><span class="go2">Activar GPS y brújula mientras se usa</span>'}
+  if(g){
+    g.disabled=false;
+    g.setAttribute("aria-busy","false");
+    g.style.opacity="";
+  }
+  var b=$("buscarb");
+  if(b){b.disabled=false;}
 })();
 // ---- App instalable: guarda la página para abrirla sin conexión ----
-if("serviceWorker" in navigator&&location.protocol!=="file:"&&!window.AndroidApp)window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})});
+if("serviceWorker" in navigator&&location.protocol!=="file:"&&!window.AndroidApp)window.addEventListener("load",function(){
+  navigator.serviceWorker.register("sw.js").then(function(reg){
+    // Se pide al service worker que guarde los datos pesados en el móvil
+    try{if(reg&&reg.active)reg.active.postMessage("guardar-datos")}catch(e){}
+  }).catch(function(){});
+});
 })();

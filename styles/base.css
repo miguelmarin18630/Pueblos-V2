@@ -100,25 +100,6 @@ a:focus-visible {
     border: 0;
 }
 
-/* Aviso de carga de datos */
-#cargando {
-    font-size: 14px;
-    line-height: 1.4;
-    margin: 0 auto 12px;
-    max-width: 34ch;
-    color: #dfe6ff;
-    opacity: .9;
-}
-
-#cargando.mal {
-    color: #fff;
-    background: rgba(185, 28, 28, .55);
-    border: 1px solid #fecaca;
-    border-radius: 12px;
-    padding: 8px 12px;
-    opacity: 1;
-}
-
 .creditos {
     font-size: 11px;
     line-height: 1.5;

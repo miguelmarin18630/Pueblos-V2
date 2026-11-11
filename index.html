@@ -8,15 +8,15 @@
 <meta name="theme-color" content="#0b1026">
 <meta name="color-scheme" content="dark">
 <meta name="robots" content="index,follow">
-<link rel="canonical" href="https://laotra18630-cmd.github.io/Pueblos-V2/">
+<link rel="canonical" href="https://marinweb.org/">
 
 <meta property="og:title" content="¿Qué pueblo es?">
 <meta property="og:description" content="Apunta con el móvil al horizonte y descubre qué pueblo o pico tienes delante.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="¿Qué pueblo es?">
 <meta property="og:locale" content="es_ES">
-<meta property="og:url" content="https://laotra18630-cmd.github.io/Pueblos-V2/">
-<meta property="og:image" content="https://laotra18630-cmd.github.io/Pueblos-V2/og-image.png">
+<meta property="og:url" content="https://marinweb.org/">
+<meta property="og:image" content="https://marinweb.org/og-image.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -24,7 +24,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="¿Qué pueblo es?">
 <meta name="twitter:description" content="Apunta con el móvil al horizonte y descubre qué pueblo o pico tienes delante.">
-<meta name="twitter:image" content="https://laotra18630-cmd.github.io/Pueblos-V2/og-image.png">
+<meta name="twitter:image" content="https://marinweb.org/og-image.png">
 <meta name="twitter:image:alt" content="¿Qué pueblo es? Apunta al horizonte con el móvil y descubre qué pueblo o pico tienes delante.">
 
 <!-- El relieve se pide a Open-Meteo nada más arrancar: adelanta la conexión TLS -->
@@ -40,10 +40,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="¿Qué pueblo?">
 
-<link rel="stylesheet" href="styles/base.css">
-<link rel="stylesheet" href="styles/portada.css">
-<link rel="stylesheet" href="styles/layout.css">
-<link rel="stylesheet" href="styles/camera.css">
+<link rel="stylesheet" href="styles/base.css?v=19">
+<link rel="stylesheet" href="styles/portada.css?v=19">
+<link rel="stylesheet" href="styles/layout.css?v=19">
+<link rel="stylesheet" href="styles/camera.css?v=19">
 
 <!-- La base de pueblos se necesita siempre: que empiece a descargarse ya -->
 <link rel="preload" href="data/pueblos.js" as="script">
@@ -71,37 +71,29 @@
 <main>
     <button id="plegar" type="button" aria-label="Ocultar o mostrar el panel" aria-expanded="true">▲</button>
 
-    <section id="hero">
-        <svg class="logo" viewBox="0 0 96 96" aria-hidden="true">
-            <defs>
-                <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stop-color="#6a11cb"/>
-                    <stop offset=".5" stop-color="#2575fc"/>
-                    <stop offset="1" stop-color="#00c9a7"/>
-                </linearGradient>
-                <clipPath id="lc"><rect width="96" height="96" rx="22"/></clipPath>
-            </defs>
-            <rect width="96" height="96" rx="22" fill="url(#lg)"/>
-            <g clip-path="url(#lc)">
-                <path d="M0 96V66l22-20 20 24 18-16 36 28v14z" fill="#28105a" opacity=".6"/>
-                <path d="M0 96V78l26-14 22 14 20-10 28 14v14z" fill="#140a3c" opacity=".75"/>
-            </g>
-            <circle cx="48" cy="38" r="20" fill="none" stroke="#fff" stroke-width="4"/>
-            <path d="M48 10v10M48 56v10M20 38h10M66 38h10" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
-            <circle cx="48" cy="38" r="6" fill="#ff2d95"/>
-        </svg>
-        <h1>¿Qué pueblo es?</h1>
-        <p>Apunta con el móvil al horizonte y descubre qué pueblo tienes delante.</p>
-        <small id="autor">Miguel Marín</small>
-        <p id="cargando" role="status">Cargando pueblos y picos…</p>
-        <button id="go" type="button" disabled aria-busy="true">
-            <span class="go1">Cargando datos…</span>
-            <span class="go2">Preparando pueblos y picos</span>
-        </button>
+        <section id="hero">
+        <div class="hero-badge">🌄 ¿Qué pueblo es?</div>
+        <h1>Apunta al horizonte</h1>
+        <p>Descubre qué pueblo o pico tienes delante con la cámara de tu móvil.</p>
+
+        <div class="hero-actions">
+            <button id="go" type="button" class="btn-primary">
+                <span class="go1">Iniciar identificación</span>
+                <span class="go2">Activa GPS y brújula mientras la usas</span>
+            </button>
+            <button id="buscarb" type="button" class="btn-secondary" title="Buscar un pueblo o pico y ver hacia dónde apuntar" aria-label="Buscar pueblo o pico">
+                <span class="ic" aria-hidden="true">🔍</span><span class="bs">Buscar pueblo o pico</span>
+            </button>
+        </div>
+
+        <small id="autor">Miguel Marín · Datos de OpenStreetMap</small>
     </section>
 
     <div id="fila1">
         <div id="rumbo"></div>
+        <button id="buscar2" type="button" title="Buscar un pueblo o pico y ver hacia dónde apuntar" aria-label="Buscar pueblo o pico">
+            <span aria-hidden="true">🔍</span><span>Buscar</span>
+        </button>
         <button id="anadircam" type="button" title="Añadir un pueblo o pico que no aparezca" aria-label="Añadir un lugar">
             <span aria-hidden="true">➕</span><span>Añadir</span>
         </button>
@@ -134,7 +126,7 @@
 
         <section id="faltan" aria-labelledby="faltaT">
             <h3 id="faltaT">¿Falta algún pueblo o pico?</h3>
-            <p>Si ves uno que no aparece, puedes traerlo de OpenStreetMap o añadirlo a mano. Se guarda solo en este móvil.</p>
+            <p>Si ves uno que no aparece, puedes traerlo de OpenStreetMap o añadirlo a mano. Se guarda solo en este móvil. Para buscar te pido la ubicación (solo para saber qué hay cerca de ti).</p>
             <button id="osmact" type="button">🔄 Actualizar desde OpenStreetMap</button>
             <div id="osmres" role="status" aria-live="polite"></div>
             <button id="anadirb" type="button">➕ Añadir un lugar a mano</button>
@@ -154,15 +146,17 @@
         <button id="zmas" type="button" title="Acercar (más zoom)">＋</button>
         <span id="zval">Zoom ×1</span>
         <button id="zmenos" type="button" title="Alejar (menos zoom)">−</button>
-        <button id="enf" type="button"><span class="ic" aria-hidden="true">◎</span><span>Enfocar</span></button>
+    </div>
+
+    <div id="fdw" role="group" aria-label="Enfoque de la cámara">
+        <span>Foco</span>
+        <input type="range" id="fdist" min="0" max="1" step="0.01" value="1" aria-label="Distancia de enfoque (cerca a lejos)">
+        <button id="fauto" type="button">Auto</button>
     </div>
 
     <nav id="bar" aria-label="Controles de la cámara">
         <button id="calbtn" type="button" title="Ajusta la brújula con un lugar que veas">
             <span class="ic" aria-hidden="true">🎯</span><span>Calibrar</span>
-        </button>
-        <button id="aldeas" class="tg" type="button" aria-pressed="true" aria-label="Aldeas: se ven pueblos y aldeas" title="Mostrar u ocultar aldeas pequeñas">
-            <span class="ic" aria-hidden="true">🏘</span><span class="est" aria-hidden="true"></span>
         </button>
         <button id="picosb" class="tg" type="button" aria-pressed="false" title="Mostrar u ocultar nombres de picos">
             <span class="ic" aria-hidden="true">⛰</span><span>Picos</span><span class="est" aria-hidden="true"></span>
@@ -173,16 +167,14 @@
         <button id="relb" class="tg" type="button" aria-pressed="true" aria-label="Relieve activado" title="Relieve activado: se ocultan los lugares tapados por montañas">
             <span class="ic" aria-hidden="true">🏔</span><span>Relieve</span><span class="est" aria-hidden="true"></span>
         </button>
+        <button id="aldeas" class="tg" type="button" aria-pressed="true" aria-label="Aldeas: se ven pueblos y aldeas" title="Mostrar u ocultar aldeas pequeñas">
+            <span class="ic" aria-hidden="true">🏘</span><span class="est" aria-hidden="true"></span>
+        </button>
     </nav>
 
     <div id="toast" role="status" aria-live="polite"></div>
 
-    <div id="fdw">
-        <span>Foco</span>
-        <input type="range" id="fdist" min="0" max="1" step="0.01" value="1" aria-label="Distancia de enfoque (cerca a lejos)">
-        <button id="fauto" type="button">Auto</button>
-    </div>
-</main>
+    </main>
 
 <!-- ================= Panel de calibración ================= -->
 <div id="cal" role="dialog" aria-labelledby="calT" class="menu">
@@ -303,10 +295,6 @@
 
         <div>
             <label>Cómo indicar el sitio</label>
-            <div class="seg" role="group" aria-label="Modo de posición">
-                <button id="amodo1" type="button" aria-pressed="true">📐 Desde aquí</button>
-                <button id="amodo2" type="button" aria-pressed="false">🌐 Con coordenadas</button>
-            </div>
             <p id="acur">—</p>
         </div>
 
@@ -324,19 +312,7 @@
             <button id="ausar" type="button">🧭 Usar el rumbo actual</button>
         </div>
 
-        <div id="acoord" class="oculto">
-            <div class="fila">
-                <div>
-                    <label for="alat">Latitud</label>
-                    <input type="number" id="alat" step="0.000001" inputmode="decimal" placeholder="40.417">
-                </div>
-                <div>
-                    <label for="alon">Longitud</label>
-                    <input type="number" id="alon" step="0.000001" inputmode="decimal" placeholder="-3.704">
-                </div>
-            </div>
-            <button id="aqui" type="button">📍 Usar mi posición</button>
-        </div>
+
 
         <div class="btns">
             <button id="aadd" type="button">✓ Añadir</button>
@@ -401,8 +377,9 @@
         <li><span class="pi" aria-hidden="true">⛰</span><span><b>Picos</b> (Sí/No): muestra los nombres de los picos con su altura.</span></li>
         <li><span class="pi" aria-hidden="true">🔭</span><span><b>Más lejos</b> (40 km / 80 km): amplía hasta dónde busca pueblos.</span></li>
         <li><span class="pi" aria-hidden="true">🏔</span><span><b>Relieve</b> (Sí/No): oculta los lugares tapados por montañas. Si lo apagas, se muestran todos por dirección.</span></li>
-        <li><span class="pi" aria-hidden="true">➕</span><span><b>Zoom</b>: acerca o aleja la cámara.</span></li>
-        <li><span class="pi" aria-hidden="true">◎</span><span><b>Enfocar</b>: enfoca el centro de la imagen.</span></li>
+        <li><span class="pi" aria-hidden="true">🔍</span><span><b>Buscar</b>: busca un pueblo o pico por nombre y te dice hacia dónde apuntar con una flecha.</span></li>
+        <li><span class="pi" aria-hidden="true">＋</span><span><b>Zoom</b>: los botones ＋ y − (a la derecha) acercan y alejan la cámara.</span></li>
+        <li><span class="pi" aria-hidden="true">◎</span><span><b>Foco</b>: la barra de la izquierda ajusta la distancia de enfoque; «Auto» la deja automática.</span></li>
         <li><span class="pi" aria-hidden="true">✕</span><span><b>Terminar</b> (arriba a la derecha): apaga cámara, GPS y brújula.</span></li>
     </ul>
     <button id="guiaok" type="button">Entendido</button>
@@ -419,8 +396,100 @@
     <p>Esta app necesita JavaScript para usar la cámara, el GPS y la brújula.</p>
 </noscript>
 
-<!-- Datos: pueblos (imprescindible) y motor. picos.js se carga solo al activar Picos. -->
-<script defer src="data/pueblos.js"></script>
-<script defer src="scripts/app.js"></script>
+<script>
+/* Vigilante: si el motor de la app no arranca (caché vieja, error o red lenta),
+   se avisa con un botón de recarga en vez de dejar botones muertos. */
+window.__motorListo = false;   // el motor se ha ejecutado entero
+window.__motorCargado = false; // el archivo app.js ha llegado y ha empezado
+window.__errorMotor = [];
+window.addEventListener('error', function (e) {
+  window.__errorMotor.push((e.message || '') + ' @ ' + (e.filename || '') + ':' + (e.lineno || ''));
+});
+window.addEventListener('unhandledrejection', function (e) {
+  window.__errorMotor.push('promesa: ' + ((e.reason && e.reason.message) || e.reason));
+});
+function __comprobarMotor() {
+  if (window.__motorListo) return;
+  if (!window.__motorCargado) {
+    // Ni siquiera ha llegado app.js: casi seguro una copia antigua en la caché
+    var d0 = document.getElementById('__falla');
+    if (!d0) {
+      d0 = document.createElement('div');
+      d0.id = '__falla';
+      d0.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:99;padding:14px;background:#b91c1c;color:#fff;font:15px/1.4 system-ui,sans-serif;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.5)';
+      document.body.appendChild(d0);
+    }
+    d0.innerHTML = '<b>No se pudo cargar el motor de la app.</b><br>Pulsa para recargar.' +
+      '<br><small>' + (window.__errorMotor[0] || 'El archivo app.js no se ha descargado. Puede estar una copia antigua en la caché.') + '</small>';
+    d0.onclick = function () { location.reload(true); };
+    return;
+  }
+  // El motor empezó pero no terminó: hay un error. Se muestra con el detalle.
+  var d = document.getElementById('__falla');
+  if (!d) {
+    d = document.createElement('div');
+    d.id = '__falla';
+    d.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:99;padding:14px;background:#b91c1c;color:#fff;font:15px/1.4 system-ui,sans-serif;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.5)';
+    document.body.appendChild(d);
+  }
+  d.innerHTML = '<b>La app ha encontrado un problema.</b><br>Pulsa para recargar.' +
+    '<br><small>' + (window.__errorMotor[0] || 'Error desconocido.') + '</small>';
+  d.onclick = function () { location.reload(true); };
+}
+setTimeout(__comprobarMotor, 9000);
+</script>
+
+<!-- Datos: la base de pueblos (3,8 MB) se descarga una vez y queda guardada en el móvil.
+     El motor (app.js) la pide por su cuenta y no bloquea la pantalla. -->
+<script defer src="scripts/app.js?v=19"></script>
+
+<!-- ================= Diálogo de búsqueda: buscar pueblo o pico por nombre ================= -->
+<div id="buscar" role="dialog" aria-modal="true" aria-labelledby="buscarT" style="display:none;">
+    <div class="caja">
+        <h2 id="buscarT">🔍 Buscar pueblo o pico</h2>
+        <p>Escribe parte del nombre y elige uno de la lista. Solo se muestran los lugares a menos de 80 km de ti (para eso te pido la ubicación). La flecha te dirá hacia dónde está.</p>
+
+        <div>
+            <label for="buscarTipo">Tipo</label>
+            <select id="buscarTipo">
+                <option value="todos">Todos</option>
+                <option value="pueblo">Pueblos</option>
+                <option value="pico">Picos</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="buscarTexto">Nombre</label>
+            <input type="text" id="buscarTexto" placeholder="Escribe el nombre del pueblo o pico…" autocomplete="off">
+        </div>
+
+        <div>
+            <label for="buscarLista">Resultados</label>
+            <select id="buscarLista" size="5">
+                <!-- se rellena con JavaScript al escribir -->
+            </select>
+        </div>
+
+        <div class="btns">
+            <button id="buscarIr" type="button">▶ Activar búsqueda</button>
+            <button id="buscarCerrar" type="button">Cerrar</button>
+        </div>
+        <div id="buscarEstado" role="status" aria-live="polite"></div>
+    </div>
+</div>
+
+<!-- Pantalla de flecha direccional (modo inverso) -->
+<div id="invFlecha" role="status" aria-live="polite" style="display:none;">
+    <div id="invPanel">
+        <div id="invNombre">Selecciona un destino</div>
+        <div id="invDist">— km</div>
+        <button id="invSalir" type="button">✕ Salir de la búsqueda</button>
+    </div>
+    <div id="invFlechaGirador">
+        <div class="inv-punta"></div>
+        <div class="inv-punta inv-punta-2"></div>
+        <div class="inv-punta inv-punta-3"></div>
+    </div>
+</div>
 </body>
 </html>

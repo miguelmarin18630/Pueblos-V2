@@ -412,6 +412,30 @@ body.on #salir {
     display: none;
 }
 
+/* Buscar desde la cámara */
+#buscar2 {
+    display: none;
+}
+
+body.on #buscar2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    flex: none;
+    width: auto;
+    min-width: 44px;
+    min-height: 36px;
+    padding: 4px 10px;
+    border: 2px solid #bfdbfe;
+    border-radius: 999px;
+    background: #1d4ed8;
+    box-shadow: none;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+}
+
 body.on #anadircam {
     display: flex;
     align-items: center;
@@ -507,49 +531,79 @@ body.on #anadircam {
     content: "No";
 }
 
-/* Zoom con nivel visible + botón de enfoque */
+/* Zoom + foco: en vertical, compactos y en la parte baja (no pisan el panel de arriba) */
 body.on #zoom {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     position: fixed;
-    z-index: 5;
+    z-index: 6;
     right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    padding: 8px 6px;
-    border-radius: 18px;
-    background: rgba(0, 0, 0, .55);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 92px);
+    padding: 5px 4px;
+    border-radius: 14px;
+    background: rgba(0, 0, 0, .5);
+    width: auto;
+    min-width: auto;
 }
-
 #zoom button {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 56px;
-    height: 52px;
+    width: 42px;
+    height: 42px;
     padding: 0;
     border: 2px solid rgba(255, 255, 255, .6);
-    border-radius: 14px;
-    font-size: 26px;
+    border-radius: 12px;
+    font-size: 21px;
     line-height: 1;
     background: rgba(255, 255, 255, .2);
     box-shadow: none;
 }
-
-#zoom #enf {
-    height: 58px;
-    font-size: 12px;
-    font-weight: 700;
-    gap: 2px;
-    margin-top: 4px;
+#zval {
+    font-size: 11px;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 1px 3px #000;
+    white-space: nowrap;
 }
 
-#zoom #enf .ic {
-    font-size: 22px;
-    line-height: 1;
+/* Foco manual: solo aparece si la cámara lo permite (clase .v) */
+#fdw {
+    display: none;
+}
+body.on #fdw.v {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    position: fixed;
+    z-index: 6;
+    left: 8px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 92px);
+    width: auto;
+    min-width: 132px;
+    max-width: 46vw;
+    padding: 5px 8px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, .7);
+    font-size: 13px;
+    font-weight: 600;
+}
+#fdw input {
+    width: 100%;
+    min-width: 0;
+    height: 30px;
+}
+#fdw button {
+    width: 100%;
+    min-height: 36px;
+    padding: 5px 10px;
+    font-size: 13px;
+    box-shadow: none;
+    background: rgba(255, 255, 255, .3);
 }
 
 #toast {
@@ -663,47 +717,358 @@ body.on #zoom {
     opacity: .9;
 }
 
-#fdw {
+/* ================= Pantalla de flecha direccional ================= */
+#invFlecha {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Panel con el nombre y la distancia: arriba, sin tapar la flecha */
+#invPanel {
+    position: absolute;
+    top: calc(env(safe-area-inset-top, 0px) + 14px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: 88vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 18px;
+    border-radius: 18px;
+    background: rgba(8, 10, 28, .88);
+    border: 1px solid rgba(255, 255, 255, .28);
+    box-shadow: 0 8px 26px rgba(0, 0, 0, .55);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    text-align: center;
+    pointer-events: auto;
+}
+
+#invNombre {
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.25;
+    color: #ffe259;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, .9);
+    word-break: break-word;
+    max-width: 80vw;
+}
+
+#invDist {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, .9);
+}
+
+#invSalir {
+    margin-top: 4px;
+    min-height: 38px;
+    padding: 6px 16px;
+    width: auto;
+    border: 1px solid rgba(255, 255, 255, .6);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .16);
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    box-shadow: none;
+    cursor: pointer;
+}
+#invSalir:active {
+    background: rgba(255, 255, 255, .32);
+}
+
+/* La flecha gira hacia el destino */
+#invFlechaGirador {
+    position: relative;
+    width: 116px;
+    height: 116px;
+    transition: transform .12s linear;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .7));
+}
+
+.inv-punta {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 0;
+    height: 0;
+    margin-left: -20px;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-bottom: 40px solid #ff2d95;
+}
+.inv-punta-2 {
+    top: 30px;
+    margin-left: -10px;
+    border-left-width: 10px;
+    border-right-width: 10px;
+    border-bottom: 20px solid #fff;
+}
+.inv-punta-3 {
+    top: 56px;
+    margin-left: -8px;
+    border-left-width: 8px;
+    border-right-width: 8px;
+    border-bottom: 14px solid #fff;
+    opacity: .9;
+}
+
+/* Cuando el destino ya está en la mira: la flecha desaparece y el nombre parpadea */
+#invFlecha.alcanzado #invFlechaGirador {
     display: none;
 }
 
-body.on #fdw.v {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    position: fixed;
-    z-index: 5;
-    left: 12%;
-    right: 12%;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 100px);
-    padding: 8px 14px;
-    border-radius: 999px;
-    background: rgba(0, 0, 0, .7);
-    font-size: 15px;
-    font-weight: 600;
-}
-
-#fdw input {
-    flex: 1;
-    width: auto;
-    min-width: 0;
-    height: 32px;
-}
-
-#fdw button {
-    width: auto;
-    min-height: 48px;
-    padding: 8px 16px;
-    font-size: 15px;
-    box-shadow: none;
-    background: rgba(255, 255, 255, .3);
-}
-
-#zval {
-    font-size: 13px;
-    font-weight: 800;
+#invFlecha.alcanzado #invNombre {
     color: #fff;
-    text-shadow: 0 1px 3px #000;
-    white-space: nowrap;
-    padding: 2px 0;
+    animation: invParpadeo 1s ease-in-out infinite;
+}
+
+#invFlecha.alcanzado #invPanel {
+    background: rgba(21, 128, 61, .92);
+    border-color: #86efac;
+}
+
+@keyframes invParpadeo {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .25; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #invFlecha.alcanzado #invNombre { animation: none; }
+}
+
+/* ================= Diálogo de búsqueda ================= */
+#buscar {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 38;
+    flex-direction: column;
+    align-items: center;
+    padding: calc(env(safe-area-inset-top, 0px) + 14px) 14px calc(env(safe-area-inset-bottom, 0px) + 18px);
+    color: #fff;
+    background: rgba(5, 7, 20, .97);
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+}
+#buscar .caja {
+    width: 100%;
+    max-width: 42ch;
+    display: grid;
+    gap: 12px;
+}
+#buscar h2 {
+    margin: 0;
+    font-size: 22px;
+    text-align: center;
+}
+#buscar p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #dfe6ff;
+}
+#buscar label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #ffe259;
+}
+#buscar input[type="text"],
+#buscar select {
+    width: 100%;
+    padding: 9px;
+    border: 1px solid rgba(255, 255, 255, .4);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .15);
+    color: #fff;
+    font-family: inherit;
+    font-size: 15px;
+    box-sizing: border-box;
+}
+#buscar select[size] {
+    min-height: 116px;
+}
+#buscar select option {
+    background: #131a3a;
+    color: #fff;
+}
+#buscar input::placeholder {
+    color: rgba(255, 255, 255, .55);
+}
+#buscar .btns {
+    display: flex;
+    gap: 8px;
+}
+#buscar .btns button {
+    flex: 1;
+    min-height: 48px;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, .5);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .2);
+    color: #fff;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+#buscar .btns button:active {
+    background: rgba(255, 255, 255, .4);
+}
+#buscarEstado {
+    min-height: 1.2em;
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffe259;
+    text-align: center;
+}
+
+
+#buscarb {
+    background: #1d4ed8;
+    border-color: #bfdbfe;
+}
+body.on #buscarb { display: none; }
+
+/* ================= Pantalla de inicio (Hero) ================= */
+
+
+/* ================= Pantalla de inicio (Hero) ================= */
+#hero {
+    text-align: center;
+    padding: 18px 4px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.35);
+    color: #ffe25a;
+    font-size: 14px;
+    font-weight: 700;
+    backdrop-filter: blur(4px);
+}
+
+#hero h1 {
+    font-size: clamp(24px, 7vw, 30px);
+    font-weight: 800;
+    line-height: 1.15;
+    margin: 0;
+    color: #fff;
+    letter-spacing: -0.5px;
+}
+
+#hero p {
+    font-size: 15px;
+    line-height: 1.4;
+    color: rgba(255,255,255,.9);
+    margin: 0;
+    max-width: 34ch;
+}
+
+.hero-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 380px;
+    margin: 6px 0 0;
+}
+
+.btn-primary, .btn-secondary {
+    width: 100%;
+    min-height: 56px;
+    padding: 14px 18px;
+    border: none;
+    border-radius: 14px;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.25;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    text-align: center;
+    transition: transform 0.1s, opacity 0.2s;
+}
+
+.btn-primary:active, .btn-secondary:active {
+    transform: scale(0.96);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(106,17,203,.4);
+}
+
+.btn-primary:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.btn-secondary {
+    flex-direction: row;
+    gap: 8px;
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.35);
+    color: #fff;
+}
+
+.btn-secondary .ic {
+    font-size: 17px;
+    line-height: 1;
+}
+
+.btn-secondary .bs {
+    line-height: 1.2;
+}
+
+.btn-primary .go1, .btn-primary .go2 {
+    display: block;
+}
+
+.btn-primary .go2 {
+    font-size: 12px;
+    opacity: .85;
+}
+
+#autor {
+    font-size: 12px;
+    color: rgba(255,255,255,.6);
+    margin-top: 16px;
+}
+
+/* Ocultar el SVG logo original del hero si existe */
+#hero .logo {
+    display: none;
 }
