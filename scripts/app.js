@@ -2147,5 +2147,10 @@ $("permno").onclick=function(){$("permisos").style.display="none";permInicio=fal
   if(b){b.disabled=false;}
 })();
 // ---- App instalable: guarda la página para abrirla sin conexión ----
-if("serviceWorker" in navigator&&location.protocol!=="file:"&&!window.AndroidApp)window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})});
+if("serviceWorker" in navigator&&location.protocol!=="file:"&&!window.AndroidApp)window.addEventListener("load",function(){
+  navigator.serviceWorker.register("sw.js").then(function(reg){
+    // Se pide al service worker que guarde los datos pesados en el móvil
+    try{if(reg&&reg.active)reg.active.postMessage("guardar-datos")}catch(e){}
+  }).catch(function(){});
+});
 })();
