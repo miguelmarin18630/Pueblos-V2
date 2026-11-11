@@ -20,6 +20,9 @@ function fusionar(det,base){
   return det.concat(base.filter(function(b){return !(idx[b[0]]||[]).some(function(o){return Math.abs(o[1]-b[1])<0.045&&Math.abs(o[2]-b[2])<0.06})}));
 }
 var TOL=3,pos=null,ultimaPos=null,hd=0,sm=null;
+// Posición elegida a mano en la lista (salida cuando el GPS está bloqueado) y
+// aviso de que la posición actual es aproximada.
+var posElegida=null,posAprox=false;
 // Margen angular de la mira. Si la brujula declara su error (webkitCompassAccuracy,
 // en grados) se ajusta a el; si no, se queda en 3°, el margen de siempre.
 function tolMira(){
@@ -450,7 +453,11 @@ async function masPueblos(){
 var camBusy=false,camErr="",camSes=0;
 function mensajeCamara(e){
   var n=e&&e.name?e.name:"";
-  if(n==="NotAllowedError"||n==="SecurityError")return "Cámara sin permiso. Actívala en Ajustes > Apps > ¿Qué pueblo es? > Permisos > Cámara y vuelve a la app.";
+  if(n==="NotAllowedError"||n==="SecurityError"){
+    // En la app Android el permiso se puede volver a pedir desde dentro
+    if(window.AndroidApp&&AndroidApp.pedirPermisos){try{AndroidApp.pedirPermisos()}catch(e2){}}
+    return "Cámara sin permiso. Pulsa «Permitir ubicación y cámara» en el aviso de la app o vuelve a iniciar la identificación.";
+  }
   if(n==="NotFoundError"||n==="OverconstrainedError")return "No se encuentra ninguna cámara en este dispositivo.";
   if(n==="NotReadableError"||n==="AbortError")return "La cámara la está usando otra aplicación. Ciérrala e inténtalo de nuevo.";
   if(n==="NoApi")return "Este navegador no permite usar la cámara.";
@@ -1927,6 +1934,17 @@ $("anadirb").onclick=abrirAnadir;
 function abrirBuscar(){
   $("buscar").style.display = "flex";
   $("buscarTexto").value = "";
+  buscarClave=null;buscarTapPend=null;
+  // Elegir el pueblo para la ubicación: se busca entre todos los lugares, sin
+  // filtro de tipo ni de distancia.
+  if(buscarModoUbic)$("buscarTipo").value="pueblo";
+  var filaTipo=$("buscarTipoFila");
+  if(filaTipo)filaTipo.style.display=buscarModoUbic?"none":"";
+  var intro=$("buscarIntro");
+  if(intro)intro.textContent=buscarModoUbic
+    ? "Busca el pueblo donde estás y tócalo: se usará su centro como ubicación aproximada para entrar sin GPS."
+    : "Escribe parte del nombre y elige uno de la lista. Solo se muestran los lugares a menos de 80 km de ti (para eso te pido la ubicación). La flecha te dirá hacia dónde está.";
+  $("buscarT").textContent=buscarModoUbic?"Elige tu pueblo":"Buscar pueblo o pico";
   $("buscarEstado").textContent = buscarModoUbic
     ? "Escribe el nombre de tu pueblo y tócalo en la lista."
     : "Cargando la base de pueblos y picos…";
@@ -1938,8 +1956,9 @@ function abrirBuscar(){
       if($("buscar").style.display==="flex")llenarBuscarLista($("buscarTexto").value);
     };
   }
-  // Sin ubicación no se puede filtrar por distancia: se pide
-  if(!pos&&!ultimaPos){
+  // Sin ubicación no se puede filtrar por distancia: se pide. Al elegir el pueblo
+  // para la ubicación no hace falta: se busca en toda la base.
+  if(!buscarModoUbic&&!pos&&!ultimaPos){
     $("buscarEstado").textContent="Pido tu ubicación para buscar solo lo que tienes cerca…";
     pedirUbicacionParaBuscar();
   }
@@ -2056,14 +2075,34 @@ function picosBaseCerca(la,lo,km){
 
 // Rellena la lista de resultados: solo lugares a menos de BUSCAR_KM de la ubicación.
 // Con el filtro por nombre se acota mucho la lista y la búsqueda va rápida.
+var buscarClave=null;
 function llenarBuscarLista(filtro){
   var sel=$("buscarLista");
   if(!sel)return;
+  var tipos=document.getElementById("buscarTipo").value;
+  // Al elegir el pueblo que se usará como ubicación solo interesan pueblos y
+  // aldeas: los picos no sirven como posición y no se filtra por distancia.
+  if(buscarModoUbic)tipos="pueblo";
+  var f=normNombre(filtro);
+  var P0=buscarModoUbic?null:(pos||ultimaPos);
+  // Si nada ha cambiado no se repinta. Al tocar un resultado el teclado manda
+  // «compositionend» y el repintado se llevaba por delante el toque.
+  var clave=[f,tipos,buscarModoUbic?"ubic":"",P0?P0.latitude.toFixed(4)+","+P0.longitude.toFixed(4):"",baseLista()?"1":"0",PKALL?PKALL.length:0].join("|");
+  if(clave===buscarClave)return;
+  buscarClave=clave;
+  // En modo ubicación, sin nombre no hay nada que enseñar: no se recorre toda la
+  // base (son decenas de miles de lugares) en un móvil.
+  if(buscarModoUbic&&!f){
+    sel.innerHTML="";buscarSel=null;
+    var vacio=document.createElement("p");
+    vacio.className="nada";
+    vacio.textContent="Escribe el nombre de tu pueblo para buscarlo.";
+    sel.appendChild(vacio);
+    $("buscarEstado").textContent="Escribe el nombre de tu pueblo y tócalo en la lista.";
+    return;
+  }
   sel.innerHTML="";
   buscarSel=null;
-  var tipos=document.getElementById("buscarTipo").value;
-  var f=normNombre(filtro);
-  var P0=pos||ultimaPos;
   var lista=[];
   // Pueblos: si hay ubicación, solo los del radio; si no, todos
   var candidatos;
@@ -2104,11 +2143,12 @@ function llenarBuscarLista(filtro){
     if(vistos[k])return;vistos[k]=1;limpio.push(p);
   });
   lista=limpio;
-  // Filtro por distancia (los picos también)
+  // Filtro por distancia (los picos también) y orden
   if(P0)lista=lista.filter(function(p){return p.k<=BUSCAR_KM});
-  lista.sort(function(a,b){return a.k-b.k});
+  if(buscarModoUbic)lista.sort(function(a,b){return String(a.n).localeCompare(String(b.n),"es")});
+  else lista.sort(function(a,b){return a.k-b.k});
   // En el móvil, miles de botones congelan la lista: se muestran solo los más cercanos
-  var totalRes=lista.length,MAXRES=40;
+  var totalRes=lista.length,MAXRES=buscarModoUbic?200:40;
   if(lista.length>MAXRES)lista=lista.slice(0,MAXRES);
   var mostrados=0;
   lista.forEach(function(p){
@@ -2132,7 +2172,7 @@ function llenarBuscarLista(filtro){
   }
   var est=$("buscarEstado");
   if(est){
-    if(buscarModoUbic)est.textContent="Toca tu pueblo en la lista: se usará como ubicación aproximada de la app.";
+    if(buscarModoUbic)est.textContent=f?(mostrados+" resultado"+(mostrados!==1?"s":"")+" · toca el tuyo para entrar"):"Escribe el nombre de tu pueblo y tócalo en la lista.";
     else if(!baseLista())est.textContent="Cargando la base de pueblos… (la primera vez tarda unos segundos)";
     else if(P0)est.textContent=(totalRes>mostrados?"Los "+mostrados+" más cercanos de "+totalRes+" · escribe para afinar":mostrados+" resultado"+(mostrados!==1?"s":""))+" (a menos de "+BUSCAR_KM+" km)";
     else est.textContent=(totalRes>mostrados?"Los "+mostrados+" primeros de "+totalRes+" · escribe para afinar":mostrados+" resultado"+(mostrados!==1?"s":""))+" (sin ubicación: no se filtra por distancia)";
@@ -2149,8 +2189,13 @@ $("buscarTipo").onchange=function(){
   llenarBuscarLista($("buscarTexto").value);
 };
 // Resultados de búsqueda: lista en vivo de botones que se repuebla con cada tecla
-$("buscarLista").onclick=function(ev){
-  var b=ev.target&&ev.target.closest?ev.target.closest("button.irb"):null;
+// Si el teclado repinta la lista justo antes del toque, el botón desaparece y el
+// clic se queda sin destino: el resultado se apunta ya en pointerdown/touchstart.
+var buscarTapPend=null;
+function buscarBotonDe(ev){
+  return ev&&ev.target&&ev.target.closest?ev.target.closest("button.irb"):null;
+}
+function elegirBotonBuscar(b){
   if(!b)return;
   try{buscarSel=JSON.parse(b.getAttribute("data-v"))}catch(e){buscarSel=null}
   // Si el aviso de ubicación mandó aquí: el pueblo elegido pasa a ser la posición
@@ -2163,6 +2208,18 @@ $("buscarLista").onclick=function(ev){
   $("buscarEstado").textContent="Seleccionado: "+esc(buscarSel?buscarSel.n:"");
   // En cuanto se toca un resultado, la barra de filtros se pone como ese lugar
   if(buscarSel)filtroSegunTipo(buscarSel.t);
+}
+function apuntarToqueBuscar(ev){
+  var b=buscarBotonDe(ev);
+  if(b)buscarTapPend={b:b,t:Date.now()};
+}
+$("buscarLista").addEventListener("pointerdown",apuntarToqueBuscar,true);
+$("buscarLista").addEventListener("touchstart",apuntarToqueBuscar,{capture:true,passive:true});
+$("buscarLista").onclick=function(ev){
+  var p=buscarTapPend;
+  var b=buscarBotonDe(ev)||(p&&Date.now()-p.t<1500?p.b:null);
+  buscarTapPend=null;
+  if(b)elegirBotonBuscar(b);
 };
 $("buscarIr").onclick=function(){
   if(buscarModoUbic){$("buscarEstado").textContent="Toca tu pueblo en la lista para usarlo como ubicación.";return}
@@ -2351,8 +2408,8 @@ function ubiPasosHTML(e,perm){
     pasos.push("Si sigue sin responder, pulsa <b>«Elegir mi pueblo en la lista»</b> y entra igualmente.");
   }else{
     if(negado){
-      pasos.push("En la app instalada: mantén pulsado su icono > <b>Ajustes del sitio</b> > <b>Ubicación</b> > <b>Permitir</b>.");
-      pasos.push("O en <b>Ajustes</b> > <b>Aplicaciones</b> > <b>¿Qué pueblo es?</b> > <b>Permisos</b> > <b>Ubicación</b> > <b>Permitir</b>.");
+      pasos.push("Pulsa <b>«Permitir ubicación y cámara»</b>: Android te lo vuelve a pedir sin salir de la app.");
+      pasos.push("Si Android ya no muestra el aviso, en <b>Ajustes</b> > <b>Aplicaciones</b> > <b>¿Qué pueblo es?</b> > <b>Permisos</b> > <b>Ubicación</b> > <b>Permitir</b> (y lo mismo en <b>Cámara</b>).");
       pasos.push("Si el bloqueo está en el navegador: abre <b>Chrome</b> > <b>⋮</b> > <b>Ajustes</b> > <b>Configuración de sitios</b> > <b>Ubicación</b> > <b>pueblos.marinweb.org</b> > <b>Permitir</b>.");
     }else{
       pasos.push("Abre <b>Ajustes</b> > <b>Ubicación</b> y actívala (en algunos móviles: <b>Google</b> > <b>Ubicación</b>).");
@@ -2452,14 +2509,25 @@ function usarPuebloComoUbic(o){
   var c={latitude:la,longitude:lo,accuracy:3000,altitude:null,altitudeAccuracy:null,heading:null,speed:null};
   pos=c;ultimaPos=c;posT=Date.now();
   guardarPosUbic(c);
-  buscarModoUbic=false;buscarSel=null;
+  buscarModoUbic=false;buscarSel=null;buscarClave=null;buscarTapPend=null;
   $("buscar").style.display="none";$("buscarTexto").value="";
   var r={coords:c,t:Date.now(),aproximada:true,nombre:o.n};
+  posElegida=r;
   avisar("📍 Ubicación aproximada: "+o.n+". El relieve y las distancias se calculan desde el centro del pueblo.",7000);
-  if(ubiEspera)ubiEspera.fin(r);
-  else $("msg").textContent="Ubicación puesta en "+o.n+" (aproximada). Pulsa «Iniciar identificación».";
+  if(ubiEspera){ubiEspera.fin(r);return}
+  // Si no había un aviso esperando (se abrió la búsqueda por otro camino), se entra
+  // igualmente: el pueblo elegido es una salida garantizada, no hace falta el GPS.
+  if(document.body.classList.contains("on")){$("msg").textContent="Ubicación aproximada: "+o.n+".";return}
+  $("msg").textContent="Entrando con la ubicación aproximada de "+o.n+"…";
+  iniciar();
 }
 $("ubicaAjustes").onclick=function(){
+  // En la app Android (desde la 1.6.2) el permiso se pide otra vez aquí mismo,
+  // sin salir a los ajustes: Android muestra su diálogo y la app sigue sola.
+  if(window.AndroidApp&&AndroidApp.pedirPermisos){
+    $("ubicaEstado").textContent="Pidiendo el permiso al móvil…";
+    try{AndroidApp.pedirPermisos();return}catch(e){}
+  }
   // Chrome no deja abrir Ajustes desde un enlace web: solo lanza actividades
   // marcadas como navegables. La app Android 1.6.1 trae una actividad propia
   // (esquema pueblos://ajustes) que sí abre los permisos; en versiones viejas
@@ -2472,6 +2540,21 @@ $("ubicaAjustes").onclick=function(){
     $("ubicaEstado").textContent="Si no se han abierto: Ajustes > Aplicaciones > ¿Qué pueblo es? > Permisos > Ubicación > Permitir (o Ajustes > Ubicación).";
   },2500);
 };
+// ---- App Android desde la 1.6.2 (WebView propio) ----
+// La app concede ubicación y cámara a la web y puede volver a pedir sus permisos
+// sin salir a los ajustes. Al concederlos, se reintenta sola.
+if(window.AndroidApp){
+  try{
+    var bAjustes=$("ubicaAjustes");
+    if(bAjustes)bAjustes.textContent="Permitir ubicación y cámara";
+  }catch(e){}
+  window.__permisosAndroid=function(){
+    try{
+      if(ubiEspera&&!ubiEspera.hecho())ubiEspera.reintentar();
+      if(document.body.classList.contains("on")&&!stream&&camErr)camara();
+    }catch(e){}
+  };
+}
 async function iniciar2(){
   $("msg").textContent="Comprobando permisos…";
   try{
@@ -2499,10 +2582,16 @@ async function iniciar2(){
       return {coords:{latitude:la,longitude:lo,accuracy:isFinite(ac)?ac:200,altitude:isFinite(al)?al:null,altitudeAccuracy:null,heading:null,speed:null}};
     }catch(e){return null}
   }
-  var p0=null,denegado=false;
+  var p0=null,denegado=false,aproximada=false;
+  // Elegir el pueblo en la lista es una salida garantizada: se usa esa posición y
+  // no se vuelve a pedir el GPS, que puede seguir bloqueado.
+  if(posElegida&&Date.now()-posElegida.t<120000){
+    aproximada=true;p0=posElegida;posElegida=null;
+    $("msg").textContent="Entrando con la ubicación aproximada de "+(p0.nombre||"tu pueblo")+"…";
+  }
   // En la app Android, prueba primero la última ubicación conocida del sistema
-  if(window.AndroidApp){ p0=posDesdeAndroid(); }
-  for(var i=0;(!p0||p0.error)&&i<intentos.length;i++){
+  if(!aproximada&&window.AndroidApp){ p0=posDesdeAndroid(); }
+  for(var i=0;!aproximada&&(!p0||p0.error)&&i<intentos.length;i++){
     $("msg").textContent=intentos[i].txt+" (acepta el permiso si te lo pide)";
     p0=intentos[i].watch?await pedirPosWatch(intentos[i].opts,intentos[i].ms):await pedirPos(intentos[i].opts,intentos[i].ms);
     if(p0&&!p0.error)break;
@@ -2510,7 +2599,7 @@ async function iniciar2(){
     // reintento con ubicación del sistema en Android
     if(window.AndroidApp){ var pa=posDesdeAndroid(); if(pa){p0=pa;break} }
   }
-  if(window.AndroidApp&&(!p0||p0.error)){ var pa2=posDesdeAndroid(); if(pa2)p0=pa2; }
+  if(!aproximada&&window.AndroidApp&&(!p0||p0.error)){ var pa2=posDesdeAndroid(); if(pa2)p0=pa2; }
   if(!p0||p0.error){
     $("msg").textContent=msgSinUbic(p0&&p0.error);
     // No se abandona: se abre el aviso de ubicación y se reanuda en cuanto llegue
@@ -2518,9 +2607,10 @@ async function iniciar2(){
     var pu=await esperarUbicacion(p0&&p0.error);
     if(!pu||pu.error){$("msg").textContent=msgSinUbic(pu&&pu.error);return}
     p0=pu;
+    if(p0.aproximada)aproximada=true;
   }
   (function(p){
-    pos=p.coords;ultimaPos=pos;posT=Date.now();guardarPosUbic(pos);$("go").style.display="none";$("msg").textContent="Ubicación obtenida.";
+    pos=p.coords;ultimaPos=pos;posT=Date.now();guardarPosUbic(pos);posAprox=aproximada;$("go").style.display="none";$("msg").textContent="Ubicación obtenida.";
     // Al iniciar la localización, la corrección con el horizonte y el afinar sola
     // arrancan siempre desde cero (ya no dependen de ajustes opcionales).
     hzAuto=true;hzOff=0;hzPrev=null;
@@ -2538,6 +2628,9 @@ async function iniciar2(){
       if(!ultimo||dst(pos.latitude,pos.longitude,ultimo.la,ultimo.lo)>30)masPueblos();
       if(verPicos)cargarPicos();
     },function(e){
+      // Con una posición elegida a mano el GPS puede seguir bloqueado: no se avisa
+      // en bucle de algo que el usuario ya sabe y que no impide usar la app.
+      if(posAprox&&(!e||e.code===1))return;
       // Antes se ignoraba: ahora se avisa (como mucho cada 20 s) para que no se use una posición vieja sin saberlo
       if(Date.now()-gpsAvT<20000)return;gpsAvT=Date.now();
       avisar(e.code===1?"📍 Se ha retirado el permiso de ubicación: los resultados no se actualizarán.":"📍 Señal GPS perdida: uso la última posición conocida.",6000);

@@ -40,10 +40,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="¿Qué pueblo?">
 
-<link rel="stylesheet" href="styles/base.css?v=26">
-<link rel="stylesheet" href="styles/portada.css?v=26">
-<link rel="stylesheet" href="styles/layout.css?v=26">
-<link rel="stylesheet" href="styles/camera.css?v=26">
+<link rel="stylesheet" href="styles/base.css?v=27">
+<link rel="stylesheet" href="styles/portada.css?v=27">
+<link rel="stylesheet" href="styles/layout.css?v=27">
+<link rel="stylesheet" href="styles/camera.css?v=27">
 
 <!-- La base de pueblos se necesita siempre: que empiece a descargarse ya -->
 <link rel="preload" href="data/pueblos.js" as="script">
@@ -448,20 +448,20 @@ setTimeout(__comprobarMotor, 9000);
 
 <!-- Datos: la base de pueblos (3,8 MB) se descarga una vez y queda guardada en el móvil.
      El motor (app.js) la pide por su cuenta y no bloquea la pantalla. -->
-<script defer src="scripts/app.js?v=26"></script>
+<script defer src="scripts/app.js?v=27"></script>
 
 <!-- ================= Diálogo de búsqueda: buscar pueblo o pico por nombre ================= -->
 <div id="buscar" role="dialog" aria-modal="true" aria-labelledby="buscarT" style="display:none;">
     <div class="caja">
         <h2 id="buscarT">🔍 Buscar pueblo o pico</h2>
-        <p>Escribe parte del nombre y elige uno de la lista. Solo se muestran los lugares a menos de 80 km de ti (para eso te pido la ubicación). La flecha te dirá hacia dónde está.</p>
+        <p id="buscarIntro">Escribe parte del nombre y elige uno de la lista. Solo se muestran los lugares a menos de 80 km de ti (para eso te pido la ubicación). La flecha te dirá hacia dónde está.</p>
 
         <div>
             <label for="buscarTexto">Nombre</label>
             <input type="text" id="buscarTexto" placeholder="Escribe el nombre del pueblo o pico…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
         </div>
 
-        <div>
+        <div id="buscarTipoFila">
             <label for="buscarTipo">Tipo</label>
             <select id="buscarTipo">
                 <option value="todos">Todos</option>

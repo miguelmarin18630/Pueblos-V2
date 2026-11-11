@@ -164,6 +164,32 @@ else mal('no se reconoce una aldea en la búsqueda');
 if (filtroSegunTipoUsos >= 2) ok('los filtros siguen al tipo al elegir y al activar (' + filtroSegunTipoUsos + ' usos)');
 else mal('filtroSegunTipo solo se usa ' + filtroSegunTipoUsos + ' vez');
 
+// ---------- elegir el pueblo como ubicación ----------
+console.log('\nelegir pueblo como ubicación');
+if (/function usarPuebloComoUbic\(/.test(app)) ok('función usarPuebloComoUbic');
+else mal('falta usarPuebloComoUbic');
+if (/if\s*\(\s*buscarModoUbic\s*\)\s*tipos\s*=\s*"pueblo"/.test(app)) ok('en modo ubicación solo se listan pueblos y aldeas');
+else mal('el modo ubicación no restringe a pueblos: aparecerían picos');
+if (/var\s+P0\s*=\s*buscarModoUbic\s*\?\s*null\s*:/.test(app)) ok('en modo ubicación no se filtra por distancia');
+else mal('el modo ubicación sigue filtrando por distancia: puede ocultar el pueblo buscado');
+if (/buscarClave/.test(app)) ok('la lista no se repinta si no ha cambiado (no se pierde el toque)');
+else mal('falta la clave de repintado de la lista');
+if (/buscarTapPend/.test(app) && /pointerdown/.test(app)) ok('el resultado se apunta en pointerdown (toque a prueba de repintado)');
+else mal('el toque puede perderse si el teclado repinta la lista');
+if (/posElegida/.test(app) && /posElegida\.t\s*<\s*120000/.test(app)) ok('al elegir el pueblo se entra con esa posición sin volver a pedir el GPS');
+else mal('elegir el pueblo no arranca la identificación');
+if (/buscarTipoFila/.test(html) && /buscarTipoFila/.test(app)) ok('el filtro de tipo se oculta al elegir el pueblo');
+else mal('no se oculta el filtro de tipo en modo ubicación');
+
+// ---------- app Android: permisos desde dentro ----------
+console.log('\napp Android');
+if (/AndroidApp\.pedirPermisos/.test(app)) ok('la web puede volver a pedir los permisos de Android sin salir a los ajustes');
+else mal('falta la llamada a AndroidApp.pedirPermisos');
+if (/__permisosAndroid/.test(app)) ok('al conceder los permisos se reintenta sola');
+else mal('falta el gancho __permisosAndroid');
+if (/window\.AndroidApp/.test(app) && /posDesdeAndroid/.test(app)) ok('usa la última ubicación del sistema en la app Android');
+else mal('no se usa la ubicación nativa de la app Android');
+
 // Cache-bust coherente: todos los ?v=N deben ser el mismo número
 const vers = [...new Set([
   ...[...html.matchAll(/\?v=(\d+)/g)].map((m) => m[1]),
