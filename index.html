@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>¿Qué pueblo es?</title>
 <meta name="description" content="Apunta con el móvil al horizonte y descubre qué pueblo o pico tienes delante.">
 <meta name="theme-color" content="#0b1026">
@@ -40,10 +40,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="¿Qué pueblo?">
 
-<link rel="stylesheet" href="styles/base.css?v=19">
-<link rel="stylesheet" href="styles/portada.css?v=19">
-<link rel="stylesheet" href="styles/layout.css?v=19">
-<link rel="stylesheet" href="styles/camera.css?v=19">
+<link rel="stylesheet" href="styles/base.css?v=20">
+<link rel="stylesheet" href="styles/portada.css?v=20">
+<link rel="stylesheet" href="styles/layout.css?v=20">
+<link rel="stylesheet" href="styles/camera.css?v=20">
 
 <!-- La base de pueblos se necesita siempre: que empiece a descargarse ya -->
 <link rel="preload" href="data/pueblos.js" as="script">
@@ -114,10 +114,10 @@
     <section id="extras">
         <p id="cnt" class="cnt"></p>
         <div class="pasos">
-            <div><b aria-hidden="true">1</b>Activa GPS y brújula</div>
-            <div><b aria-hidden="true">2</b>Apunta al horizonte</div>
-            <div><b aria-hidden="true">3</b>Lee el nombre del pueblo</div>
-            <div><b aria-hidden="true">4</b>Busca el pueblo o pico con el botón «Buscar»</div>
+            <div title="Activa GPS y brújula"><b aria-hidden="true">1</b><span>Activa</span></div>
+            <div title="Apunta al horizonte"><b aria-hidden="true">2</b><span>Apunta</span></div>
+            <div title="Lee el nombre del pueblo"><b aria-hidden="true">3</b><span>Lee</span></div>
+            <div title="Busca el pueblo o pico con el botón «Buscar»"><b aria-hidden="true">4</b><span>Busca</span></div>
         </div>
 
         <button id="probar" type="button">🔎 Probar relieve</button>
@@ -440,13 +440,18 @@ setTimeout(__comprobarMotor, 9000);
 
 <!-- Datos: la base de pueblos (3,8 MB) se descarga una vez y queda guardada en el móvil.
      El motor (app.js) la pide por su cuenta y no bloquea la pantalla. -->
-<script defer src="scripts/app.js?v=19"></script>
+<script defer src="scripts/app.js?v=20"></script>
 
 <!-- ================= Diálogo de búsqueda: buscar pueblo o pico por nombre ================= -->
 <div id="buscar" role="dialog" aria-modal="true" aria-labelledby="buscarT" style="display:none;">
     <div class="caja">
         <h2 id="buscarT">🔍 Buscar pueblo o pico</h2>
         <p>Escribe parte del nombre y elige uno de la lista. Solo se muestran los lugares a menos de 80 km de ti (para eso te pido la ubicación). La flecha te dirá hacia dónde está.</p>
+
+        <div>
+            <label for="buscarTexto">Nombre</label>
+            <input type="text" id="buscarTexto" placeholder="Escribe el nombre del pueblo o pico…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
+        </div>
 
         <div>
             <label for="buscarTipo">Tipo</label>
@@ -457,16 +462,10 @@ setTimeout(__comprobarMotor, 9000);
             </select>
         </div>
 
-        <div>
-            <label for="buscarTexto">Nombre</label>
-            <input type="text" id="buscarTexto" placeholder="Escribe el nombre del pueblo o pico…" autocomplete="off">
-        </div>
-
-        <div>
-            <label for="buscarLista">Resultados</label>
-            <select id="buscarLista" size="5">
-                <!-- se rellena con JavaScript al escribir -->
-            </select>
+        <div class="resul">
+            <label>Resultados</label>
+            <!-- se rellena con JavaScript al escribir -->
+            <div id="buscarLista"></div>
         </div>
 
         <div class="btns">
