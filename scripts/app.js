@@ -43,7 +43,14 @@ function enRecuadro(la,lo,dLa,dLo){
   for(i=i0;i<=i1;i++)for(j=j0;j<=j1;j++){c=gridM.get(gridKey(i,j));if(c)for(n=0;n<c.length;n++)out.push(c[n])}
   return out; // candidatos de las celdas tocadas: quien llama aplica su filtro exacto
 }
-var $=function(i){return document.getElementById(i)};
+// Acceso seguro por id: si un elemento no existe (por ejemplo, index.html viejo en la caché con un
+// app.js nuevo) se devuelve un <div> suelto en vez de null, así "$(id).onclick=..." no rompe la app.
+var $=function(i){
+  var e=document.getElementById(i);
+  if(e)return e;
+  try{(window.__idsFaltan=window.__idsFaltan||[]).push(i);console.warn("Falta el elemento #"+i+" en index.html")}catch(x){}
+  return document.createElement("div");
+};
 // Failsafe: la portada debe quedar usable aunque algo falle más abajo
 try{var _g=document.getElementById("go");if(_g){_g.disabled=false;_g.removeAttribute("aria-busy")}}catch(e){}
 var R=Math.PI/180;
@@ -588,18 +595,34 @@ function aplicarBD(datos){
   BD=datos.length?datos:null;BDlisto=false;
   if(BD&&pos){P=unir();BDlisto=true}
   actualizarConteos();
-  $("info").textContent=BD?"Base incluida: "+BD.length+" localidades de España":"";
+  // Los picos se cargan ya, en segundo plano, para que el contador de la portada no se quede en 0
+  setTimeout(function(){try{cargarPicosBase()}catch(e){}},300);
   // Aviso a quien espere la base (por ejemplo, el buscador)
   if(alTenerBase){var f=alTenerBase;alTenerBase=null;try{f()}catch(e){}}
 }
 // Se avisa cuando la base de pueblos ya está lista (para el buscador y para la versión)
 var alTenerBase=null;
 function baseLista(){return !!(BD&&BD.length)}
+function contarLocalidades(){
+  // La base activa: la descargada (BD) o la de reserva (BASE)
+  var baseArr=BD&&BD.length?BD:(BASE||[]);
+  return baseArr.length;
+}
+function contarPicosBase(){
+  // Los picos vienen del archivo data/picos.js (PKALL). Hasta que cargue devuelve null (= cargando)
+  return PKALL?PKALL.length:null;
+}
 // Indica la cantidad de pueblos y picos de la base de datos (pantalla principal)
 function actualizarConteos(){
-  var el=$("cnt");if(!el)return;
-  var np=((BD||[]).concat(BASE||[])).length,nk=(PKALL?PKALL.length:0);
-  el.textContent="Base de datos: "+(np||0).toLocaleString("es-ES")+" localidades y "+(nk||0).toLocaleString("es-ES")+" picos.";
+  var el=$("cnt");
+  if(!el)return;
+  if(!baseLista()){el.textContent="Base de datos: cargando…";return}
+  var np=contarLocalidades(),nk=contarPicosBase();
+  var t="Base de datos: "+np.toLocaleString("es-ES")+" localidades";
+  if(nk===null)t+=" · cargando picos…";
+  else if(nk>0)t+=" y "+nk.toLocaleString("es-ES")+" picos.";
+  else t+=" · picos no disponibles.";
+  el.textContent=t;
 }
 // La base de pueblos (data/pueblos.js) se guarda en el móvil (IndexedDB) la primera vez.
 // A partir de ahí se lee del propio teléfono: no hay que descargarla ni esperar.
@@ -1259,9 +1282,12 @@ function cargarPicosBase(){
     var m=/window\.DATOS_PICOS\s*=\s*"([\s\S]*)"\s*;?\s*$/.exec(crudo);
     if(!m)throw new Error("formato desconocido");
     PKALL=parsePicos(m[1].replace(/\\n/g,"\n").replace(/\\"/g,'"').replace(/\\\\/g,"\\"));
+    // Los picos ya están: actualiza el conteo de la pantalla principal
+    actualizarConteos();
   }).catch(function(e){
     pkBaseP=null;
     PKALL=PKALL||[];
+    actualizarConteos();
   });
   return pkBaseP;
 }
@@ -1849,7 +1875,7 @@ function abrirBuscar(){
   $("buscarTexto").value = "";
   $("buscarEstado").textContent = "Cargando la base de pueblos y picos…";
   llenarBuscarLista("");
-  $("buscarTexto").focus();
+  setTimeout(function(){try{$("buscarTexto").focus()}catch(e){}},50);
   // La base de pueblos puede tardar unos segundos la primera vez: se espera y se rellena sola
   if(!baseLista()){
     alTenerBase=function(){
@@ -2022,10 +2048,17 @@ function llenarBuscarLista(filtro){
   // Filtro por distancia (los picos también)
   if(P0)lista=lista.filter(function(p){return p.k<=BUSCAR_KM});
   lista.sort(function(a,b){return a.k-b.k});
+  // En el móvil, miles de botones congelan la lista: se muestran solo los más cercanos
+  var totalRes=lista.length,MAXRES=40;
+  if(lista.length>MAXRES)lista=lista.slice(0,MAXRES);
   var mostrados=0;
   lista.forEach(function(p){
-    var o=document.createElement("option");
-    o.value=JSON.stringify({n:p.n,la:p.la,lo:p.lo,t:p.t});
+    // Lista en vivo: cada coincidencia es un botón (los <select> nativos no se
+    // actualizan bien en el móvil mientras se escribe, sobre todo con size=5)
+    var o=document.createElement("button");
+    o.type="button";
+    o.className="irb";
+    o.setAttribute("data-v",JSON.stringify({n:p.n,la:p.la,lo:p.lo,t:p.t}));
     var lbl=(p.t==="pico"?"▲ ":"● ")+p.n;
     if(p.k>0)lbl+=" · "+(p.k<10?p.k.toFixed(1):Math.round(p.k))+" km";
     o.textContent=lbl;
@@ -2033,31 +2066,34 @@ function llenarBuscarLista(filtro){
     mostrados++;
   });
   if(!mostrados){
-    var o=document.createElement("option");
-    o.textContent=!baseLista()?"Cargando la base de pueblos…":f?("No hay coincidencias con «"+filtro+"»"):"Escribe un nombre para buscar";
-    o.disabled=true;
-    sel.appendChild(o);
+    var e=document.createElement("p");
+    e.className="nada";
+    e.textContent=!baseLista()?"Cargando la base de pueblos…":f?("No hay coincidencias con «"+filtro+"»"):"Escribe un nombre para buscar";
+    sel.appendChild(e);
   }
   var est=$("buscarEstado");
   if(est){
     if(!baseLista())est.textContent="Cargando la base de pueblos… (la primera vez tarda unos segundos)";
-    else if(P0)est.textContent=mostrados+" resultado"+(mostrados!==1?"s":"")+" a menos de "+BUSCAR_KM+" km";
-    else est.textContent=mostrados+" resultado"+(mostrados!==1?"s":"")+" (sin ubicación: no se filtra por distancia)";
+    else if(P0)est.textContent=(totalRes>mostrados?"Los "+mostrados+" más cercanos de "+totalRes+" · escribe para afinar":mostrados+" resultado"+(mostrados!==1?"s":""))+" (a menos de "+BUSCAR_KM+" km)";
+    else est.textContent=(totalRes>mostrados?"Los "+mostrados+" primeros de "+totalRes+" · escribe para afinar":mostrados+" resultado"+(mostrados!==1?"s":""))+" (sin ubicación: no se filtra por distancia)";
   }
 }
 
 $("buscarTexto").oninput=function(){
   llenarBuscarLista(this.value);
 };
+// Algunos teclados de Android componen el texto y no siempre lanzan "input" en cada letra
+// (solo compositionend: "change" o "keyup" repintarían la lista al tocar un resultado y perderían el toque)
+$("buscarTexto").addEventListener("compositionend",function(){llenarBuscarLista(this.value)});
 $("buscarTipo").onchange=function(){
   llenarBuscarLista($("buscarTexto").value);
 };
-$("buscarLista").onchange=function(){
-  var o=this.options[this.selectedIndex];
-  if(o&&o.value&&!o.disabled){
-    try{buscarSel=JSON.parse(o.value)}catch(e){buscarSel=null}
-    $("buscarEstado").textContent="Seleccionado: "+esc(buscarSel?buscarSel.n:"");
-  }
+// Resultados de búsqueda: lista en vivo de botones que se repuebla con cada tecla
+$("buscarLista").onclick=function(ev){
+  var b=ev.target&&ev.target.closest?ev.target.closest("button.irb"):null;
+  if(!b)return;
+  try{buscarSel=JSON.parse(b.getAttribute("data-v"))}catch(e){buscarSel=null}
+  $("buscarEstado").textContent="Seleccionado: "+esc(buscarSel?buscarSel.n:"");
 };
 $("buscarIr").onclick=function(){
   if(!buscarSel){$("buscarEstado").textContent="Selecciona un pueblo o pico de la lista.";return}
