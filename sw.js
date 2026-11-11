@@ -1,14 +1,14 @@
-/* Service worker de ¿Qué pueblo es?
-   Guarda la app y los datos para que funcione sin conexión después de la primera visita.
+﻿/* Service worker de Â¿QuÃ© pueblo es?
+   Guarda la app y los datos para que funcione sin conexiÃ³n despuÃ©s de la primera visita.
 
-   Dos cachés:
-   - CACHE_CODIGO: html, js, css. Se borra en cada versión, pero se sirve "red primero",
-     así que una versión nueva llega siempre aunque el móvil tenga una copia vieja.
+   Dos cachÃ©s:
+   - CACHE_CODIGO: html, js, css. Se borra en cada versiÃ³n, pero se sirve "red primero",
+     asÃ­ que una versiÃ³n nueva llega siempre aunque el mÃ³vil tenga una copia vieja.
    - CACHE_DATOS: los archivos pesados (pueblos.js, picos.js) y los iconos. NO se borra
-     nunca: al cambiar de versión no hay que volver a bajar los 5 MB de datos.
+     nunca: al cambiar de versiÃ³n no hay que volver a bajar los 5 MB de datos.
 
    Si cambias archivos del motor, sube VERSION (y el ?v=... del index.html). */
-const VERSION = 'v19';
+const VERSION = 'v21';
 const CACHE_CODIGO = 'que-pueblo-cod-' + VERSION;
 const CACHE_DATOS = 'que-pueblo-datos';   // permanente
 
@@ -16,11 +16,11 @@ const CODIGO = [
     './',
     './index.html',
     './manifest.json',
-    './styles/base.css?v=19',
-    './styles/portada.css?v=19',
-    './styles/layout.css?v=19',
-    './styles/camera.css?v=19',
-    './scripts/app.js?v=19'
+    './styles/base.css?v=21',
+    './styles/portada.css?v=21',
+    './styles/layout.css?v=21',
+    './styles/camera.css?v=21',
+    './scripts/app.js?v=21'
 ];
 
 const DATOS = [
@@ -32,7 +32,7 @@ const DATOS = [
     './icons/icon-maskable-512.png'
 ];
 
-// Recursos pesados: se sirven de la caché (rápido y sin conexión)
+// Recursos pesados: se sirven de la cachÃ© (rÃ¡pido y sin conexiÃ³n)
 function esPesado(url) {
     return /\/data\//.test(url.pathname) ||
         /\.(png|jpe?g|svg|ico|webmanifest|woff2?)$/i.test(url.pathname);
@@ -41,7 +41,7 @@ function esPesado(url) {
 self.addEventListener('install', (event) => {
     event.waitUntil((async () => {
         const cache = await caches.open(CACHE_CODIGO);
-        // addAll falla entero si un recurso no está; los guardamos uno a uno.
+        // addAll falla entero si un recurso no estÃ¡; los guardamos uno a uno.
         await Promise.all(CODIGO.map((url) =>
             cache.add(new Request(url, { cache: 'reload' })).catch(() => {})
         ));
@@ -63,7 +63,7 @@ self.addEventListener('activate', (event) => {
                 if (r) await datos.put(url, r).catch(() => {});
             }
         }
-        // Se borran las cachés antiguas de código; la de datos se conserva
+        // Se borran las cachÃ©s antiguas de cÃ³digo; la de datos se conserva
         await Promise.all(keys
             .filter((k) => k !== CACHE_DATOS && k !== CACHE_CODIGO)
             .map((k) => caches.delete(k)));
@@ -71,7 +71,7 @@ self.addEventListener('activate', (event) => {
     })());
 });
 
-// Los datos pesados se descargan una vez y se quedan en el móvil
+// Los datos pesados se descargan una vez y se quedan en el mÃ³vil
 function guardarDatos() {
     return caches.open(CACHE_DATOS).then(async (cache) => {
         for (const url of DATOS) {
@@ -80,7 +80,7 @@ function guardarDatos() {
             try {
                 const res = await fetch(url, { cache: 'reload' });
                 if (res && res.ok) await cache.put(url, res);
-            } catch (e) { /* sin conexión: se descargará luego */ }
+            } catch (e) { /* sin conexiÃ³n: se descargarÃ¡ luego */ }
         }
     });
 }
@@ -95,7 +95,7 @@ self.addEventListener('fetch', (event) => {
     const url = new URL(req.url);
     if (url.origin !== self.location.origin) return; // APIs externas: siempre a la red
 
-    // Navegación: red primero, y si no hay conexión, la copia guardada.
+    // NavegaciÃ³n: red primero, y si no hay conexiÃ³n, la copia guardada.
     if (req.mode === 'navigate') {
         event.respondWith((async () => {
             try {
@@ -111,7 +111,7 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Datos pesados e iconos: caché primero y actualización en segundo plano.
+    // Datos pesados e iconos: cachÃ© primero y actualizaciÃ³n en segundo plano.
     if (esPesado(url)) {
         event.respondWith((async () => {
             const cache = await caches.open(CACHE_DATOS);
@@ -125,7 +125,7 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Código (js, css, json): red primero para que una versión nueva llegue siempre.
+    // CÃ³digo (js, css, json): red primero para que una versiÃ³n nueva llegue siempre.
     event.respondWith((async () => {
         const cache = await caches.open(CACHE_CODIGO);
         try {
