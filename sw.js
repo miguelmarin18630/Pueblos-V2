@@ -1,19 +1,20 @@
 /* Service worker de ¿Qué pueblo es?
    Guarda la app y los datos para que funcione sin conexión después de la primera visita.
    Si cambias archivos, sube el número de VERSION para invalidar la caché. */
-const VERSION = 'v15';
+const VERSION = 'v16';
 const CACHE = 'que-pueblo-' + VERSION;
 
 const CORE = [
     './',
     './index.html',
     './manifest.json',
-    './styles/base.css',
-    './styles/portada.css',
-    './styles/layout.css',
-    './styles/camera.css',
-    './scripts/app.js',
+    './styles/base.css?v=16',
+    './styles/portada.css?v=16',
+    './styles/layout.css?v=16',
+    './styles/camera.css?v=16',
+    './scripts/app.js?v=16',
     './data/pueblos.js',
+    './data/picos.js',
     './icons/icon-180.png',
     './icons/icon-192.png',
     './icons/icon-512.png',
