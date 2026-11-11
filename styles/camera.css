@@ -804,11 +804,11 @@ body.on #buscarb { display: none; }
 /* ================= Pantalla de inicio (Hero) ================= */
 #hero {
     text-align: center;
-    padding: 24px 16px;
+    padding: 18px 4px 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
 }
 
 .hero-badge {
@@ -826,18 +826,20 @@ body.on #buscarb { display: none; }
 }
 
 #hero h1 {
-    font-size: 28px;
+    font-size: clamp(24px, 7vw, 30px);
     font-weight: 800;
+    line-height: 1.15;
     margin: 0;
     color: #fff;
     letter-spacing: -0.5px;
 }
 
 #hero p {
-    font-size: 16px;
+    font-size: 15px;
+    line-height: 1.4;
     color: rgba(255,255,255,.9);
-    margin: 0 0 8px;
-    max-width: 320px;
+    margin: 0;
+    max-width: 34ch;
 }
 
 .hero-loading {
@@ -870,24 +872,29 @@ body.on #buscarb { display: none; }
 .hero-actions {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     width: 100%;
-    max-width: 300px;
-    margin: 12px 0;
+    max-width: 380px;
+    margin: 6px 0 0;
 }
 
 .btn-primary, .btn-secondary {
     width: 100%;
-    padding: 14px 20px;
+    min-height: 56px;
+    padding: 14px 18px;
     border: none;
     border-radius: 14px;
-    font-size: 15px;
+    font-family: inherit;
+    font-size: 16px;
     font-weight: 700;
+    line-height: 1.25;
     cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
+    gap: 3px;
+    text-align: center;
     transition: transform 0.1s, opacity 0.2s;
 }
 
@@ -908,13 +915,20 @@ body.on #buscarb { display: none; }
 }
 
 .btn-secondary {
+    flex-direction: row;
+    gap: 8px;
     background: rgba(255,255,255,.15);
     border: 1px solid rgba(255,255,255,.35);
     color: #fff;
 }
 
 .btn-secondary .ic {
-    margin-right: 6px;
+    font-size: 17px;
+    line-height: 1;
+}
+
+.btn-secondary .bs {
+    line-height: 1.2;
 }
 
 .btn-primary .go1, .btn-primary .go2 {
