@@ -454,9 +454,9 @@ var camBusy=false,camErr="",camSes=0;
 function mensajeCamara(e){
   var n=e&&e.name?e.name:"";
   if(n==="NotAllowedError"||n==="SecurityError"){
-    // En la app Android el permiso se puede volver a pedir desde dentro
-    if(window.AndroidApp&&AndroidApp.pedirPermisos){try{AndroidApp.pedirPermisos()}catch(e2){}}
-    return "Cámara sin permiso. Pulsa «Permitir ubicación y cámara» en el aviso de la app o vuelve a iniciar la identificación.";
+    // Los permisos ya se pidieron al iniciar: si la cámara falla aquí es del
+    // WebView o del dispositivo, y volver a pedirlos entraría en bucle.
+    return "Cámara sin permiso. Vuelve a pulsar «Iniciar identificación» y acepta la cámara cuando el móvil la pida.";
   }
   if(n==="NotFoundError"||n==="OverconstrainedError")return "No se encuentra ninguna cámara en este dispositivo.";
   if(n==="NotReadableError"||n==="AbortError")return "La cámara la está usando otra aplicación. Ciérrala e inténtalo de nuevo.";
@@ -754,6 +754,8 @@ function salir(){try{clearTimeout(tTap);tapSel=null;$("toque").style.display="no
   pos=null;sm=null;smRaw=null;smDx=0;smPend=null;oriN=0;oriNorte=false;oriAbs=false;oriT0=0;modoCoche=false;velAlta=0;velBaja=0;rumboGPS=null;pantallaEncendida(false);
   $("rumbo").textContent="";$("mejor").textContent="";$("lista").innerHTML="";
   $("msg").textContent="Has terminado: cámara, GPS y brújula apagados. Pulsa «Iniciar identificación» para empezar de nuevo.";
+  // En la app Android se deja de usar (y se olvida) la ubicación y la cámara
+  liberarPermisosAndroid();
 }
 // Terminar siempre pide confirmación para que un toque accidental no apague todo
 function pedirTerminar(){$("conf").style.display="flex";$("confno").focus()}
@@ -1837,6 +1839,8 @@ async function actualizarOSM(btnId){
   var B=$(btnId||"osmact"),P0=pos||ultimaPos;
   if(B&&B.disabled)return;
   if(B)B.disabled=true;
+  // Como la app antigua: los permisos se piden al actualizar desde OpenStreetMap
+  await pedirPermisosAndroid();
   // Si no hay ubicación, se pide: el botón no deja de funcionar por eso
   if(!P0){
     osmEstado("Pidiendo tu ubicación… (acepta el permiso del móvil)");
@@ -1852,6 +1856,7 @@ async function actualizarOSM(btnId){
     if(!P0){
       osmEstado("No se pudo obtener la ubicación. Activa el GPS del móvil y vuelve a intentarlo.");
       if(B)B.disabled=false;
+      liberarPermisosAndroid();
       return;
     }
   }
@@ -1903,6 +1908,8 @@ async function actualizarOSM(btnId){
     osmEstado("No se pudo consultar OpenStreetMap: "+m+".");
   }finally{
     if(B)B.disabled=false;
+    // Terminada la actualización: se deja de usar la ubicación y se avisa
+    if(liberarPermisosAndroid())avisar("📍 OpenStreetMap terminado: la app ha dejado de usar la ubicación.",5000);
   }
 }
 // ---- Ventana «Añadir un lugar» ----
@@ -1930,6 +1937,7 @@ function pintarLista(){
   var L=$("alista");if(!L)return;
   L.innerHTML="";
   $("aborrarosm").hidden=!OSMX.length;
+  $("aborrarmis").hidden=!(MIS.length||OSMX.length);
   if(!MIS.length&&!OSMX.length){
     L.innerHTML='<p class="nada">Todavía no has añadido ningún lugar.</p>';
   }else if(!MIS.length){
@@ -2296,6 +2304,32 @@ $("aborrarosm").onclick=function(){
   pkCentro=null;pkProx=0;pkCargando=false;if(verPicos)cargarPicos();
   pintar();pintarLista();aEstado("Borrados los lugares traídos de OpenStreetMap.");
 };
+// Borra SOLO lo añadido por el usuario (sus pueblos, picos y lugares de OSM).
+// La base inicial de pueblos y picos, los relieves y los ajustes no se tocan.
+var tBorrarMis=null;
+$("aborrarmis").onclick=function(){
+  var B=this;
+  var textoNormal="🗑️ Borrar todos mis datos añadidos";
+  if(B.getAttribute("data-conf")!=="1"){
+    if(!MIS.length&&!OSMX.length){aEstado("No has añadido ningún lugar: no hay nada que borrar.");return}
+    B.setAttribute("data-conf","1");
+    B.textContent="⚠️ Toca otra vez para borrar TODOS tus datos añadidos";
+    clearTimeout(tBorrarMis);
+    tBorrarMis=setTimeout(function(){
+      B.setAttribute("data-conf","0");B.textContent=textoNormal;
+    },5000);
+    return;
+  }
+  clearTimeout(tBorrarMis);
+  B.setAttribute("data-conf","0");B.textContent=textoNormal;
+  MIS=[];OSMX=[];guardarAgregados();
+  BDlisto=true;P=unir();pkCentro=null;pkProx=0;pkCargando=false;
+  if(verPicos)cargarPicos();
+  try{pintar()}catch(e){}
+  pintarLista();actualizarConteos();
+  aEstado("Borrados todos tus pueblos, picos y lugares añadidos. La base de pueblos y picos y el relieve no se tocan.");
+  avisar("🗑️ Datos añadidos borrados. La base de la app sigue intacta.",6000);
+};
 $("aadd").onclick=async function(){
   var B=this;
   if(B.disabled)return;
@@ -2330,6 +2364,35 @@ $("aadd").onclick=async function(){
   infoCam("➕ Añadido: "+m.n);
 };
 var iniciando=false,iniciarTimer=null;
+// En la app Android los permisos se piden al empezar a usar la cámara/GPS,
+// no al abrir la app (igual que la versión antigua). Devuelve una promesa que
+// se resuelve cuando el usuario responde al diálogo de Android.
+function pedirPermisosAndroid(){
+  if(!(window.AndroidApp&&AndroidApp.pedirPermisos))return Promise.resolve(true);
+  try{
+    if(AndroidApp.permisosConcedidos&&AndroidApp.permisosConcedidos()==="1")return Promise.resolve(true);
+  }catch(e){}
+  return new Promise(function(res){
+    var hecho=false;
+    var fin=function(ok){
+      if(hecho)return;
+      hecho=true;
+      if(esperaPermAndroid===fin)esperaPermAndroid=null;
+      res(!!ok);
+    };
+    esperaPermAndroid=fin;
+    try{AndroidApp.pedirPermisos()}catch(e){fin(false)}
+    // Si el diálogo no responde (fabricante raro), no se bloquea la app
+    setTimeout(function(){if(esperaPermAndroid===fin)fin(false)},30000);
+  });
+}
+function liberarPermisosAndroid(){
+  // Si la identificación sigue en marcha, la cámara y el GPS se están usando:
+  // no se liberan hasta terminar.
+  if(document.body.classList.contains("on"))return false;
+  if(window.AndroidApp&&AndroidApp.liberar){try{AndroidApp.liberar()}catch(e){}}
+  return true;
+}
 async function iniciar(){
   if(iniciando||watchId!==null)return;
   iniciando=true;$("go").disabled=true;$("go").style.opacity=".7";
@@ -2340,7 +2403,11 @@ async function iniciar(){
       $("msg").textContent="Está tardando mucho en conseguir los permisos o la ubicación. Comprueba que el GPS y los permisos estén activados y vuelve a intentarlo.";
     }
   },45000);
-  try{await iniciar2()}finally{
+  try{
+    // Primero responde el diálogo de permisos del móvil; después se busca la ubicación
+    await pedirPermisosAndroid();
+    await iniciar2();
+  }finally{
     clearTimeout(iniciarTimer);
     if(watchId===null){iniciando=false;$("go").disabled=false;$("go").style.opacity=""}
   }
@@ -2583,17 +2650,21 @@ $("ubicaAjustes").onclick=function(){
 // ---- App Android desde la 1.6.2 (WebView propio) ----
 // La app concede ubicación y cámara a la web y puede volver a pedir sus permisos
 // sin salir a los ajustes. Al concederlos, se reintenta sola.
+var esperaPermAndroid=null;
+// El puente nativo llama a esta función al responder el diálogo de Android.
+window.__permisosAndroid=function(ok){
+  try{
+    var concedidos=(ok===true||ok===false)?ok:true;
+    if(esperaPermAndroid)esperaPermAndroid(concedidos);
+    if(concedidos&&ubiEspera&&!ubiEspera.hecho())ubiEspera.reintentar();
+    if(concedidos&&document.body.classList.contains("on")&&!stream&&camErr)camara();
+  }catch(e){}
+};
 if(window.AndroidApp){
   try{
     var bAjustes=$("ubicaAjustes");
     if(bAjustes)bAjustes.textContent="Permitir ubicación y cámara";
   }catch(e){}
-  window.__permisosAndroid=function(){
-    try{
-      if(ubiEspera&&!ubiEspera.hecho())ubiEspera.reintentar();
-      if(document.body.classList.contains("on")&&!stream&&camErr)camara();
-    }catch(e){}
-  };
 }
 async function iniciar2(){
   $("msg").textContent="Comprobando permisos…";

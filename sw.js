@@ -8,7 +8,7 @@
      nunca: al cambiar de versión no hay que volver a bajar los 5 MB de datos.
 
    Si cambias archivos del motor, sube VERSION (y el ?v=... del index.html). */
-const VERSION = 'v28';
+const VERSION = 'v29';
 const CACHE_CODIGO = 'que-pueblo-cod-' + VERSION;
 const CACHE_DATOS = 'que-pueblo-datos';   // permanente
 
@@ -16,11 +16,11 @@ const CODIGO = [
     './',
     './index.html',
     './manifest.json',
-    './styles/base.css?v=28',
-    './styles/portada.css?v=28',
-    './styles/layout.css?v=28',
-    './styles/camera.css?v=28',
-    './scripts/app.js?v=28'
+    './styles/base.css?v=29',
+    './styles/portada.css?v=29',
+    './styles/layout.css?v=29',
+    './styles/camera.css?v=29',
+    './scripts/app.js?v=29'
 ];
 
 const DATOS = [

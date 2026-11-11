@@ -211,6 +211,31 @@ else mal('falta el gancho __permisosAndroid');
 if (/window\.AndroidApp/.test(app) && /posDesdeAndroid/.test(app)) ok('usa la última ubicación del sistema en la app Android');
 else mal('no se usa la ubicación nativa de la app Android');
 
+// ---------- permisos a demanda y borrado de datos del usuario ----------
+console.log('\npermisos a demanda y datos del usuario');
+if (html.includes('id="aborrarmis"')) ok('botón «Borrar todos mis datos añadidos»');
+else mal('falta el botón #aborrarmis');
+if (/function pedirPermisosAndroid\(/.test(app)) ok('función pedirPermisosAndroid');
+else mal('falta pedirPermisosAndroid');
+if (/AndroidApp\.permisosConcedidos/.test(app)) ok('comprueba si ya hay permisos antes de pedirlos');
+else mal('no comprueba permisosConcedidos');
+if (/esperaPermAndroid/.test(app) && /__permisosAndroid/.test(app)) ok('la identificación espera la respuesta del diálogo de permisos');
+else mal('la identificación no espera al diálogo de permisos');
+if (/async function iniciar\(\)\{[\s\S]{0,1500}(await )?pedirPermisosAndroid\(\)/.test(app)) ok('al iniciar la identificación se piden los permisos');
+else mal('la identificación no pide los permisos');
+if (/async function actualizarOSM\([\s\S]{0,500}pedirPermisosAndroid\(\)/.test(app)) ok('al actualizar desde OpenStreetMap se piden los permisos');
+else mal('la actualización de OpenStreetMap no pide los permisos');
+if (/function liberarPermisosAndroid\(/.test(app) && /AndroidApp\.liberar/.test(app)) ok('la app deja de usar la ubicación al terminar');
+else mal('no se liberan los permisos al terminar');
+if (/function salir\(\)[\s\S]{0,2500}liberarPermisosAndroid\(\)/.test(app)) ok('terminar la identificación libera ubicación y cámara');
+else mal('terminar la identificación no libera los permisos');
+if (/\}finally\{\s*if\(B\)B\.disabled=false;[\s\S]{0,200}liberarPermisosAndroid\(\)/.test(app)) ok('al terminar OpenStreetMap se libera y se avisa');
+else mal('OpenStreetMap no libera la ubicación al terminar');
+if (/\$\("aborrarmis"\)\.onclick/.test(app) && /MIS=\[\];OSMX=\[\];guardarAgregados\(\)/.test(app)) ok('el botón borra solo los lugares añadidos');
+else mal('el botón no borra los datos añadidos');
+if (!/bdDel\([^)]*misLugares/.test(app) && !/\$\("aborrarmis"\)[\s\S]{0,800}pueblosParseados/.test(app)) ok('no toca la base de pueblos/picos ni el relieve');
+else mal('el borrado podría tocar la base o el relieve');
+
 // Cache-bust coherente: todos los ?v=N deben ser el mismo número
 const vers = [...new Set([
   ...[...html.matchAll(/\?v=(\d+)/g)].map((m) => m[1]),
