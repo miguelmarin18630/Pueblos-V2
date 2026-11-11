@@ -10,15 +10,18 @@ instalar como aplicación (PWA) en Android e iPhone.
 
 ## Aplicación Android (APK)
 
-**[Descargar Pueblos-V2-1.6.0.apk](https://github.com/miguelmarin18630/Pueblos-V2/releases/download/v1.6.0/Pueblos-V2-1.6.0.apk)**
-(1,78 MB · Android 7.0 o superior)
+**[Descargar Pueblos-V2-1.6.1.apk](https://github.com/miguelmarin18630/Pueblos-V2/releases/download/v1.6.1/Pueblos-V2-1.6.1.apk)**
+(2,08 MB · Android 7.0 o superior)
 
 El APK es una **Trusted Web Activity**: abre la misma PWA con Chrome a pantalla
 completa, así que la cámara, el GPS y la brújula se comportan igual que en el navegador.
 Para instalar, descarga el archivo en el móvil y permite la instalación desde esa fuente
 cuando Android lo pregunte.
 
-- Paquete: `io.github.laotra18630cmd.pueblos` · versión 1.6.0 (código 7)
+- Paquete: `io.github.laotra18630cmd.pueblos` · versión 1.6.1 (código 8)
+- La ubicación va **delegada a la app**: el permiso se pide con el diálogo de Android
+  (como en la app antigua), no con el permiso por sitio de Chrome. El aviso de ubicación
+  incluye un botón que abre los ajustes del móvil (`pueblos://ajustes`).
 - Se compila con Bubblewrap a partir del manifest de la PWA. El proyecto Android
   (keystore incluido) está en `C:\apppueblos\03_PROYECTO_ANDROID\Pueblos-Android`.
 - Chrome comprueba la firma con
@@ -85,7 +88,9 @@ app funcione también desde disco. `data/picos.js` no se descarga hasta que se p
    mira; las etiquetas indican distancia y margen de error.
 3. **Calibrar** abre cinco métodos (lugar conocido, andando, dibujar un 8, horizonte y
    ajustes automáticos).
-4. **Aldeas**, **Picos**, **Más lejos** (40/80 km) y **Relieve** cambian lo que se muestra.
+4. **Solo pueblos / Con aldeas**, **Picos**, **Más lejos** (40/80 km) y **Relieve**
+   cambian lo que se muestra. Los tres filtros son excluyentes, y al activar una
+   búsqueda se ajustan solos al tipo de lo buscado.
 5. **Terminar** apaga cámara, GPS y brújula.
 
 En iPhone, el botón de instalar es *Compartir → Añadir a pantalla de inicio*. La app
