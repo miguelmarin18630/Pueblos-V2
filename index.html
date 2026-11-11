@@ -40,10 +40,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="¿Qué pueblo?">
 
-<link rel="stylesheet" href="styles/base.css?v=14">
-<link rel="stylesheet" href="styles/portada.css?v=14">
-<link rel="stylesheet" href="styles/layout.css?v=14">
-<link rel="stylesheet" href="styles/camera.css?v=14">
+<link rel="stylesheet" href="styles/base.css?v=16">
+<link rel="stylesheet" href="styles/portada.css?v=16">
+<link rel="stylesheet" href="styles/layout.css?v=16">
+<link rel="stylesheet" href="styles/camera.css?v=16">
 
 <!-- La base de pueblos se necesita siempre: que empiece a descargarse ya -->
 <link rel="preload" href="data/pueblos.js" as="script">
@@ -91,6 +91,9 @@
 
     <div id="fila1">
         <div id="rumbo"></div>
+        <button id="buscar2" type="button" title="Buscar un pueblo o pico y ver hacia dónde apuntar" aria-label="Buscar pueblo o pico">
+            <span aria-hidden="true">🔍</span><span>Buscar</span>
+        </button>
         <button id="anadircam" type="button" title="Añadir un pueblo o pico que no aparezca" aria-label="Añadir un lugar">
             <span aria-hidden="true">➕</span><span>Añadir</span>
         </button>
@@ -143,13 +146,13 @@
         <button id="zmas" type="button" title="Acercar (más zoom)">＋</button>
         <span id="zval">Zoom ×1</span>
         <button id="zmenos" type="button" title="Alejar (menos zoom)">−</button>
-            
-<div id="fdw">
+    </div>
+
+    <div id="fdw" role="group" aria-label="Enfoque de la cámara">
         <span>Foco</span>
         <input type="range" id="fdist" min="0" max="1" step="0.01" value="1" aria-label="Distancia de enfoque (cerca a lejos)">
         <button id="fauto" type="button">Auto</button>
     </div>
-</div>
 
     <nav id="bar" aria-label="Controles de la cámara">
         <button id="calbtn" type="button" title="Ajusta la brújula con un lugar que veas">
@@ -292,10 +295,6 @@
 
         <div>
             <label>Cómo indicar el sitio</label>
-            <div class="seg" role="group" aria-label="Modo de posición">
-                <button id="amodo1" type="button" aria-pressed="true">📐 Desde aquí</button>
-                <button id="amodo2" type="button" aria-pressed="false">🌐 Con coordenadas</button>
-            </div>
             <p id="acur">—</p>
         </div>
 
@@ -378,8 +377,9 @@
         <li><span class="pi" aria-hidden="true">⛰</span><span><b>Picos</b> (Sí/No): muestra los nombres de los picos con su altura.</span></li>
         <li><span class="pi" aria-hidden="true">🔭</span><span><b>Más lejos</b> (40 km / 80 km): amplía hasta dónde busca pueblos.</span></li>
         <li><span class="pi" aria-hidden="true">🏔</span><span><b>Relieve</b> (Sí/No): oculta los lugares tapados por montañas. Si lo apagas, se muestran todos por dirección.</span></li>
-        <li><span class="pi" aria-hidden="true">➕</span><span><b>Zoom</b>: acerca o aleja la cámara.</span></li>
-        <li><span class="pi" aria-hidden="true">◎</span><span><b>Enfocar</b>: enfoca el centro de la imagen.</span></li>
+        <li><span class="pi" aria-hidden="true">🔍</span><span><b>Buscar</b>: busca un pueblo o pico por nombre y te dice hacia dónde apuntar con una flecha.</span></li>
+        <li><span class="pi" aria-hidden="true">＋</span><span><b>Zoom</b>: los botones ＋ y − (a la derecha) acercan y alejan la cámara.</span></li>
+        <li><span class="pi" aria-hidden="true">◎</span><span><b>Foco</b>: la barra de la izquierda ajusta la distancia de enfoque; «Auto» la deja automática.</span></li>
         <li><span class="pi" aria-hidden="true">✕</span><span><b>Terminar</b> (arriba a la derecha): apaga cámara, GPS y brújula.</span></li>
     </ul>
     <button id="guiaok" type="button">Entendido</button>
@@ -398,17 +398,17 @@
 
 <!-- Datos: pueblos (se descarga una vez y queda guardado) y motor. picos.js se carga solo al activar Picos. -->
 <script async src="data/pueblos.js"></script>
-<script defer src="scripts/app.js?v=14"></script>
+<script defer src="scripts/app.js?v=16"></script>
 
-<!-- ================= Modo inverso: buscar pueblo/pico ================= -->
-<div id="inverso" role="dialog" aria-modal="true" aria-labelledby="inversoT" style="display:none;">
+<!-- ================= Diálogo de búsqueda: buscar pueblo o pico por nombre ================= -->
+<div id="buscar" role="dialog" aria-modal="true" aria-labelledby="buscarT" style="display:none;">
     <div class="caja">
-        <h2 id="inversoT">🔍 Buscar pueblo o pico</h2>
-        <p>Selecciona un destino y gira el móvil hasta que la flecha apunte recto hacia adelante.</p>
+        <h2 id="buscarT">🔍 Buscar pueblo o pico</h2>
+        <p>Escribe parte del nombre y elige uno de la lista. La flecha te mostrará hacia dónde está.</p>
 
         <div>
-            <label for="invTipo">Tipo</label>
-            <select id="invTipo">
+            <label for="buscarTipo">Tipo</label>
+            <select id="buscarTipo">
                 <option value="todos">Todos</option>
                 <option value="pueblo">Pueblos</option>
                 <option value="pico">Picos</option>
@@ -416,17 +416,22 @@
         </div>
 
         <div>
-            <label for="invDest">Destino</label>
-            <select id="invDest" size="6">
-                <!-- se rellena con JavaScript -->
+            <label for="buscarTexto">Nombre</label>
+            <input type="text" id="buscarTexto" placeholder="Escribe el nombre del pueblo o pico…" autocomplete="off">
+        </div>
+
+        <div>
+            <label for="buscarLista">Resultados</label>
+            <select id="buscarLista" size="6">
+                <!-- se rellena con JavaScript al escribir -->
             </select>
         </div>
 
         <div class="btns">
-            <button id="invActivar" type="button">▶ Activar búsqueda</button>
-            <button id="invCerrar" type="button">Cerrar</button>
+            <button id="buscarIr" type="button">▶ Activar búsqueda</button>
+            <button id="buscarCerrar" type="button">Cerrar</button>
         </div>
-        <div id="invEstado" role="status" aria-live="polite"></div>
+        <div id="buscarEstado" role="status" aria-live="polite"></div>
     </div>
 </div>
 
@@ -439,6 +444,7 @@
     </div>
     <div id="invDist" style="margin-top:12px; font-size:16px; font-weight:700; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,.8);">— km</div>
     <div id="invNombre" style="margin-top:4px; font-size:14px; color:#ffe25a; text-shadow:0 1px 4px rgba(0,0,0,.8);">Selecciona un destino</div>
+    <button id="invSalir" type="button" style="margin-top:16px; padding:9px 20px; border-radius:999px; border:1px solid rgba(255,255,255,.6); background:rgba(0,0,0,.75); color:#fff; font-size:15px; font-weight:700; pointer-events:auto; cursor:pointer;">✕ Salir</button>
 </div>
 </body>
 </html>
