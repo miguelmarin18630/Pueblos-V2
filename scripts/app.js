@@ -301,7 +301,8 @@ function pintarYa(){
   var pe=posEfectiva();
   var hdc=rumboC();
   if(!panEnCurso&&Date.now()>=panBloq&&(!pan||pan.alc!==alcance||Math.abs(envolver(hdc-pan.c))>25||dst(pan.la,pan.lo,pos.latitude,pos.longitude)>1.5||(pan.paso>1&&Date.now()-pan.t>8000&&omLibres()>120)))construirPano();
-  $("rumbo").textContent="Rumbo: "+Math.round(hdc)+"° · Inclinación: "+Math.round(pit)+"°";
+  // Los grados van primero: en pantallas estrechas el chip se recorta y así nunca se pierde el rumbo
+  $("rumbo").textContent=Math.round(hdc)+"° · Incl. "+Math.round(pit)+"°";
   actualizarEstado();
   var av=[];
   if(prec!==null){if(prec<0)av.push("Brújula sin calibrar: dibuja un 8 con el móvil.");else if(prec>20)av.push("Brújula poco precisa (±"+Math.round(prec)+"°): dibuja un 8 con el móvil.")}
@@ -1539,17 +1540,23 @@ function etiquetas(pe,hdc){
     var q=c[i],v=(q.sel||q.tap)?true:panVis(q);
     if(v===null)v=q.dk<=10;
     if(v!==true)continue;
-    var x=W/2+f*Math.tan(q.d*R),w=8.5*q.n.length+60;
+    var x=W/2+f*Math.tan(q.d*R);
+    // Ancho estimado de la etiqueta (nombre + distancia) y centro limitado al borde:
+    // así ninguna etiqueta se corta por la izquierda ni por la derecha.
+    var dtx=(q.dk<10?q.dk.toFixed(1):Math.round(q.dk))+" km";
+    var w=Math.round(8.5*q.n.length+6.5*dtx.length+34);
+    if(q.sel||q.tap)w=Math.round(w*1.2); // la etiqueta seleccionada usa 18 px
+    var lx=Math.max(w/2+6,Math.min(W-w/2-6,x));
     var e=elevC[ek(q)],el=(pan&&typeof e==="number")?Math.atan2(e+10-pan.H0-Math.pow(q.dk*1000,2)/14.6e6,q.dk*1000):0;
     var y=H/2-f*Math.tan(el-pit*R),col=colorDe(q);
-    var L=hueco(x,w,y-8);
+    var L=hueco(lx,w,y-8);
     if(L<0){if(!q.sel&&!q.tap)continue;L=0}
     var ty=y-8-L*34;n++;
     if(q.t==="city")fc=1;else if(q.t==="hamlet"||q.t==="isolated_dwelling")fa=1;else fp=1;
-    out.push({k:"ln",x:Math.round(x),y:Math.round(ty),h:Math.max(0,Math.round(y-ty)),c:col});
+    if(Math.abs(lx-x)<25)out.push({k:"ln",x:Math.round(lx),y:Math.round(ty),h:Math.max(0,Math.round(y-ty)),c:col});
     out.push({k:"pt",x:Math.round(x),y:Math.round(y),c:col,sel:q.sel||q.tap});
-    etqHit.push({n:q.n,la:q.la,lo:q.lo,t:q.t,dk:q.dk,x:x,y:y,ty:ty,w:w});
-    out.push({k:"et",x:Math.round(x),y:Math.round(ty),c:col,sel:q.sel||q.tap,html:esc(q.n)+'<small> '+(q.dk<10?q.dk.toFixed(1):Math.round(q.dk))+' km</small>'});
+    etqHit.push({n:q.n,la:q.la,lo:q.lo,t:q.t,dk:q.dk,x:lx,y:y,ty:ty,w:w});
+    out.push({k:"et",x:Math.round(lx),y:Math.round(ty),c:col,sel:q.sel||q.tap,html:esc(q.n)+'<small> '+(q.dk<10?q.dk.toFixed(1):Math.round(q.dk))+' km</small>'});
   }
   // Picos de montaña visibles (los más altos primero)
   if(verPicos&&PK.length&&pan){
@@ -1571,14 +1578,15 @@ function etiquetas(pe,hdc){
       if(vv!==true)continue;
       var px=W/2+f*Math.tan(m.d*R),py=H/2-f*Math.tan(elev(m,m.e,m.dk)-pit*R);
       if(py<topMin+14||py>H-100)continue;
-      var txt='▲ '+m.n,sub=' '+Math.round(m.e).toLocaleString("es-ES")+' m · '+(m.dk<10?m.dk.toFixed(1):Math.round(m.dk))+' km',pw=8*(txt.length+sub.length)*0.95+24;
-      var PL=hueco(px,pw,py-10);
+      var txt='▲ '+m.n,sub=' '+Math.round(m.e).toLocaleString("es-ES")+' m · '+(m.dk<10?m.dk.toFixed(1):Math.round(m.dk))+' km',pw=Math.round(8*(txt.length+sub.length)*0.95+24);
+      var lpx=Math.max(pw/2+6,Math.min(W-pw/2-6,px));
+      var PL=hueco(lpx,pw,py-10);
       if(PL<0)continue;
       var pty=py-10-PL*34;np++;
-      out.push({k:"ln",x:Math.round(px),y:Math.round(pty),h:Math.max(0,Math.round(py-pty)),c:COLPK});
+      if(Math.abs(lpx-px)<25)out.push({k:"ln",x:Math.round(lpx),y:Math.round(pty),h:Math.max(0,Math.round(py-pty)),c:COLPK});
       out.push({k:"pk",x:Math.round(px),y:Math.round(py)});
-      etqHit.push({n:m.n,la:m.la,lo:m.lo,e:m.e,dk:m.dk,x:px,y:py,ty:pty,w:pw,pico:true});
-      out.push({k:"et",x:Math.round(px),y:Math.round(pty),c:COLPK,html:esc(txt)+'<small>'+esc(sub)+'</small>'});
+      etqHit.push({n:m.n,la:m.la,lo:m.lo,e:m.e,dk:m.dk,x:lpx,y:py,ty:pty,w:pw,pico:true});
+      out.push({k:"et",x:Math.round(lpx),y:Math.round(pty),c:COLPK,html:esc(txt)+'<small>'+esc(sub)+'</small>'});
     }
   }
   leyenda(fc,fp,fa,!!np);
