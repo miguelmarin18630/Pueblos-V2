@@ -898,7 +898,7 @@ body.on #fdw.v {
     align-items: center;
     padding: calc(env(safe-area-inset-top, 0px) + 14px) 14px calc(env(safe-area-inset-bottom, 0px) + 18px);
     color: #fff;
-    background: rgba(5, 7, 20, .97);
+    background: #080b1c;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
 }

@@ -145,11 +145,11 @@ body.on #estado {
     z-index: 30;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: safe center;
     gap: 12px;
     padding: 24px;
     color: #fff;
-    background: rgba(5, 7, 20, .96);
+    background: #080b1c;
     overflow: auto;
 }
 
@@ -218,12 +218,12 @@ body.on #estado {
     z-index: 35;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: safe center;
     gap: 12px;
     padding: 24px;
     color: #fff;
     text-align: center;
-    background: rgba(5, 7, 20, .97);
+    background: #080b1c;
     overflow: auto;
 }
 
@@ -311,7 +311,7 @@ body.on #estado {
     text-align: center;
     padding: 30px;
     color: #fff;
-    background: rgba(5, 7, 20, .94);
+    background: #080b1c;
 }
 
 #conf h2 {
@@ -588,7 +588,7 @@ body.on #estado {
     gap: 10px;
     padding: calc(env(safe-area-inset-top, 0px) + 18px) 18px calc(env(safe-area-inset-bottom, 0px) + 18px);
     color: #fff;
-    background: rgba(5, 7, 20, .97);
+    background: #080b1c;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
 }
@@ -657,7 +657,7 @@ body.on #estado {
     align-items: center;
     padding: calc(env(safe-area-inset-top, 0px) + 14px) 14px calc(env(safe-area-inset-bottom, 0px) + 18px);
     color: #fff;
-    background: rgba(5, 7, 20, .97);
+    background: #080b1c;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
 }
