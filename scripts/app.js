@@ -529,7 +529,7 @@ function activarInv(dest){
     $("buscarEstado").textContent="Esperando GPS y brújula… (acepta los permisos del móvil)";
     if(!document.body.classList.contains("on")){
       var visto=false;try{visto=localStorage.getItem("permisosVistos")==="1"}catch(e){}
-      if(visto)iniciar();
+      if(visto||permisosAndroidYa())iniciar();
       else{$("permisos").style.display="flex";$("permok").focus()}
     }
     avisar("📍 Activando GPS y brújula para mostrar la flecha…",4000);
@@ -2360,6 +2360,11 @@ var iniciando=false,iniciarTimer=null;
 // En la app Android los permisos se piden al empezar a usar la cámara/GPS,
 // no al abrir la app (igual que la versión antigua). Devuelve una promesa que
 // se resuelve cuando el usuario responde al diálogo de Android.
+function permisosAndroidYa(){
+  // En la app Android, si los permisos ya están concedidos no se vuelve a
+  // mostrar el aviso de permisos de la web: ya no hace falta.
+  try{return !!(window.AndroidApp&&AndroidApp.permisosConcedidos&&AndroidApp.permisosConcedidos()==="1")}catch(e){return false}
+}
 function pedirPermisosAndroid(){
   if(!(window.AndroidApp&&AndroidApp.pedirPermisos))return Promise.resolve(true);
   try{
@@ -2762,7 +2767,7 @@ $("go").onclick=function(){
   setInterval(restoreAlArrancar,500);
   setTimeout(function(){clearInterval(restoreAlArrancar)},30000);
   var visto=false;try{visto=localStorage.getItem("permisosVistos")==="1"}catch(e){}
-  if(visto){iniciar();return}
+  if(visto||permisosAndroidYa()){iniciar();return}
   // Si el aviso ya está en pantalla, seguir con los permisos
   if($("permisos").style.display==="flex"){$("permok").onclick();return}
   $("permisos").style.display="flex";$("permok").focus();
@@ -2780,6 +2785,8 @@ $("permno").onclick=function(){$("permisos").style.display="none";permInicio=fal
 (function(){
   var visto=false;try{visto=localStorage.getItem("permisosVistos")==="1"}catch(e){}
   if(visto)return;
+  // Si la app Android ya tiene los permisos, no se muestra este aviso.
+  if(permisosAndroidYa()){try{localStorage.setItem("permisosVistos","1")}catch(e){};return}
   permInicio=true;$("permisos").style.display="flex";$("permok").focus();
 })();
 // ---- Arranque de la interfaz ----
