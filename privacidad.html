@@ -55,8 +55,9 @@
     <h2>Qué datos usa la app</h2>
     <ul>
         <li><strong>Ubicación (GPS).</strong> Se usa solo mientras la app está abierta, para
-        calcular qué pueblos, aldeas y picos tienes alrededor y hacia dónde apuntas. No se
-        envía a ningún servidor nuestro: no tenemos servidores propios de datos.</li>
+        calcular qué pueblos, aldeas y picos tienes alrededor y hacia dónde apuntas. No
+        tenemos servidores propios de datos, pero las coordenadas se envían a los servicios
+        externos que se indican más abajo para obtener la información de la zona.</li>
         <li><strong>Cámara.</strong> Sirve para ver el horizonte y poner los nombres encima de
         la imagen. La imagen <strong>no se graba, no se guarda y no sale del móvil</strong>.</li>
         <li><strong>Brújula y sensores de movimiento.</strong> Se leen en el propio móvil para
@@ -75,17 +76,33 @@
     <p>Para funcionar, la app consulta servicios públicos. En esas consultas se envían las
     coordenadas del lugar que estás mirando o buscando:</p>
     <ul>
-        <li><strong>OpenStreetMap</strong> (servidores Overpass: overpass-api.de,
-        overpass.kumi.systems, overpass.private.coffee y maps.mail.ru), para obtener pueblos,
-        aldeas y picos. Datos © colaboradores de OpenStreetMap (ODbL).</li>
+        <li><strong>OpenStreetMap</strong> (servidores Overpass: overpass.private.coffee y
+        overpass-api.de), para obtener pueblos, aldeas y picos. Datos © colaboradores de
+        OpenStreetMap, bajo <a href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL 1.0</a>.</li>
         <li><strong>Open-Meteo</strong> (api.open-meteo.com), para calcular altitudes y
-        relieve.</li>
+        relieve. Datos bajo <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</li>
         <li><strong>GitHub Pages</strong>, que aloja la web de la app. Como cualquier
         alojamiento, registra direcciones IP con fines técnicos y de seguridad según su
         propia política.</li>
     </ul>
-    <p>No enviamos a estos servicios tu nombre, tu correo ni ningún identificador personal.
-    Las consultas van cifradas con HTTPS.</p>
+    <p>En esas consultas se envían la dirección IP y las coordenadas de la zona. Los
+    proveedores pueden conservar registros técnicos temporales (IP, coordenadas y fecha)
+    para seguridad y diagnóstico, según sus propias políticas; Open-Meteo los elimina en un
+    plazo de hasta 90 días. No los usamos para identificarte ni para elaborar perfiles.</p>
+    <p>No enviamos a estos servicios tu nombre, tu correo ni datos de una cuenta: solo la
+    dirección IP técnica y las coordenadas de la zona consultada. Las consultas van cifradas
+    con HTTPS.</p>
+
+    <h2>Licencias y créditos</h2>
+    <p>Datos de pueblos y picos: © colaboradores de OpenStreetMap, bajo
+    <a href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL 1.0</a>. La base derivada
+    que incluye la app (localidades y picos de España) se ofrece bajo la misma licencia y se
+    puede descargar en <a href="data/pueblos.js">pueblos.js</a> y
+    <a href="data/picos.js">picos.js</a>; los cambios realizados y la licencia están en
+    <a href="data/LICENCIA-DATOS.md">LICENCIA-DATOS.md</a>.</p>
+    <p>Datos de elevación: <a href="https://open-meteo.com/">Open-Meteo.com</a>, bajo
+    <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. El perfil de
+    relieve y la orientación se calculan en el dispositivo a partir de esos datos.</p>
 
     <h2>Permisos del móvil</h2>
     <p>La app pide <strong>ubicación</strong> y <strong>cámara</strong> solo cuando pulsas
@@ -119,8 +136,10 @@
 
     <footer>
         <p>¿Qué pueblo es? · Datos de pueblos y picos: © colaboradores de
-        <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL) ·
-        Relieve: <a href="https://open-meteo.com/">Open-Meteo</a>.</p>
+        <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>
+        (<a href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL 1.0</a>) ·
+        Elevación: <a href="https://open-meteo.com/">Open-Meteo</a>
+        (<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>).</p>
     </footer>
 </main>
 </body>

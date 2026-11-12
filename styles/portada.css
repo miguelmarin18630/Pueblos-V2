@@ -35,10 +35,16 @@
     display: block;
     margin: -4px 0 12px;
     font-size: 12px;
+    line-height: 1.6;
     letter-spacing: .04em;
     color: #dfe6ff;
     opacity: .7;
     text-align: center;
+}
+
+#autor a {
+    color: inherit;
+    text-decoration: underline;
 }
 
 #go {

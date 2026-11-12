@@ -434,7 +434,7 @@ async function masPueblos(){
   if(cargando||Date.now()-intento<15000)return;
   cargando=true;intento=Date.now();
   // Prueba varios servidores y radios hasta que uno responda
-  var intentos=[["https://overpass-api.de/api/interpreter",80000,"city|town|village|hamlet"],["https://overpass.kumi.systems/api/interpreter",80000,"city|town|village|hamlet"],["https://overpass-api.de/api/interpreter",30000,"city|town|village"]];
+  var intentos=[["https://overpass.private.coffee/api/interpreter",80000,"city|town|village|hamlet"],["https://overpass-api.de/api/interpreter",30000,"city|town|village"]];
   var ok=false;
   for(var t=0;t<intentos.length&&!ok;t++){
     try{
@@ -1322,19 +1322,30 @@ function parsePicos(t){
   });
   return out;
 }
+// Espejos públicos de Overpass. Se prueban de uno en uno, nunca en paralelo,
+// y solo europeos: así no se saturan los servidores ni se envían coordenadas
+// fuera de la UE. Si uno falla se pasa al siguiente.
+var OVERPASS_SV=[
+  "https://overpass.private.coffee/api/interpreter",
+  "https://overpass-api.de/api/interpreter"
+];
+function pedirOverpass(q,parsear,ms){
+  var fallos=[];
+  function intentar(i){
+    if(i>=OVERPASS_SV.length)return Promise.reject(fallos);
+    var u=OVERPASS_SV[i];
+    return fetchT(u,{method:"POST",body:"data="+encodeURIComponent(q)},ms)
+      .then(function(r){if(!r.ok)throw new Error("error "+r.status);return r.text()})
+      .then(function(t){var o=parsear(t);if(!o.length)throw new Error("respuesta vacía");return o})
+      .catch(function(e){
+        fallos.push(u.split("/")[2]+": "+motivoErr(e));
+        return intentar(i+1);
+      });
+  }
+  return intentar(0);
+}
 function pedirPicos(q){
-  var sv=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter","https://overpass.private.coffee/api/interpreter","https://maps.mail.ru/osm/tools/overpass/api/interpreter"];
-  return new Promise(function(res,rej){
-    var pend=sv.length,fallos=[];
-    sv.forEach(function(u,i){
-      setTimeout(function(){
-        fetchT(u,{method:"POST",body:"data="+encodeURIComponent(q)},25000)
-          .then(function(r){if(!r.ok)throw new Error("error "+r.status);return r.text()})
-          .then(function(t){var o=parsePicos(t);if(!o.length)throw new Error("respuesta vacía");res(o)})
-          .catch(function(e){fallos.push(u.split("/")[2]+": "+motivoErr(e));if(--pend===0)rej(fallos)});
-      },i*1200);
-    });
-  });
+  return pedirOverpass(q,parsePicos,20000);
 }
 // Picos incluidos en la página: se leen una sola vez, la primera vez que se necesitan
 var PKALL=null;
@@ -1392,10 +1403,9 @@ async function cargarPicos(){
   if(c&&c.datos&&c.datos.length&&dst(la,lo,c.la,c.lo)<20){usarPicos(c);pkCargando=false;return}
   var q='[out:csv(::lat,::lon,name,ele;false;"|")][timeout:25];node["natural"="peak"]["name"]["ele"](around:80000,'+la.toFixed(4)+','+lo.toFixed(4)+');out;';
   var datos=null,motivosPk=[];
-  // Se consultan varios servidores casi a la vez y gana el primero que responde (máx. 2 rondas de 25 s)
-  for(var ronda=0;ronda<2&&!datos;ronda++){
-    try{datos=await pedirPicos(q)}catch(m){motivosPk=m||[];await espera(1500)}
-  }
+  // Se prueban los espejos de uno en uno (sin paralelo). Si los dos fallan,
+  // se reintenta al moverte o al volver a activar los picos.
+  try{datos=await pedirPicos(q)}catch(m){motivosPk=m||[]}
   if(datos){
     c={la:la,lo:lo,datos:datos,fecha:new Date().toLocaleDateString("es-ES")};
     try{await bdSet("picos",c)}catch(e){}
@@ -1814,18 +1824,7 @@ function parseOSM(t){
   return out;
 }
 function pedirOSM(q){
-  var sv=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter","https://overpass.private.coffee/api/interpreter","https://maps.mail.ru/osm/tools/overpass/api/interpreter"];
-  return new Promise(function(res,rej){
-    var pend=sv.length,fallos=[];
-    sv.forEach(function(u,i){
-      setTimeout(function(){
-        fetchT(u,{method:"POST",body:"data="+encodeURIComponent(q)},55000)
-          .then(function(r){if(!r.ok)throw new Error("error "+r.status);return r.text()})
-          .then(function(t){var o=parseOSM(t);if(!o.length)throw new Error("respuesta vacía");res(o)})
-          .catch(function(e){fallos.push(u.split("/")[2]+": "+motivoErr(e));if(--pend===0)rej(fallos)});
-      },i*1200);
-    });
-  });
+  return pedirOverpass(q,parseOSM,30000);
 }
 function consultaOSM(la,lo){
   var p=la.toFixed(5)+","+lo.toFixed(5);

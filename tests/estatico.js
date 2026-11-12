@@ -238,6 +238,17 @@ else mal('el botón no borra los datos añadidos');
 if (!/bdDel\([^)]*misLugares/.test(app) && !/\$\("aborrarmis"\)[\s\S]{0,800}pueblosParseados/.test(app)) ok('no toca la base de pueblos/picos ni el relieve');
 else mal('el borrado podría tocar la base o el relieve');
 
+// ---------- datos externos, licencias y atribución ----------
+console.log('\ndatos externos y licencias');
+if (!app.includes('maps.mail.ru')) ok('Overpass sin el espejo maps.mail.ru');
+else mal('sigue el espejo maps.mail.ru');
+if (/function pedirOverpass\([\s\S]{0,900}intentar\(i\+1\)/.test(app)) ok('Overpass secuencial (un espejo cada vez)');
+else mal('Overpass no usa reintento secuencial');
+if (html.includes('openstreetmap.org/copyright') && html.includes('creativecommons.org/licenses/by/4.0')) ok('atribución visible de OpenStreetMap y Open-Meteo');
+else mal('faltan enlaces de atribución en la portada');
+if (existe('data/LICENCIA-DATOS.md')) ok('licencia de los datos en data/LICENCIA-DATOS.md');
+else mal('falta data/LICENCIA-DATOS.md');
+
 // Cache-bust coherente: todos los ?v=N deben ser el mismo número
 const vers = [...new Set([
   ...[...html.matchAll(/\?v=(\d+)/g)].map((m) => m[1]),
