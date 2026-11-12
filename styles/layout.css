@@ -825,7 +825,7 @@ body.on #estado {
     color: #aab4d4;
 }
 
-#anadir #aborrarosm {
+#anadir #aborrarmis {
     margin-top: 10px;
     min-height: 44px;
     font-size: 14px;
@@ -834,6 +834,6 @@ body.on #estado {
     box-shadow: none;
 }
 
-#anadir #aborrarosm[hidden] {
+#anadir #aborrarmis[hidden] {
     display: none;
 }

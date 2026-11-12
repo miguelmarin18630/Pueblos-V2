@@ -215,6 +215,8 @@ else mal('no se usa la ubicación nativa de la app Android');
 console.log('\npermisos a demanda y datos del usuario');
 if (html.includes('id="aborrarmis"')) ok('botón «Borrar todos mis datos añadidos»');
 else mal('falta el botón #aborrarmis');
+if (!html.includes('aborrarosm') && !app.includes('aborrarosm')) ok('sin botón aparte para borrar solo OpenStreetMap');
+else mal('sigue el botón de borrar solo OpenStreetMap');
 if (/function pedirPermisosAndroid\(/.test(app)) ok('función pedirPermisosAndroid');
 else mal('falta pedirPermisosAndroid');
 if (/AndroidApp\.permisosConcedidos/.test(app)) ok('comprueba si ya hay permisos antes de pedirlos');

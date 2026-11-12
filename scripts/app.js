@@ -1936,7 +1936,6 @@ function actCursor(){
 function pintarLista(){
   var L=$("alista");if(!L)return;
   L.innerHTML="";
-  $("aborrarosm").hidden=!OSMX.length;
   $("aborrarmis").hidden=!(MIS.length||OSMX.length);
   if(!MIS.length&&!OSMX.length){
     L.innerHTML='<p class="nada">Todavía no has añadido ningún lugar.</p>';
@@ -2298,12 +2297,6 @@ $("ausar").onclick=function(){
 };
 $("osmact").onclick=function(){actualizarOSM("osmact")};
 $("aosm").onclick=function(){actualizarOSM("aosm")};
-$("aborrarosm").onclick=function(){
-  if(!OSMX.length)return;
-  OSMX=[];guardarAgregados();BDlisto=true;P=unir();
-  pkCentro=null;pkProx=0;pkCargando=false;if(verPicos)cargarPicos();
-  pintar();pintarLista();aEstado("Borrados los lugares traídos de OpenStreetMap.");
-};
 // Borra SOLO lo añadido por el usuario (sus pueblos, picos y lugares de OSM).
 // La base inicial de pueblos y picos, los relieves y los ajustes no se tocan.
 var tBorrarMis=null;
