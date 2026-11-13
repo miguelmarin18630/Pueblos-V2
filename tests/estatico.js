@@ -249,6 +249,23 @@ else mal('faltan enlaces de atribución en la portada');
 if (existe('data/LICENCIA-DATOS.md')) ok('licencia de los datos en data/LICENCIA-DATOS.md');
 else mal('falta data/LICENCIA-DATOS.md');
 
+// ---------- añadir a la pantalla de inicio ----------
+console.log('\nañadir a la pantalla de inicio');
+for (const id of ['a2hs', 'a2hsX', 'a2hsPasos', 'a2hsOk', 'a2hsNo']) {
+  if (new RegExp('id="' + id + '"').test(html)) ok('#' + id + ' en index.html');
+  else mal('falta #' + id + ' en index.html');
+}
+if (/beforeinstallprompt/.test(app) && /\.prompt\(\)/.test(app)) ok('usa el diálogo nativo de instalación (beforeinstallprompt)');
+else mal('no captura beforeinstallprompt');
+if (/function a2hsEsIOS/.test(app) && /Añadir a la pantalla de inicio/.test(html)) ok('guía de «Añadir a la pantalla de inicio» en iPhone');
+else mal('falta la guía de iPhone');
+if (/localStorage\.getItem\("a2hs"\)/.test(app) && /localStorage\.setItem\("a2hs","1"\)/.test(app)) ok('se recuerda que ya se mostró (localStorage a2hs)');
+else mal('el aviso no se recuerda entre visitas');
+if (/display-mode: standalone/.test(app) && /window\.AndroidApp/.test(app)) ok('no se muestra si ya está instalada o es la app de Play');
+else mal('no se comprueba si ya está instalada');
+if (/addEventListener\("appinstalled"/.test(app)) ok('se oculta al instalarse (appinstalled)');
+else mal('no escucha appinstalled');
+
 // Cache-bust coherente: todos los ?v=N deben ser el mismo número
 const vers = [...new Set([
   ...[...html.matchAll(/\?v=(\d+)/g)].map((m) => m[1]),

@@ -40,10 +40,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="¿Qué pueblo?">
 
-<link rel="stylesheet" href="styles/base.css?v=34">
-<link rel="stylesheet" href="styles/portada.css?v=34">
-<link rel="stylesheet" href="styles/layout.css?v=34">
-<link rel="stylesheet" href="styles/camera.css?v=34">
+<link rel="stylesheet" href="styles/base.css?v=35">
+<link rel="stylesheet" href="styles/portada.css?v=35">
+<link rel="stylesheet" href="styles/layout.css?v=35">
+<link rel="stylesheet" href="styles/camera.css?v=35">
 
 <!-- La base de pueblos se necesita siempre: que empiece a descargarse ya -->
 <link rel="preload" href="data/pueblos.js" as="script">
@@ -452,7 +452,7 @@ setTimeout(__comprobarMotor, 9000);
 
 <!-- Datos: la base de pueblos (3,8 MB) se descarga una vez y queda guardada en el móvil.
      El motor (app.js) la pide por su cuenta y no bloquea la pantalla. -->
-<script defer src="scripts/app.js?v=34"></script>
+<script defer src="scripts/app.js?v=35"></script>
 
 <!-- ================= Diálogo de búsqueda: buscar pueblo o pico por nombre ================= -->
 <div id="buscar" role="dialog" aria-modal="true" aria-labelledby="buscarT" style="display:none;">
@@ -499,6 +499,25 @@ setTimeout(__comprobarMotor, 9000);
         <div class="inv-punta"></div>
         <div class="inv-punta inv-punta-2"></div>
         <div class="inv-punta inv-punta-3"></div>
+    </div>
+</div>
+
+<!-- Aviso para añadir la web a la pantalla de inicio: una sola vez, tras identificar algo -->
+<div id="a2hs" role="dialog" aria-labelledby="a2hsT" aria-describedby="a2hsP" aria-hidden="true">
+    <button id="a2hsX" type="button" aria-label="Cerrar el aviso">✕</button>
+    <div class="a2hs-cab">
+        <img src="icons/icon-192.png" alt="" width="38" height="38">
+        <strong id="a2hsT">Tenla siempre a mano</strong>
+    </div>
+    <p id="a2hsP">Añádela a tu pantalla de inicio y ábrela como una app, sin escribir la dirección.</p>
+    <div id="a2hsPasos" hidden>
+        <div><span class="n">1</span><span>Toca <b>Compartir</b> <svg class="a2hs-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> en Safari.</span></div>
+        <div><span class="n">2</span><span>Elige <b>Añadir a la pantalla de inicio</b>.</span></div>
+        <div><span class="n">3</span><span>Pulsa <b>Añadir</b> arriba a la derecha.</span></div>
+    </div>
+    <div id="a2hsBtns">
+        <button id="a2hsOk" type="button">Añadir a inicio</button>
+        <button id="a2hsNo" type="button">Ahora no</button>
     </div>
 </div>
 </body>

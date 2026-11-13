@@ -5,15 +5,22 @@
     "description": "Apunta con el móvil al horizonte y descubre qué pueblo o pico tienes delante.",
     "lang": "es",
     "dir": "ltr",
-    "version": "1.6.2",
+    "version": "1.6.5",
     "start_url": "./",
     "scope": "./",
     "display": "standalone",
-    "display_override": ["standalone", "minimal-ui"],
+    "display_override": [
+        "standalone",
+        "minimal-ui"
+    ],
     "orientation": "portrait",
     "background_color": "#0b1026",
     "theme_color": "#0b1026",
-    "categories": ["travel", "navigation", "utilities"],
+    "categories": [
+        "travel",
+        "navigation",
+        "utilities"
+    ],
     "prefer_related_applications": false,
     "screenshots": [
         {

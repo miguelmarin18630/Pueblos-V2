@@ -334,6 +334,7 @@ function pintarYa(){
     }
   }
   selVis=vis;
+  if(vis)a2hsTrasIdentificar();
   // El aviso depende del pueblo mostrado (o de un fallo global reciente), no de la última consulta suelta
   var sinRel=usarRelieve?(vis?(panVis(vis)===null&&sinRelK[clave(vis)]===true):(!pan&&Date.now()<bloqRel)):false;
   $("mejor").textContent=vis?vis.n:"—";
@@ -345,6 +346,7 @@ function pintarYa(){
     // Modo picos: el panel habla de picos, no de pueblos
     if(pos&&!pkCargando&&Date.now()>pkProx&&(!PK.length||(pkCentro&&dst(pos.latitude,pos.longitude,pkCentro.la,pkCentro.lo)>=20)))cargarPicos();
     var pm=(!fuera&&PK.length)?picoMira(pe,hdc):null;
+    if(pm)a2hsTrasIdentificar();
     $("mejor").textContent=pm?"▲ "+pm.n:"—";
     $("mejor").style.fontSize=pm?"28px":"28px";
     $("lista").innerHTML=pm?'<div class="it" style="border-left-color:'+COLPK+'"><span style="font-size:17px"><b style="color:'+COLPK+'">▲</b> '+esc(pm.n)+'</span><span>'+Math.round(pm.e).toLocaleString("es-ES")+' m · '+(pm.dk<10?pm.dk.toFixed(1):Math.round(pm.dk))+' km</span></div>':"";
@@ -744,6 +746,7 @@ function salir(){try{clearTimeout(tTap);tapSel=null;$("toque").style.display="no
   window.removeEventListener("deviceorientation",onOri,true);
   if(stream){stream.getTracks().forEach(function(t){t.stop()});stream=null}
   $("cam").srcObject=null;
+  a2hsOcultar();
   document.body.classList.remove("on");
   cerrarOcho();$("cal").style.display="none";
   // Cerrar búsqueda y modo flecha
@@ -2796,6 +2799,62 @@ $("permno").onclick=function(){$("permisos").style.display="none";permInicio=fal
   if(permisosAndroidYa()){try{localStorage.setItem("permisosVistos","1")}catch(e){};return}
   permInicio=true;$("permisos").style.display="flex";$("permok").focus();
 })();
+// ---- Añadir a la pantalla de inicio ----
+// Ningún navegador crea el icono solo: en Android se ofrece el diálogo nativo
+// con un toque y en iPhone se explican los tres pasos de Safari.
+var a2hsEv=null,a2hsT=0,a2hsVisto=false;
+try{a2hsVisto=localStorage.getItem("a2hs")==="1"}catch(e){}
+function a2hsEsIOS(){
+  return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+}
+function a2hsInstalada(){
+  try{
+    if(window.AndroidApp||navigator.standalone===true)return true;
+    if(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)return true;
+  }catch(e){}
+  return false;
+}
+function a2hsOcultar(){
+  var c=$("a2hs");if(!c)return;
+  c.className="";c.setAttribute("aria-hidden","true");
+}
+function a2hsMarcar(){
+  a2hsVisto=true;try{localStorage.setItem("a2hs","1")}catch(e){}
+}
+function a2hsAbrir(){
+  a2hsT=0;
+  if(a2hsVisto||a2hsInstalada())return;
+  var ios=a2hsEsIOS();
+  if(!ios&&!a2hsEv)return;
+  if(!document.body.classList.contains("on"))return;
+  var c=$("a2hs");if(!c)return;
+  a2hsMarcar(); // una sola vez: aunque no se toque nada, no vuelve a salir
+  $("a2hsPasos").hidden=!ios;
+  $("a2hsP").hidden=ios;
+  $("a2hsOk").hidden=ios;
+  $("a2hsNo").textContent=ios?"Entendido":"Ahora no";
+  c.className="v";c.setAttribute("aria-hidden","false");
+}
+function a2hsTrasIdentificar(){
+  if(a2hsVisto||a2hsT||a2hsInstalada())return;
+  if(!a2hsEsIOS()&&!a2hsEv)return;
+  // Unos segundos de margen para no tapar la primera identificación
+  a2hsT=setTimeout(a2hsAbrir,6000);
+}
+window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();a2hsEv=e});
+window.addEventListener("appinstalled",function(){a2hsMarcar();a2hsOcultar()});
+$("a2hsX").onclick=function(){a2hsOcultar()};
+$("a2hsNo").onclick=function(){a2hsOcultar()};
+$("a2hsOk").onclick=function(){
+  var e=a2hsEv;
+  a2hsEv=null;
+  if(!e){a2hsOcultar();return} // sin diálogo nativo queda el menú del navegador
+  try{
+    e.prompt();
+    if(e.userChoice)e.userChoice.then(function(){a2hsOcultar()},function(){a2hsOcultar()});
+    else a2hsOcultar();
+  }catch(x){a2hsOcultar()}
+};
 // ---- Arranque de la interfaz ----
 (function arrancarUI(){
   // El motor ha arrancado: se quita el vigilante de "no se pudo cargar"
