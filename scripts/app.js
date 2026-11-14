@@ -843,10 +843,10 @@ $("conAldeas").onclick=function(){
 };
 $("calbtn").onclick=function(){
   if(!pos)return;
-  // Hasta 12 km: en zonas con muchos pueblos, los 15 más cercanos se quedaban en 8 km.
-  // Se incluyen todos los que haya a menos de 12 km (hasta 60; en Valencia, la ciudad
-  // con más pueblos cerca, son 46). Así la lista no se corta antes de los 12 km.
-  calList=P.filter(function(p){return p[3]!=="hamlet"&&p[3]!=="isolated_dwelling"}).map(function(p){return{n:p[0],la:p[1],lo:p[2],k:dst(pos.latitude,pos.longitude,p[1],p[2])}}).filter(function(p){return p.k>0.5&&p.k<12}).sort(function(a,b){return a.k-b.k}).slice(0,60);
+  // Hasta 25 km: sirve para calibrar con un pueblo o montaña que se vea a lo lejos
+  // (Atarfe, por ejemplo). En zonas muy densas se listan los 120 más cercanos.
+  // La lista va ordenada por distancia y el lugar elegido se busca por nombre.
+  calList=P.filter(function(p){return p[3]!=="hamlet"&&p[3]!=="isolated_dwelling"}).map(function(p){return{n:p[0],la:p[1],lo:p[2],k:dst(pos.latitude,pos.longitude,p[1],p[2])}}).filter(function(p){return p.k>0.5&&p.k<25}).sort(function(a,b){return a.k-b.k}).slice(0,120);
   $("calsel").innerHTML=calList.map(function(p,i){return '<option value="'+i+'">'+esc(p.n)+' · '+p.k.toFixed(0)+' km</option>'}).join("");
   calAnd=null;cal2={b:null,o:null};$("calst").textContent="";
   calVista(0);

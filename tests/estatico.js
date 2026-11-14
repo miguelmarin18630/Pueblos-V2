@@ -272,9 +272,9 @@ else mal('no escucha appinstalled');
 
 // ---------- calibración con un lugar que veo ----------
 console.log('\ncalibración con un lugar que veo');
-if (/calList=P\.filter[\s\S]{0,900}p\.k<12/.test(app)) ok('la lista de lugares llega hasta 12 km');
-else mal('la lista de calibración no llega a 12 km');
-if (/calList=P\.filter[\s\S]{0,1200}\.slice\(0,60\)/.test(app)) ok('el tope de 60 no corta la lista antes de 12 km');
+if (/calList=P\.filter[\s\S]{0,900}p\.k<25/.test(app)) ok('la lista de lugares llega hasta 25 km');
+else mal('la lista de calibración no llega a 25 km');
+if (/calList=P\.filter[\s\S]{0,1200}\.slice\(0,120\)/.test(app)) ok('el tope de 120 no corta la lista antes de 25 km');
 else mal('el tope de la lista es demasiado bajo');
 if (/\$\("calsel"\)\.innerHTML=calList\.map/.test(app)) ok('la lista se rellena en #calsel');
 else mal('la lista de calibración no se rellena');
