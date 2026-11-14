@@ -40,10 +40,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="¿Qué pueblo?">
 
-<link rel="stylesheet" href="styles/base.css?v=35">
-<link rel="stylesheet" href="styles/portada.css?v=35">
-<link rel="stylesheet" href="styles/layout.css?v=35">
-<link rel="stylesheet" href="styles/camera.css?v=35">
+<link rel="stylesheet" href="styles/base.css?v=36">
+<link rel="stylesheet" href="styles/portada.css?v=36">
+<link rel="stylesheet" href="styles/layout.css?v=36">
+<link rel="stylesheet" href="styles/camera.css?v=36">
 
 <!-- La base de pueblos se necesita siempre: que empiece a descargarse ya -->
 <link rel="preload" href="data/pueblos.js" as="script">
@@ -80,6 +80,10 @@
             <button id="go" type="button" class="btn-primary">
                 <span class="go1">Iniciar identificación</span>
                 <span class="go2">Activa GPS y brújula mientras la usas</span>
+            </button>
+            <button id="a2hsBtn" type="button" class="btn-secondary" hidden>
+                <span class="ic" aria-hidden="true">📲</span>
+                <span class="bs">Añadir a la pantalla de inicio</span>
             </button>
         </div>
 
@@ -452,7 +456,7 @@ setTimeout(__comprobarMotor, 9000);
 
 <!-- Datos: la base de pueblos (3,8 MB) se descarga una vez y queda guardada en el móvil.
      El motor (app.js) la pide por su cuenta y no bloquea la pantalla. -->
-<script defer src="scripts/app.js?v=35"></script>
+<script defer src="scripts/app.js?v=36"></script>
 
 <!-- ================= Diálogo de búsqueda: buscar pueblo o pico por nombre ================= -->
 <div id="buscar" role="dialog" aria-modal="true" aria-labelledby="buscarT" style="display:none;">
@@ -514,6 +518,10 @@ setTimeout(__comprobarMotor, 9000);
         <div><span class="n">1</span><span>Toca <b>Compartir</b> <svg class="a2hs-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> en Safari.</span></div>
         <div><span class="n">2</span><span>Elige <b>Añadir a la pantalla de inicio</b>.</span></div>
         <div><span class="n">3</span><span>Pulsa <b>Añadir</b> arriba a la derecha.</span></div>
+    </div>
+    <div id="a2hsMenu" hidden>
+        Abre el menú del navegador <b>⋮</b> y elige <b>«Instalar aplicación»</b> o
+        <b>«Añadir a la pantalla de inicio»</b>.
     </div>
     <div id="a2hsBtns">
         <button id="a2hsOk" type="button">Añadir a inicio</button>

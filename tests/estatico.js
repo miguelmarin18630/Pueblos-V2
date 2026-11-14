@@ -251,10 +251,14 @@ else mal('falta data/LICENCIA-DATOS.md');
 
 // ---------- añadir a la pantalla de inicio ----------
 console.log('\nañadir a la pantalla de inicio');
-for (const id of ['a2hs', 'a2hsX', 'a2hsPasos', 'a2hsOk', 'a2hsNo']) {
+for (const id of ['a2hs', 'a2hsX', 'a2hsPasos', 'a2hsMenu', 'a2hsOk', 'a2hsNo', 'a2hsBtn']) {
   if (new RegExp('id="' + id + '"').test(html)) ok('#' + id + ' en index.html');
   else mal('falta #' + id + ' en index.html');
 }
+if (/\$\("a2hsBtn"\)\.onclick/.test(app)) ok('el botón de la portada abre el aviso');
+else mal('el botón de la portada no tiene manejador');
+if (/hidden=a2hsInstalada\(\)/.test(app)) ok('el botón se oculta si ya está instalada o es la app de Play');
+else mal('el botón de la portada no comprueba si ya está instalada');
 if (/beforeinstallprompt/.test(app) && /\.prompt\(\)/.test(app)) ok('usa el diálogo nativo de instalación (beforeinstallprompt)');
 else mal('no captura beforeinstallprompt');
 if (/function a2hsEsIOS/.test(app) && /Añadir a la pantalla de inicio/.test(html)) ok('guía de «Añadir a la pantalla de inicio» en iPhone');
@@ -265,6 +269,32 @@ if (/display-mode: standalone/.test(app) && /window\.AndroidApp/.test(app)) ok('
 else mal('no se comprueba si ya está instalada');
 if (/addEventListener\("appinstalled"/.test(app)) ok('se oculta al instalarse (appinstalled)');
 else mal('no escucha appinstalled');
+
+// ---------- calibración con un lugar que veo ----------
+console.log('\ncalibración con un lugar que veo');
+if (/calList=P\.filter[\s\S]{0,900}p\.k<12/.test(app)) ok('la lista de lugares llega hasta 12 km');
+else mal('la lista de calibración no llega a 12 km');
+if (/calList=P\.filter[\s\S]{0,1200}\.slice\(0,60\)/.test(app)) ok('el tope de 60 no corta la lista antes de 12 km');
+else mal('el tope de la lista es demasiado bajo');
+if (/\$\("calsel"\)\.innerHTML=calList\.map/.test(app)) ok('la lista se rellena en #calsel');
+else mal('la lista de calibración no se rellena');
+
+// ---------- estabilizador de cámara ----------
+console.log('\nestabilizador de cámara');
+if (/function stabEscala\(\)/.test(app) && /function aplicarTransformCam\(\)/.test(app)) ok('estabilizador con sobreencuadre');
+else mal('falta el estabilizador');
+if (/function setPit\(/.test(app) && /pitF\+=a\*\(v-pitF\)/.test(app)) ok('cabeceo filtrado (pitF)');
+else mal('no se filtra el cabeceo');
+if (/return fv\*zoom\*\(stab\?stabEsc:1\)/.test(app)) ok('el zoom y el sobreencuadre cuentan para las etiquetas');
+else mal('fEff no tiene en cuenta el estabilizador');
+if (/var y=H\/2-f\*Math\.tan\(el-pitF\*R\)/.test(app)) ok('las etiquetas usan el cabeceo filtrado');
+else mal('las etiquetas no usan pitF');
+if (/translate\("\+tx\.toFixed\(1\)\+"px,"\+ty\.toFixed\(1\)\+"px\) scale/.test(app)) ok('la imagen se desplaza y se escala');
+else mal('la imagen no se desplaza con el estabilizador');
+if (/Math\.abs\(dH\)>8/.test(app) && /Math\.abs\(dP\)>8/.test(app)) ok('se ignoran los saltos de la brújula y del cabeceo');
+else mal('no se protegen los saltos del sensor');
+if (/stabX=Math\.max\(-mx,Math\.min\(mx/.test(app) && /stabY=Math\.max\(-my,Math\.min\(my/.test(app)) ok('el desplazamiento se limita al sobreencuadre (sin bordes negros)');
+else mal('el desplazamiento no se limita');
 
 // Cache-bust coherente: todos los ?v=N deben ser el mismo número
 const vers = [...new Set([

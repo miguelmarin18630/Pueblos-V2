@@ -302,7 +302,7 @@ function pintarYa(){
   var hdc=rumboC();
   if(!panEnCurso&&Date.now()>=panBloq&&(!pan||pan.alc!==alcance||Math.abs(envolver(hdc-pan.c))>25||dst(pan.la,pan.lo,pos.latitude,pos.longitude)>1.5||(pan.paso>1&&Date.now()-pan.t>8000&&omLibres()>120)))construirPano();
   // Los grados van primero: en pantallas estrechas el chip se recorta y así nunca se pierde el rumbo
-  $("rumbo").textContent=Math.round(hdc)+"° · Incl. "+Math.round(pit)+"°";
+  $("rumbo").textContent=Math.round(hdc)+"° · Incl. "+Math.round(pitF)+"°";
   actualizarEstado();
   var av=[];
   if(prec!==null){if(prec<0)av.push("Brújula sin calibrar: dibuja un 8 con el móvil.");else if(prec>20)av.push("Brújula poco precisa (±"+Math.round(prec)+"°): dibuja un 8 con el móvil.")}
@@ -372,9 +372,10 @@ function pintarYa(){
 // El salto aislado de mas de OEF_SALTO grados se descarta salvo que la muestra
 // siguiente lo confirme: asi una interferencia magnetica no arrastra el rumbo.
 var OEF_MIN=1.5,OEF_BETA=0.10,OEF_DCUT=1.0,OEF_SALTO=15,OEF_CONF=8,OEF_HUECO=0.3;
-var smRaw=null,smDx=0,smT=0,smPend=null;
+var smRaw=null,smDx=0,smT=0,smPend=null,hdRaw=null;
 function setH(n){
   n=((n%360)+360)%360;
+  hdRaw=n; // rumbo sin filtrar: el estabilizador mueve la imagen con la diferencia
   var t=Date.now();
   if(sm===null||smRaw===null){
     sm=n;smRaw=n;smDx=0;smT=t;smPend=null;hd=n;
@@ -400,7 +401,27 @@ function setH(n){
       }
     }
   }
+  estabilizar();
   if(t-tp>100){tp=t;pintar()}
+}
+// Cabeceo filtrado con las mismas ideas que el rumbo (One-Euro): frena el temblor
+// cuando el móvil está quieto y sigue casi sin retraso cuando se inclina a propósito.
+// `pit` sigue siendo el valor instantáneo (para la captura del horizonte y los avisos)
+// y `pitF` es el que usan las etiquetas y el estabilizador.
+var pitF=0,pitV=0,pitT=0;
+function setPit(v){
+  v=Math.max(-90,Math.min(90,v));
+  var t=Date.now();
+  if(!pitT){pit=v;pitF=v;pitV=0;pitT=t;return}
+  var dt=(t-pitT)/1000;pitT=t;
+  if(dt>OEF_HUECO){pit=v;pitF=v;pitV=0;return}
+  dt=Math.max(1/240,dt);
+  var dRaw=v-pit;
+  pitV=0.8*pitV+0.2*(dRaw/dt);
+  var cut=OEF_MIN+OEF_BETA*Math.abs(pitV);
+  var a=1/(1+1/(2*Math.PI*cut*dt));
+  pitF+=a*(v-pitF);
+  pit=v;
 }
 var oriAbs=false,oriN=0,oriNorte=false,oriT0=0;
 function onOri(e){
@@ -410,7 +431,7 @@ function onOri(e){
   oriN++;
   var abs=e.type==="deviceorientationabsolute"||e.absolute===true;
   if(typeof e.webkitCompassHeading==="number"||abs)oriNorte=true;
-  if(typeof e.beta==="number")pit=e.beta-90;
+  if(typeof e.beta==="number")setPit(e.beta-90);
   if(typeof e.webkitCompassAccuracy==="number")prec=e.webkitCompassAccuracy;
   if(typeof e.webkitCompassHeading==="number"){setH(e.webkitCompassHeading);return}
   // Android: si hay evento absoluto con datos, ignoro el relativo (su alpha no apunta al norte y mezclarlos hace saltar el rumbo)
@@ -754,8 +775,8 @@ function salir(){try{clearTimeout(tTap);tapSel=null;$("toque").style.display="no
   $("go").style.display="";
   limpiarEtq();pan=null;hzOff=0;hzPrev=null;hzDet=null;dibujarSilueta(0);
   verPicos=false;actAldeasBtn();document.body.classList.remove("picos");$("picosb").classList.remove("act");$("picosb").setAttribute("aria-pressed","false");
-  zoom=1;pista=null;capZoom=null;modosFoco=[];capDist=null;clearTimeout(tFoco);$("fdw").className="";$("cam").style.transform="";$("zval").textContent=fmtZoom(1);clearTimeout(tToast);clearTimeout(tCons);$("toast").className="";$("calbtn").classList.remove("pista");$("conf").style.display="none";
-  pos=null;sm=null;smRaw=null;smDx=0;smPend=null;oriN=0;oriNorte=false;oriAbs=false;oriT0=0;modoCoche=false;velAlta=0;velBaja=0;rumboGPS=null;pantallaEncendida(false);
+  zoom=1;pista=null;capZoom=null;modosFoco=[];capDist=null;clearTimeout(tFoco);$("fdw").className="";stabX=0;stabY=0;stabEsc=1;aplicarTransformCam();$("zval").textContent=fmtZoom(1);clearTimeout(tToast);clearTimeout(tCons);$("toast").className="";$("calbtn").classList.remove("pista");$("conf").style.display="none";
+  pos=null;sm=null;smRaw=null;smDx=0;smPend=null;hdRaw=null;pitF=0;pitV=0;pitT=0;oriN=0;oriNorte=false;oriAbs=false;oriT0=0;modoCoche=false;velAlta=0;velBaja=0;rumboGPS=null;pantallaEncendida(false);
   $("rumbo").textContent="";$("mejor").textContent="";$("lista").innerHTML="";
   $("msg").textContent="Has terminado: cámara, GPS y brújula apagados. Pulsa «Iniciar identificación» para empezar de nuevo.";
   // En la app Android se deja de usar (y se olvida) la ubicación y la cámara
@@ -822,7 +843,10 @@ $("conAldeas").onclick=function(){
 };
 $("calbtn").onclick=function(){
   if(!pos)return;
-  calList=P.filter(function(p){return p[3]!=="hamlet"&&p[3]!=="isolated_dwelling"}).map(function(p){return{n:p[0],la:p[1],lo:p[2],k:dst(pos.latitude,pos.longitude,p[1],p[2])}}).filter(function(p){return p.k>0.5&&p.k<60}).sort(function(a,b){return a.k-b.k}).slice(0,15);
+  // Hasta 12 km: en zonas con muchos pueblos, los 15 más cercanos se quedaban en 8 km.
+  // Se incluyen todos los que haya a menos de 12 km (hasta 60; en Valencia, la ciudad
+  // con más pueblos cerca, son 46). Así la lista no se corta antes de los 12 km.
+  calList=P.filter(function(p){return p[3]!=="hamlet"&&p[3]!=="isolated_dwelling"}).map(function(p){return{n:p[0],la:p[1],lo:p[2],k:dst(pos.latitude,pos.longitude,p[1],p[2])}}).filter(function(p){return p.k>0.5&&p.k<12}).sort(function(a,b){return a.k-b.k}).slice(0,60);
   $("calsel").innerHTML=calList.map(function(p,i){return '<option value="'+i+'">'+esc(p.n)+' · '+p.k.toFixed(0)+' km</option>'}).join("");
   calAnd=null;cal2={b:null,o:null};$("calst").textContent="";
   calVista(0);
@@ -950,12 +974,12 @@ var zoom=1,zMax=6,pista=null,capZoom=null,pz=null,pzFin=0,modosFoco=[],capDist=n
 function fmtZoom(z){return "Zoom ×"+String(parseFloat(z.toFixed(1))).replace(".",",")}
 function aplicarZoom(z){
   zoom=Math.max(1,Math.min(zMax,z));
+  stabEsc=stabEscala();
   if(capZoom&&pista){
-    $("cam").style.transform="";
+    // El zoom lo hace la cámara; el CSS solo pone el sobreencuadre del estabilizador
     try{pista.applyConstraints({advanced:[{zoom:zoom}]}).catch(function(){capZoom=null;aplicarZoom(zoom)})}catch(e){capZoom=null;aplicarZoom(zoom)}
-  }else{
-    $("cam").style.transform="scale("+zoom+")";
   }
+  aplicarTransformCam();
   $("zval").textContent=fmtZoom(zoom);
   // Tras cambiar el zoom, vuelve a enfocar (si la cámara lo permite)
   clearTimeout(tZ);tZ=setTimeout(function(){if(pista&&modosFoco.length)enfocar()},600);
@@ -966,6 +990,37 @@ function dist2(t){var dx=t[0].clientX-t[1].clientX,dy=t[0].clientY-t[1].clientY;
 document.addEventListener("touchstart",function(e){if(document.body.classList.contains("on")&&e.touches.length===2)pz={d:dist2(e.touches),z:zoom}},{passive:true});
 document.addEventListener("touchmove",function(e){if(pz&&e.touches.length===2){e.preventDefault();aplicarZoom(pz.z*dist2(e.touches)/pz.d)}},{passive:false});
 document.addEventListener("touchend",function(e){if(e.touches.length<2){if(pz)pzFin=Date.now();pz=null}});
+// ---- Estabilizador de cámara ----
+// Las etiquetas se dibujan con el rumbo y el cabeceo filtrados, pero la imagen del
+// sensor va al ritmo del móvil: a zoom alto tiembla debajo de ellas. Aquí se mueve
+// #cam justo lo que se separa del filtro, en horizontal y en vertical, para que el
+// paisaje caiga donde marcan las etiquetas. El sobreencuadre (scale) crece con el
+// zoom: es lo que da margen para moverse sin que aparezcan bordes negros.
+var stab=true,stabX=0,stabY=0,stabEsc=1,rafS=0;
+function stabEscala(){return 1+Math.min(0.05+0.025*(zoom-1),0.18)}
+function aplicarTransformCam(){
+  var v=$("cam");if(!v)return;
+  var s=(capZoom?1:zoom)*(stab?stabEsc:1);
+  var tx=stab?stabX:0,ty=stab?stabY:0;
+  var t=(Math.abs(tx)<0.1&&Math.abs(ty)<0.1&&Math.abs(s-1)<1e-4)?"":"translate("+tx.toFixed(1)+"px,"+ty.toFixed(1)+"px) scale("+s.toFixed(4)+")";
+  if(v._tr!==t){v.style.transform=t;v._tr=t}
+}
+function estabilizar(){
+  if(rafS)return;
+  rafS=requestAnimationFrame(function(){rafS=0;estabilizarYa()});
+}
+function estabilizarYa(){
+  if(!stab||!document.body.classList.contains("on")){stabX=0;stabY=0;aplicarTransformCam();return}
+  var f=fEff();
+  var dH=hdRaw===null?0:envolver(hdRaw-hd);
+  if(Math.abs(dH)>8)dH=0; // salto de la brújula, no del móvil
+  var dP=pitF-pit;
+  if(Math.abs(dP)>8)dP=0;
+  var mx=innerWidth*(stabEsc-1)*0.42,my=innerHeight*(stabEsc-1)*0.42;
+  stabX=Math.max(-mx,Math.min(mx,f*R*dH));
+  stabY=Math.max(-my,Math.min(my,f*R*dP));
+  aplicarTransformCam();
+}
 // ---- Enfoque de la cámara ----
 function aplicarFoco(c){return pista?pista.applyConstraints({advanced:[c]}):Promise.reject(new Error("sin cámara"))}
 function nada(){}
@@ -1282,7 +1337,8 @@ function lanzarVis(p){if(usarRelieve&&!pan&&!errRel&&Date.now()>=panBloq)return;
 function fEff(){
   var v=$("cam"),W=innerWidth,H=innerHeight,vw=v.videoWidth||0,vh=v.videoHeight||0;
   var s=vw?Math.max(W/vw,H/vh):1,fv=vw?s*Math.max(vw,vh)/2/Math.tan(FOVL/2*R):H/2/Math.tan(FOVL/2*R);
-  return fv*zoom;
+  // El sobreencuadre del estabilizador también acerca la imagen: cuenta para las etiquetas
+  return fv*zoom*(stab?stabEsc:1);
 }
 var COL={city:"#ff4d6d",town:"#ffd60a",village:"#ffd60a",hamlet:"#00e5ff",isolated_dwelling:"#00e5ff"},COLPK="#80ed99";
 // El color indica el tamaño de la localidad (ciudad / pueblo / aldea); el verde queda para los picos
@@ -1501,7 +1557,7 @@ function picoMira(pe,hdc){
     dv=0;
     if(h0!==null){
       el=Math.atan2(k.e-h0-Math.pow(dk*1000,2)/14.6e6,dk*1000)/R;
-      dv=Math.abs(el-pit);
+      dv=Math.abs(el-pitF);
       if(dv>vMax)continue; // ni siquiera cabe en el encuadre vertical
     }
     sc=Math.sqrt(dd*dd+0.6*dv*dv)-k.e/10000; // centrado en pantalla; a igualdad, el mas alto
@@ -1551,7 +1607,7 @@ function etiquetas(pe,hdc){
     if(q.sel||q.tap)w=Math.round(w*1.2); // la etiqueta seleccionada usa 18 px
     var lx=Math.max(w/2+6,Math.min(W-w/2-6,x));
     var e=elevC[ek(q)],el=(pan&&typeof e==="number")?Math.atan2(e+10-pan.H0-Math.pow(q.dk*1000,2)/14.6e6,q.dk*1000):0;
-    var y=H/2-f*Math.tan(el-pit*R),col=colorDe(q);
+    var y=H/2-f*Math.tan(el-pitF*R),col=colorDe(q);
     var L=hueco(lx,w,y-8);
     if(L<0){if(!q.sel&&!q.tap)continue;L=0}
     var ty=y-8-L*34;n++;
@@ -1579,7 +1635,7 @@ function etiquetas(pe,hdc){
       var m=cp[i],vv=panVis(m);
       if(vv===null)vv=m.dk<=10;
       if(vv!==true)continue;
-      var px=W/2+f*Math.tan(m.d*R),py=H/2-f*Math.tan(elev(m,m.e,m.dk)-pit*R);
+      var px=W/2+f*Math.tan(m.d*R),py=H/2-f*Math.tan(elev(m,m.e,m.dk)-pitF*R);
       if(py<topMin+14||py>H-100)continue;
       var txt='▲ '+m.n,sub=' '+Math.round(m.e).toLocaleString("es-ES")+' m · '+(m.dk<10?m.dk.toFixed(1):Math.round(m.dk))+' km',pw=Math.round(8*(txt.length+sub.length)*0.95+24);
       var lpx=Math.max(pw/2+6,Math.min(W-pw/2-6,px));
@@ -1735,7 +1791,7 @@ function dibujarSilueta(hdc){
   var vis=hzSil&&pan&&document.body.classList.contains("on");
   c.style.display=vis?"block":"none";if(!vis)return;
   if(c.width!==Math.round(W*dpr)||c.height!==Math.round(H*dpr)){c.width=Math.round(W*dpr);c.height=Math.round(H*dpr)}
-  var x,ctx=c.getContext("2d"),f=fEff(),pr=pit*R,dib=false;
+  var x,ctx=c.getContext("2d"),f=fEff(),pr=pitF*R,dib=false;
   ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);ctx.lineWidth=2.5;ctx.lineJoin="round";
   ctx.strokeStyle="rgba(0,245,212,.95)";ctx.setLineDash([8,6]);ctx.beginPath();
   for(x=0;x<=W;x+=4){
@@ -2821,40 +2877,53 @@ function a2hsOcultar(){
 function a2hsMarcar(){
   a2hsVisto=true;try{localStorage.setItem("a2hs","1")}catch(e){}
 }
-function a2hsAbrir(){
+function a2hsAbrir(forzar){
   a2hsT=0;
-  if(a2hsVisto||a2hsInstalada())return;
-  var ios=a2hsEsIOS();
-  if(!ios&&!a2hsEv)return;
-  if(!document.body.classList.contains("on"))return;
+  if(a2hsInstalada())return;
+  var ios=a2hsEsIOS(),nat=!!a2hsEv;
+  // El aviso automático solo sale si hay algo que ofrecer; el botón de la
+  // portada puede mostrar las instrucciones del menú en cualquier navegador.
+  if(!ios&&!nat&&!forzar)return;
+  if(!forzar&&!document.body.classList.contains("on"))return;
   var c=$("a2hs");if(!c)return;
-  a2hsMarcar(); // una sola vez: aunque no se toque nada, no vuelve a salir
+  if(!forzar)a2hsMarcar(); // una sola vez: aunque no se toque nada, no vuelve a salir
   $("a2hsPasos").hidden=!ios;
+  $("a2hsMenu").hidden=ios||nat;
   $("a2hsP").hidden=ios;
-  $("a2hsOk").hidden=ios;
-  $("a2hsNo").textContent=ios?"Entendido":"Ahora no";
+  $("a2hsOk").hidden=!(nat&&!ios);
+  $("a2hsNo").textContent=(nat&&!ios)?"Ahora no":"Entendido";
   c.className="v";c.setAttribute("aria-hidden","false");
 }
 function a2hsTrasIdentificar(){
   if(a2hsVisto||a2hsT||a2hsInstalada())return;
   if(!a2hsEsIOS()&&!a2hsEv)return;
   // Unos segundos de margen para no tapar la primera identificación
-  a2hsT=setTimeout(a2hsAbrir,6000);
+  a2hsT=setTimeout(function(){a2hsAbrir(false)},6000);
 }
-window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();a2hsEv=e});
-window.addEventListener("appinstalled",function(){a2hsMarcar();a2hsOcultar()});
-$("a2hsX").onclick=function(){a2hsOcultar()};
-$("a2hsNo").onclick=function(){a2hsOcultar()};
-$("a2hsOk").onclick=function(){
+function a2hsPedir(){
   var e=a2hsEv;
   a2hsEv=null;
-  if(!e){a2hsOcultar();return} // sin diálogo nativo queda el menú del navegador
+  if(!e){a2hsAbrir(true);return} // ya no hay diálogo nativo: se explican los pasos
   try{
     e.prompt();
     if(e.userChoice)e.userChoice.then(function(){a2hsOcultar()},function(){a2hsOcultar()});
     else a2hsOcultar();
   }catch(x){a2hsOcultar()}
+}
+function a2hsBoton(){
+  var b=$("a2hsBtn");if(!b)return;
+  b.hidden=a2hsInstalada();
+}
+window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();a2hsEv=e;a2hsBoton()});
+window.addEventListener("appinstalled",function(){a2hsMarcar();a2hsOcultar();a2hsBoton()});
+$("a2hsX").onclick=function(){a2hsOcultar()};
+$("a2hsNo").onclick=function(){a2hsOcultar()};
+$("a2hsOk").onclick=a2hsPedir;
+$("a2hsBtn").onclick=function(){
+  if(!a2hsEv){a2hsAbrir(true);return}
+  a2hsPedir();
 };
+a2hsBoton();
 // ---- Arranque de la interfaz ----
 (function arrancarUI(){
   // El motor ha arrancado: se quita el vigilante de "no se pudo cargar"
