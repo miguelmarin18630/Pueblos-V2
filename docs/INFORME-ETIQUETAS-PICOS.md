@@ -145,6 +145,6 @@ Antes, la etiqueta seleccionada y la siguiente se tocaban:
 
 ## 7. Pendiente
 
-- **Publicar** la v39 (commit + push a GitHub) para que llegue al móvil.
+- **Publicar** la v39: el cambio ya está en un commit local (`f600382`), falta `git push` a GitHub Pages para que llegue al móvil.
 - Revisar por separado por qué la calibración se queda en «Calibración…» en interiores.
 - Valorar acortar nombres de pico muy largos (o partir altura/distancia en dos líneas) para que no ocupen casi todo el ancho.
