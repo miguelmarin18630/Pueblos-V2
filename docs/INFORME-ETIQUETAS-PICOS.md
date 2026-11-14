@@ -143,8 +143,14 @@ Antes, la etiqueta seleccionada y la siguiente se tocaban:
 5. Tocar una etiqueta de pico: debe resaltarse, sin abrir un bocadillo que la duplique.
 6. Comprobar que ninguna etiqueta queda debajo del botón ▲ ni de la leyenda.
 
-## 7. Pendiente
+## 7. Estado de publicación
 
-- **Publicar** la v39: el cambio ya está en un commit local (`f600382`), falta `git push` a GitHub Pages para que llegue al móvil.
+- Publicado en `origin/main` (commit `b34d7b1`).
+- Verificado en la web: `index.html` y todos los recursos cargan con `?v=39`; el pie muestra **web 39**; sin errores de consola.
+- Verificado en el móvil: tras recargar, la app muestra **web 39**.
+- La app queda en la pantalla de inicio; al pulsar «Iniciar identificación» ya usa el motor corregido.
+
+## 8. Pendiente
+
 - Revisar por separado por qué la calibración se queda en «Calibración…» en interiores.
 - Valorar acortar nombres de pico muy largos (o partir altura/distancia en dos líneas) para que no ocupen casi todo el ancho.
