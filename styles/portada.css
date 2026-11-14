@@ -132,7 +132,7 @@
 }
 
 /* Botones secundarios de la portada */
-#probar, #cerrar, #vconsejos {
+#probar, #cerrar, #vconsejos, #descargarGuia {
     border-radius: 999px;
     background: transparent;
     box-shadow: none;
@@ -152,6 +152,15 @@
     font-size: 16px;
     min-height: 48px;
     padding: 12px;
+}
+
+#descargarGuia {
+    margin-top: 8px;
+    border: 2px solid rgba(128, 237, 153, .55);
+    font-size: 15px;
+    min-height: 46px;
+    padding: 10px;
+    color: #bff7cf;
 }
 
 #cerrar {

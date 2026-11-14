@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guía completa · ¿Qué pueblo es?</title>
+<meta name="description" content="Instrucciones, significado de los símbolos y funcionamiento de la app ¿Qué pueblo es?">
+<style>
+  :root{
+    --bg:#070a19; --bg2:#0d1330; --panel:rgba(255,255,255,.06); --panel2:rgba(255,255,255,.10);
+    --line:rgba(255,255,255,.16); --txt:#e9edff; --muted:#aab4d8; --accent:#8aa4ff;
+    --yellow:#ffd60a; --green:#80ed99; --cyan:#00e5ff; --pink:#ff4d6d; --orange:#ffb703;
+    --purple1:#6a11cb; --purple2:#2575fc; --red:#e11d48; --blue:#2563eb;
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(37,117,252,.25), transparent 60%),
+      radial-gradient(900px 500px at -10% 20%, rgba(106,17,203,.28), transparent 60%),
+      var(--bg);
+    color:var(--txt);
+    font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  a{color:#a9c1ff}
+  .barra{
+    position:sticky; top:0; z-index:50; display:flex; gap:10px; align-items:center;
+    padding:10px 14px; padding-top:calc(env(safe-area-inset-top,0px) + 10px);
+    background:rgba(7,10,25,.9); backdrop-filter:blur(12px); border-bottom:1px solid var(--line);
+  }
+  .barra .marca{font-weight:800; letter-spacing:.2px; margin-right:auto; font-size:15px}
+  .barra .marca small{display:block; font-weight:500; color:var(--muted); font-size:11px}
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    min-height:40px; padding:0 14px; border-radius:999px; border:1px solid var(--line);
+    background:var(--panel2); color:var(--txt); font:600 14px/1 inherit; cursor:pointer;
+    text-decoration:none; white-space:nowrap;
+  }
+  .btn:hover{background:rgba(255,255,255,.16)}
+  .btn.primario{background:linear-gradient(135deg,var(--green),#22c55e); color:#04210f; border-color:transparent}
+  .btn.cerrar{width:42px; padding:0; font-size:18px}
+  main{max-width:980px; margin:0 auto; padding:22px 18px 70px}
+  .portada{
+    position:relative; overflow:hidden; border:1px solid var(--line); border-radius:26px;
+    padding:34px 26px 30px; background:linear-gradient(160deg,rgba(106,17,203,.55),rgba(37,117,252,.35) 55%,rgba(7,10,25,.85));
+    box-shadow:0 24px 60px rgba(0,0,0,.35);
+  }
+  .portada .kicker{font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:#c9d4ff; font-weight:800}
+  .portada h1{font-size:clamp(30px,7vw,48px); line-height:1.05; margin:10px 0 8px; letter-spacing:-.02em}
+  .portada p{margin:0; color:#dbe3ff; max-width:56ch}
+  .portada .meta{display:flex; flex-wrap:wrap; gap:8px; margin-top:18px}
+  .chip{display:inline-flex; gap:6px; align-items:center; padding:6px 11px; border:1px solid rgba(255,255,255,.28); border-radius:999px; font-size:12px; font-weight:700; color:#fff; background:rgba(0,0,0,.18)}
+  .portada .arte{position:absolute; right:-40px; bottom:-60px; width:300px; opacity:.45; pointer-events:none; z-index:0}
+  .portada .kicker,.portada h1,.portada p,.portada .meta{position:relative; z-index:1}
+  .portada-print{display:none}
+  .toc{
+    margin:24px 0 30px; padding:20px 22px; border:1px solid var(--line); border-radius:20px;
+    background:var(--panel); break-inside:avoid;
+  }
+  .toc h2{margin:0 0 12px; font-size:18px; color:#fff}
+  .toc ol{margin:0; padding-left:22px; columns:2; column-gap:34px}
+  .toc li{margin:0 0 7px; break-inside:avoid}
+  .toc a{color:#cfe0ff; text-decoration:none}
+  .toc a:hover{text-decoration:underline}
+  .toc-extra{margin-top:18px; border-top:1px solid var(--line); padding-top:14px}
+  .toc-extra h3{font-size:15px; margin:0 0 6px; color:#ffe27a}
+  .toc-extra p{font-size:14px; color:var(--muted); margin:0 0 10px}
+  .toc-extra ul{margin:0; padding-left:18px; font-size:14px}
+  section{margin:0 0 34px; break-inside:auto}
+  h2{font-size:clamp(22px,4.6vw,30px); line-height:1.15; margin:0 0 12px; letter-spacing:-.01em; color:#fff}
+  h2 .num{display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg,var(--purple1),var(--purple2)); font-size:16px; margin-right:10px; vertical-align:2px; color:#fff}
+  h3{font-size:18px; margin:20px 0 8px; color:#ffe27a}
+  h4{font-size:15px; margin:16px 0 6px; color:#dbe6ff}
+  p{margin:0 0 10px}
+  ul,ol{margin:0 0 12px; padding-left:22px}
+  li{margin:0 0 6px}
+  small,.muted{color:var(--muted)}
+  .tarjeta{border:1px solid var(--line); border-radius:var(--radius); background:var(--panel); padding:16px 18px; margin:14px 0; break-inside:avoid}
+  .nota,.aviso,.ok{border-radius:14px; padding:12px 14px; margin:14px 0; border:1px solid; break-inside:avoid}
+  .nota{background:rgba(138,164,255,.10); border-color:rgba(138,164,255,.4)}
+  .aviso{background:rgba(255,183,3,.10); border-color:rgba(255,183,3,.45)}
+  .ok{background:rgba(128,237,153,.10); border-color:rgba(128,237,153,.45)}
+  .nota b,.aviso b,.ok b{color:#fff}
+  table{width:100%; border-collapse:collapse; margin:12px 0 16px; font-size:14.5px; break-inside:auto}
+  th,td{text-align:left; vertical-align:top; padding:9px 10px; border-bottom:1px solid var(--line)}
+  th{background:var(--panel2); color:#fff; font-size:13px; letter-spacing:.02em}
+  tr{break-inside:avoid}
+  .simbolo{font-size:20px; line-height:1.1; width:52px; text-align:center; white-space:nowrap}
+  .swatch{display:inline-block; width:15px; height:15px; border-radius:50%; border:1px solid rgba(255,255,255,.6); vertical-align:-2px; margin-right:6px}
+  .colores{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:10px}
+  .color{border:1px solid var(--line); border-radius:14px; padding:10px 12px; background:var(--panel); font-size:14px}
+  .color .punto{display:inline-block; width:16px; height:16px; border-radius:50%; margin-right:8px; vertical-align:-3px}
+  .pantalla{display:grid; gap:14px; grid-template-columns:minmax(220px,320px) 1fr; align-items:start}
+  .pantalla svg{width:100%; height:auto; border-radius:22px; border:1px solid var(--line); background:#0a0f24}
+  .llamadas{counter-reset:n; display:grid; gap:8px}
+  .llamada{display:flex; gap:10px; align-items:flex-start; font-size:14px}
+  .llamada .n{flex:none; width:24px; height:24px; border-radius:50%; display:grid; place-items:center; background:#fff; color:#111; font-weight:800; font-size:12px}
+  details{border:1px solid var(--line); border-radius:14px; padding:0 14px; margin:10px 0; background:var(--panel); break-inside:avoid}
+  details summary{cursor:pointer; font-weight:700; padding:13px 0; list-style:none; display:flex; gap:8px; align-items:center}
+  details summary::-webkit-details-marker{display:none}
+  details summary::before{content:"▸"; color:var(--accent); transition:transform .15s}
+  details[open] summary::before{transform:rotate(90deg)}
+  details .cuerpo{padding:0 0 14px}
+  .pasos{counter-reset:p; list-style:none; padding:0}
+  .pasos li{counter-increment:p; position:relative; padding-left:38px; margin:0 0 10px}
+  .pasos li::before{content:counter(p); position:absolute; left:0; top:0; width:26px; height:26px; border-radius:50%; display:grid; place-items:center; background:var(--yellow); color:#111; font-weight:800; font-size:13px}
+  .volver{position:fixed; right:16px; bottom:18px; z-index:40; width:46px; height:46px; border-radius:50%; display:grid; place-items:center; background:rgba(255,255,255,.14); border:1px solid var(--line); color:#fff; text-decoration:none; backdrop-filter:blur(8px); font-size:20px}
+  .pie{border-top:1px solid var(--line); margin-top:34px; padding-top:16px; color:var(--muted); font-size:13px}
+  .embed .barra{display:none}
+  .embed main{padding-top:14px}
+  .embed .volver{bottom:12px}
+  .fuente{font-size:12px; color:var(--muted); margin-top:-4px}
+  @media (max-width:720px){
+    .pantalla{grid-template-columns:1fr}
+    .toc ol{columns:1}
+    .portada{padding:26px 20px}
+    .portada .arte{display:none}
+  }
+  @media print{
+    @page{size:A4; margin:16mm 14mm}
+    :root{--bg:#fff;--bg2:#fff;--txt:#111;--muted:#444;--line:#cfd6e6;--panel:#fff;--panel2:#eef2f8}
+    body{background:#fff; color:#111; font-size:10.6pt; line-height:1.45}
+    .barra,.volver,.no-print{display:none!important}
+    main{max-width:none; padding:0}
+    a{color:#111; text-decoration:none}
+    .portada{display:flex; flex-direction:column; justify-content:flex-start; background:#fff; border:0; box-shadow:none; padding:0; border-radius:0; page-break-after:always; min-height:245mm}
+    .portada h1{font-size:30pt}
+    .portada p{color:#222}
+    .portada .arte{display:block; position:absolute; left:50%; top:38%; right:auto; bottom:auto; width:230px; transform:translate(-50%,-50%); opacity:.14; filter:grayscale(1); z-index:0}
+    .portada .arte text{display:none}
+    .portada-print{display:block; margin-top:auto; border-top:2px solid #111; padding-top:5mm; position:relative; z-index:1}
+    .portada-print h2{font-size:14pt; page-break-before:avoid; margin:0 0 3mm; color:#111}
+    .portada-print ul{margin:0 0 8mm; padding-left:6mm; font-size:11pt}
+    .portada-print .pie-print{font-size:9pt; color:#555; border-top:1px solid #ccc; padding-top:3mm; margin:0}
+    .chip{border-color:#bbb; background:#fff; color:#111}
+    #indice{page-break-before:always; page-break-after:always; border:0; background:#fff; padding:0; margin:0}
+    #indice h2{page-break-before:avoid}
+    .toc h2, #indice h2{font-size:16pt; color:#111}
+    .toc ol{columns:2}
+    section{margin:0 0 7mm}
+    h2{font-size:17pt; page-break-before:auto; page-break-after:avoid; color:#111}
+    #pantalla,#cuatro-pasos,#calibracion,#problemas{page-break-before:always}
+    h2 .num{background:#111; color:#fff; width:26px; height:26px; font-size:12pt}
+    h3{color:#111; font-size:12.5pt; page-break-after:avoid}
+    h4{color:#222}
+    .tarjeta,.nota,.aviso,.ok,details,table{background:#fff!important; border-color:#bbb!important}
+    .nota b,.aviso b,.ok b{color:#111!important}
+    th{background:#eef2f8!important; color:#111!important}
+    td{color:#111}
+    .nota,.aviso,.ok{padding:8px 10px}
+    .toc a{color:#111}
+    .toc-extra{border-top:1px solid #bbb; margin-top:10mm; padding-top:4mm}
+    .toc-extra h3{color:#111; font-size:12pt; margin:0 0 2mm}
+    .toc-extra p,.toc-extra li{font-size:10.5pt}
+    .pantalla{page-break-inside:avoid}
+    .simbolo{font-size:15pt}
+    .swatch,.punto{-webkit-print-color-adjust:exact; print-color-adjust:exact}
+    .pantalla{grid-template-columns:230px 1fr; gap:6mm}
+    .pantalla svg{border:1px solid #bbb; background:#fff}
+    details{page-break-inside:avoid}
+    details summary::before{content:"▾"}
+    .volver{display:none}
+    .fuente{color:#555}
+    .pie{color:#444}
+  }
+</style>
+</head>
+<body>
+<script>
+  if (location.search.indexOf('embed=1') !== -1) document.documentElement.classList.add('embed');
+</script>
+
+<header class="barra no-print">
+  <div class="marca">📘 Guía completa<small>¿Qué pueblo es? · versión 41</small></div>
+  <a class="btn primario" href="guia-pueblos.pdf" download="Guia-Que-Pueblo-Es.pdf">⬇ PDF</a>
+  <button class="btn cerrar" type="button" id="cerrarGuia" aria-label="Cerrar la guía">✕</button>
+</header>
+
+<main>
+  <section class="portada">
+    <div class="kicker">Manual de uso</div>
+    <h1>¿Qué pueblo es?</h1>
+    <p><b>Apunta al horizonte y descubre qué pueblo o pico tienes delante.</b> Esta guía explica, en orden, cómo empezar, qué significa cada símbolo y color de la pantalla, cómo se calibra la brújula y qué hace la app por dentro.</p>
+    <div class="meta">
+      <span class="chip">📱 Android · iPhone · Web</span>
+      <span class="chip">🧭 GPS + brújula + cámara</span>
+      <span class="chip">🏔 Relieve y picos</span>
+      <span class="chip">🔒 Sin cuentas ni anuncios</span>
+    </div>
+    <div class="portada-print">
+      <h2>Qué encontrarás</h2>
+      <ul>
+        <li>Cómo empezar y qué permisos hacen falta.</li>
+        <li>Qué significa cada símbolo, color y botón de la pantalla.</li>
+        <li>Cómo se calcula el rumbo y cómo calibrar la brújula con cuatro métodos.</li>
+        <li>Qué hacer cuando no aparece un pueblo, el nombre no coincide o falla el GPS.</li>
+      </ul>
+      <p class="pie-print">Guía completa · versión 41 · noviembre 2026 · pueblos.marinweb.org</p>
+    </div>
+    <svg class="arte" viewBox="0 0 320 220" aria-hidden="true">
+      <defs>
+        <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#1b2b66"/><stop offset="1" stop-color="#6a11cb"/>
+        </linearGradient>
+        <linearGradient id="monte" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#80ed99"/><stop offset="1" stop-color="#15803d"/>
+        </linearGradient>
+      </defs>
+      <rect width="320" height="220" rx="28" fill="url(#cielo)"/>
+      <circle cx="245" cy="52" r="22" fill="#ffe27a" opacity=".9"/>
+      <path d="M0 165 L70 105 L115 145 L160 92 L220 160 L270 120 L320 168 L320 220 L0 220Z" fill="url(#monte)" opacity=".9"/>
+      <path d="M0 176 L60 140 L130 178 L200 132 L260 170 L320 150" fill="none" stroke="#00e5ff" stroke-width="2" stroke-dasharray="6 5" opacity=".8"/>
+      <g font-family="system-ui,sans-serif">
+        <rect x="18" y="24" width="128" height="30" rx="15" fill="rgba(0,0,0,.55)" stroke="#ffd60a" stroke-width="1.5"/>
+        <text x="82" y="44" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">Pueblo 12 km</text>
+        <circle cx="164" cy="150" r="22" fill="none" stroke="#00e5ff" stroke-width="2"/>
+        <circle cx="164" cy="150" r="5" fill="#ff2d95"/>
+      </g>
+    </svg>
+  </section>
+
+  <nav class="toc" id="indice" aria-label="Índice">
+    <h2>Índice</h2>
+    <ol>
+      <li><a href="#que-es">Qué es y para qué sirve</a></li>
+      <li><a href="#permisos">Antes de empezar: permisos</a></li>
+      <li><a href="#cuatro-pasos">Identificar un pueblo en 4 pasos</a></li>
+      <li><a href="#pantalla">La pantalla de un vistazo</a></li>
+      <li><a href="#panel">El panel superior</a></li>
+      <li><a href="#chips">Los chips de estado y sus colores</a></li>
+      <li><a href="#etiquetas">Las etiquetas y la leyenda</a></li>
+      <li><a href="#mira">La mira, el punto rosa y la silueta</a></li>
+      <li><a href="#botones">La barra inferior: botones y colores</a></li>
+      <li><a href="#zoom">Zoom y enfoque</a></li>
+      <li><a href="#simbolos">Significado de cada símbolo</a></li>
+      <li><a href="#funciona">Cómo funciona por dentro</a></li>
+      <li><a href="#calibracion">Calibración de la brújula</a></li>
+      <li><a href="#filtros">Picos, aldeas, relieve y alcance</a></li>
+      <li><a href="#buscar">Buscar un pueblo o pico</a></li>
+      <li><a href="#anadir">Añadir lugares que faltan</a></li>
+      <li><a href="#consejos">Consejos para que funcione mejor</a></li>
+      <li><a href="#problemas">Problemas y soluciones</a></li>
+      <li><a href="#privacidad">Privacidad, permisos y datos</a></li>
+      <li><a href="#glosario">Glosario</a></li>
+      <li><a href="#creditos">Créditos y licencias</a></li>
+    </ol>
+    <div class="toc-extra">
+      <h3>Cómo leer esta guía</h3>
+      <p>Los capítulos 1–3 son para empezar; 4–12 explican la pantalla, los símbolos y el funcionamiento; 13 la calibración; 14–18 resuelven dudas y problemas.</p>
+      <h3>Consejos rápidos</h3>
+      <ul>
+        <li>Apunta al horizonte con el móvil vertical; espera <b>GPS ✓</b> y <b>Brújula ✓</b>.</li>
+        <li>Si el nombre no coincide con lo que ves, calibra con un lugar que veas.</li>
+        <li>Usa <b>🔍 Buscar</b> si no sabes hacia dónde queda un pueblo o pico.</li>
+      </ul>
+    </div>
+  </nav>
+
+  <section id="que-es">
+    <h2><span class="num">1</span>Qué es y para qué sirve</h2>
+    <p><b>¿Qué pueblo es?</b> es una app de cámara aumentada: abres la cámara, apuntas al horizonte y la app dibuja sobre la imagen el nombre de los pueblos, aldeas y picos que tienes delante, con su distancia (y su altura, en los picos).</p>
+    <p>Sirve para saber qué estás viendo desde una terraza, una ventana, una ruta o un mirador, sin tener que buscar en un mapa. También puede decirte hacia dónde queda un lugar concreto con una flecha.</p>
+    <div class="tarjeta">
+      <b>En una frase:</b> GPS para saber dónde estás, brújula para saber hacia dónde apuntas, cámara para verlo y un modelo de relieve para saber qué montañas tapan qué.
+    </div>
+    <p class="fuente">Los datos de pueblos y picos vienen de OpenStreetMap. La elevación y el relieve se apoyan en Open-Meteo. La app no necesita cuenta y no guarda ni envía la imagen de la cámara.</p>
+  </section>
+
+  <section id="permisos">
+    <h2><span class="num">2</span>Antes de empezar: permisos</h2>
+    <p>La primera vez, la app explica para qué necesita tres permisos. El móvil te los pedirá al pulsar <b>Iniciar identificación</b>:</p>
+    <table>
+      <tr><th>Símbolo</th><th>Permiso</th><th>Para qué</th></tr>
+      <tr><td class="simbolo">🧭</td><td><b>Brújula / movimiento</b></td><td>Saber hacia dónde apuntas. Sin ella no se puede saber qué pueblo tienes delante.</td></tr>
+      <tr><td class="simbolo">📍</td><td><b>Ubicación</b></td><td>Saber dónde estás y buscar pueblos, aldeas, picos y relieve a tu alrededor. Solo se usa mientras la app está abierta.</td></tr>
+      <tr><td class="simbolo">📷</td><td><b>Cámara</b></td><td>Ver lo que apuntas y poner los nombres sobre la imagen. La imagen no sale de tu móvil y no se guarda.</td></tr>
+    </table>
+    <div class="aviso"><b>Los tres son necesarios.</b> Si rechazas uno, la app no puede identificar pueblos. Puedes volver a activarlo en los ajustes del navegador o del móvil y recargar. En Android, la app instalada puede volver a pedirlos sin salir a los ajustes.</div>
+    <p>En iPhone, la brújula y el movimiento solo funcionan en <b>Safari</b> o en la app instalada; si abres la web dentro de otra app, puede no dar datos. En Android funciona en Chrome y en la app instalada.</p>
+  </section>
+
+  <section id="cuatro-pasos">
+    <h2><span class="num">3</span>Identificar un pueblo en 4 pasos</h2>
+    <ol class="pasos">
+      <li><b>Activa.</b> Pulsa <b>Iniciar identificación</b> y acepta GPS, brújula y cámara. Espera a que arriba salga <b>GPS ✓</b> y <b>Brújula ✓</b>.</li>
+      <li><b>Apunta.</b> Pon el móvil en vertical y apunta al horizonte, no al suelo. El centro de la pantalla es la dirección exacta.</li>
+      <li><b>Lee.</b> El nombre grande de arriba es el lugar que está bajo el punto rosa de la mira. Las demás etiquetas son los pueblos y picos de alrededor, con su distancia.</li>
+      <li><b>Busca.</b> Si no ves el que buscas, pulsa <b>🔍 Buscar</b>, escribe su nombre y la app te dirá hacia dónde apuntar con una flecha.</li>
+    </ol>
+    <div class="ok"><b>Truco:</b> si el nombre no coincide con lo que ves, no es que la app “se equivoque”: la brújula necesita calibración. Está explicada en el <a href="#calibracion">capítulo 13</a>.</div>
+  </section>
+
+  <section id="pantalla">
+    <h2><span class="num">4</span>La pantalla de un vistazo</h2>
+    <div class="pantalla">
+      <svg viewBox="0 0 320 620" role="img" aria-label="Esquema de la pantalla de la app con llamadas numeradas">
+        <rect width="320" height="620" rx="26" fill="#0a0f24" stroke="#2a3566"/>
+        <rect x="8" y="8" width="304" height="104" rx="14" fill="#4b2a8a" opacity=".85"/>
+        <text x="22" y="38" fill="#ffd60a" font-size="20" font-weight="800" font-family="system-ui">Pueblo</text>
+        <rect x="20" y="52" width="280" height="24" rx="12" fill="#2a1c55" stroke="#ffd60a"/>
+        <circle cx="34" cy="64" r="5" fill="#ffd60a"/>
+        <text x="46" y="69" fill="#fff" font-size="11" font-family="system-ui">Pueblo · 12 km · ±1,2°</text>
+        <text x="22" y="94" fill="#dbe3ff" font-size="9" font-family="system-ui">Relieve comprobado (memoria del móvil, panorama)</text>
+        <rect x="20" y="116" width="86" height="20" rx="10" fill="#15803d"/>
+        <text x="63" y="130" text-anchor="middle" fill="#fff" font-size="9" font-family="system-ui">GPS ✓</text>
+        <rect x="112" y="116" width="86" height="20" rx="10" fill="#15803d"/>
+        <text x="155" y="130" text-anchor="middle" fill="#fff" font-size="9" font-family="system-ui">Brújula ✓</text>
+        <rect x="204" y="116" width="96" height="20" rx="10" fill="#3b425e"/>
+        <text x="252" y="130" text-anchor="middle" fill="#fff" font-size="9" font-family="system-ui">Calibrada ✓</text>
+        <path d="M0 330 L320 330" stroke="#00e5ff" stroke-width="2" stroke-dasharray="7 5" opacity=".8"/>
+        <text x="14" y="312" fill="#00e5ff" font-size="9" font-family="system-ui">silueta del relieve</text>
+        <circle cx="160" cy="360" r="30" fill="none" stroke="#00e5ff" stroke-width="2"/>
+        <circle cx="160" cy="360" r="5" fill="#ff2d95"/>
+        <rect x="26" y="236" width="128" height="24" rx="12" fill="#000" stroke="#ffd60a"/>
+        <text x="90" y="252" text-anchor="middle" fill="#fff" font-size="10" font-family="system-ui">Pueblo 12 km</text>
+        <rect x="176" y="266" width="122" height="24" rx="12" fill="#000" stroke="#ff4d6d"/>
+        <text x="237" y="282" text-anchor="middle" fill="#fff" font-size="10" font-family="system-ui">Ciudad 9,7 km</text>
+        <rect x="18" y="290" width="120" height="22" rx="11" fill="#000" stroke="#00e5ff"/>
+        <text x="78" y="305" text-anchor="middle" fill="#fff" font-size="9" font-family="system-ui">Aldea 8 km</text>
+        <rect x="196" y="316" width="110" height="22" rx="11" fill="#000" stroke="#80ed99"/>
+        <text x="251" y="331" text-anchor="middle" fill="#fff" font-size="9" font-family="system-ui">▲ Pico 1.509 m</text>
+        <rect x="14" y="344" width="92" height="42" rx="10" fill="rgba(0,0,0,.7)"/>
+        <circle cx="29" cy="358" r="5" fill="#ff4d6d"/><text x="40" y="362" fill="#fff" font-size="8" font-family="system-ui">ciudad</text>
+        <circle cx="29" cy="375" r="5" fill="#ffd60a"/><text x="40" y="379" fill="#fff" font-size="8" font-family="system-ui">pueblo</text>
+        <rect x="8" y="548" width="304" height="64" rx="14" fill="#12152c" stroke="#2a3566"/>
+        <rect x="18" y="560" width="52" height="42" rx="9" fill="#2563eb"/>
+        <text x="44" y="586" text-anchor="middle" fill="#fff" font-size="8" font-family="system-ui">Calibrar</text>
+        <rect x="78" y="560" width="52" height="42" rx="9" fill="#2b3350"/>
+        <text x="104" y="586" text-anchor="middle" fill="#fff" font-size="8" font-family="system-ui">Picos</text>
+        <rect x="138" y="560" width="52" height="42" rx="9" fill="#2b3350"/>
+        <text x="164" y="586" text-anchor="middle" fill="#fff" font-size="8" font-family="system-ui">Más lejos</text>
+        <rect x="198" y="560" width="52" height="42" rx="9" fill="#0f766e"/>
+        <text x="224" y="586" text-anchor="middle" fill="#fff" font-size="8" font-family="system-ui">Relieve</text>
+        <rect x="258" y="560" width="44" height="42" rx="9" fill="#15803d"/>
+        <text x="280" y="580" text-anchor="middle" fill="#fff" font-size="8" font-family="system-ui">Solo</text>
+        <text x="280" y="592" text-anchor="middle" fill="#fff" font-size="8" font-family="system-ui">pueblos</text>
+        <rect x="260" y="430" width="46" height="94" rx="12" fill="rgba(0,0,0,.65)"/>
+        <text x="283" y="454" text-anchor="middle" fill="#fff" font-size="14" font-family="system-ui">＋</text>
+        <text x="283" y="486" text-anchor="middle" fill="#fff" font-size="8" font-family="system-ui">×1</text>
+        <text x="283" y="514" text-anchor="middle" fill="#fff" font-size="14" font-family="system-ui">−</text>
+        <circle cx="286" cy="22" r="11" fill="#fff"/><text x="286" y="26" text-anchor="middle" fill="#111" font-size="11" font-weight="800" font-family="system-ui">1</text>
+        <circle cx="292" cy="112" r="11" fill="#fff"/><text x="292" y="116" text-anchor="middle" fill="#111" font-size="11" font-weight="800" font-family="system-ui">2</text>
+        <circle cx="160" cy="222" r="11" fill="#fff"/><text x="160" y="226" text-anchor="middle" fill="#111" font-size="11" font-weight="800" font-family="system-ui">3</text>
+        <circle cx="300" cy="302" r="11" fill="#fff"/><text x="300" y="306" text-anchor="middle" fill="#111" font-size="11" font-weight="800" font-family="system-ui">4</text>
+        <circle cx="60" cy="332" r="11" fill="#fff"/><text x="60" y="336" text-anchor="middle" fill="#111" font-size="11" font-weight="800" font-family="system-ui">5</text>
+        <circle cx="160" cy="398" r="11" fill="#fff"/><text x="160" y="402" text-anchor="middle" fill="#111" font-size="11" font-weight="800" font-family="system-ui">6</text>
+        <circle cx="246" cy="420" r="11" fill="#fff"/><text x="246" y="424" text-anchor="middle" fill="#111" font-size="11" font-weight="800" font-family="system-ui">7</text>
+        <circle cx="20" cy="540" r="11" fill="#fff"/><text x="20" y="544" text-anchor="middle" fill="#111" font-size="11" font-weight="800" font-family="system-ui">8</text>
+      </svg>
+      <div class="llamadas">
+        <div class="llamada"><span class="n">1</span><span><b>Panel superior:</b> nombre grande del lugar bajo la mira, distancia y margen de error (o altura si es un pico).</span></div>
+        <div class="llamada"><span class="n">2</span><span><b>Chips de estado:</b> GPS, Brújula y Calibración. Verde = bien; ámbar = aviso; rojo = fallo; gris = esperando.</span></div>
+        <div class="llamada"><span class="n">3</span><span><b>Etiquetas:</b> pueblos, aldeas y picos de alrededor. La seleccionada va rellena y más grande.</span></div>
+        <div class="llamada"><span class="n">4</span><span><b>Leyenda:</b> solo aparecen los tipos que hay dibujados en ese momento.</span></div>
+        <div class="llamada"><span class="n">5</span><span><b>Punto y línea:</b> el punto marca el lugar real; la línea une el punto con su etiqueta cuando están cerca.</span></div>
+        <div class="llamada"><span class="n">6</span><span><b>Mira:</b> círculo cian con punto rosa. Es la dirección exacta a la que apuntas.</span></div>
+        <div class="llamada"><span class="n">7</span><span><b>Zoom y foco:</b> botones ＋/− a la derecha; barra de foco a la izquierda.</span></div>
+        <div class="llamada"><span class="n">8</span><span><b>Barra inferior:</b> Calibrar, Picos, Más lejos, Relieve y Solo pueblos / Con aldeas.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="panel">
+    <h2><span class="num">5</span>El panel superior</h2>
+    <p>Es la franja morada de arriba. Siempre muestra lo más importante:</p>
+    <ul>
+      <li><b>Nombre grande:</b> el pueblo, aldea o pico que está justo bajo la mira. Si no hay ninguno, muestra <b>—</b>.</li>
+      <li><b>Fila del lugar:</b> un punto del color del tipo, el nombre y, a la derecha, la <b>distancia</b> y el <b>margen ±</b> de la brújula. En los picos cambia el margen por la <b>altura</b>.</li>
+      <li><b>Línea de estado:</b> avisa si el relieve está comprobado, si falta conexión, si hay que apuntar más arriba, etc.</li>
+      <li><b>Pestaña ▲:</b> pliega el panel para dejar más cámara. Vuelve a pulsarla para desplegarlo.</li>
+    </ul>
+    <div class="nota"><b>El margen ± no es un error de la app:</b> es la precisión que declara la brújula del móvil. En iPhone suele aparecer (±X°); en Android muchas veces no hay dato y se muestra solo «Brújula ✓».</div>
+  </section>
+
+  <section id="chips">
+    <h2><span class="num">6</span>Los chips de estado y sus colores</h2>
+    <p>Los tres chips de la segunda fila te dicen si puedes fiarte de lo que ves:</p>
+    <table>
+      <tr><th>Chip</th><th>Verde</th><th>Ámbar</th><th>Rojo</th><th>Gris</th></tr>
+      <tr><td><b>GPS</b></td><td>GPS ✓ (precisión ≤ 30 m)</td><td>GPS ⚠ ±X m (30–100 m)</td><td>GPS ✕ ±X m (&gt; 100 m)</td><td>GPS … (esperando)</td></tr>
+      <tr><td><b>Brújula</b></td><td>Brújula ✓ (y ±X° si el móvil lo informa)</td><td>Brújula ⚠ ±X° (poco precisa)</td><td>Brújula ✕ sin datos / no fiable / haz el 8</td><td>Brújula … (esperando)</td></tr>
+      <tr><td><b>Calibración</b></td><td>Calibrada ✓ (hay corrección guardada)</td><td>Sin calibrar (hace falta calibrar)</td><td>—</td><td>Calibración … (Android sin dato de precisión)</td></tr>
+    </table>
+    <div class="aviso"><b>Importante en Android:</b> Chrome no informa de la precisión de la brújula. Por eso el chip puede quedarse en <b>«Calibración …»</b> aunque todo funcione. En cuanto guardas una calibración con un lugar, andando o con el horizonte, pasa a <b>«Calibrada ✓»</b>.</div>
+  </section>
+
+  <section id="etiquetas">
+    <h2><span class="num">7</span>Las etiquetas y la leyenda</h2>
+    <p>Cada etiqueta tiene un color según el tipo de lugar:</p>
+    <div class="colores">
+      <div class="color"><span class="punto" style="background:#ff4d6d"></span><b>Ciudad</b> · rosa</div>
+      <div class="color"><span class="punto" style="background:#ffd60a"></span><b>Pueblo / villa</b> · amarillo</div>
+      <div class="color"><span class="punto" style="background:#00e5ff"></span><b>Aldea / caserío</b> · cian</div>
+      <div class="color"><span class="punto" style="background:#80ed99"></span><b>Pico</b> · verde</div>
+    </div>
+    <h3>Cómo se leen</h3>
+    <ul>
+      <li><b>Etiqueta normal:</b> fondo negro, borde del color del tipo y el nombre con la distancia (ej. <i>Pueblo 12 km</i>). En los picos: <i>▲ Pico 1.509 m · 36 km</i>.</li>
+      <li><b>Etiqueta seleccionada:</b> va <b>rellena</b> del color del tipo, con texto oscuro y algo más grande. Es el lugar que está bajo la mira. Siempre se dibuja, aunque haya muchas.</li>
+      <li><b>Punto:</b> el círculo del color marca la posición real del lugar. La etiqueta puede subir o bajar para no taparse; si el punto queda cerca, se dibuja una <b>línea</b> que los une.</li>
+      <li><b>Si una etiqueta no cabe:</b> la app la mueve, la apila o la omite. La seleccionada tiene prioridad. Las etiquetas nunca se colocan debajo del panel, del botón ▲ ni de la leyenda.</li>
+      <li><b>Tocar una etiqueta:</b> si es un pueblo, se resalta y sale un bocadillo con el nombre y la distancia. Si es un pico ya dibujado, se resalta sin duplicar el bocadillo.</li>
+    </ul>
+    <div class="nota"><b>Leyenda:</b> la cajita de la izquierda muestra solo los tipos que hay en pantalla (ciudad, pueblo, aldea, pico). Si no hay ninguno, desaparece.</div>
+    <p>La app dibuja como máximo <b>14 etiquetas de pueblo</b> y <b>12 de picos</b> a la vez para que la pantalla no se sature. Si hay muchos, gira un poco o haz zoom para ver otros.</p>
+  </section>
+
+  <section id="mira">
+    <h2><span class="num">8</span>La mira, el punto rosa y la silueta</h2>
+    <ul>
+      <li><b>Círculo cian + punto rosa:</b> es la mira. El centro del círculo es exactamente la dirección a la que apunta el móvil. El nombre grande del panel es el lugar que cae ahí.</li>
+      <li><b>Al abrir Calibrar</b>, la mira sube un poco para que no quede tapada por el panel de calibración. La dirección horizontal no cambia: sigue siendo el centro del móvil.</li>
+      <li><b>Línea cian discontinua:</b> es la <b>silueta del relieve</b> calculada con los datos del terreno. Te ayuda a comparar lo que ves con lo que debería haber.</li>
+      <li><b>Línea amarilla (cuando aparece):</b> es el horizonte detectado en la imagen de la cámara. Si coincide con la cian, la app puede afinar la brújula con el horizonte.</li>
+      <li><b>Si el móvil está tumbado o mirando al suelo</b> (inclinación menor de −40° o mayor de 30°/55°), las etiquetas se ocultan y un aviso te pide ponerlo vertical.</li>
+    </ul>
+  </section>
+
+  <section id="botones">
+    <h2><span class="num">9</span>La barra inferior: botones y colores</h2>
+    <h3>Arriba, junto al rumbo</h3>
+    <table>
+      <tr><th>Botón</th><th>Color</th><th>Qué hace</th></tr>
+      <tr><td><b>🔍 Buscar</b></td><td>Azul</td><td>Busca un pueblo o pico por nombre y te indica hacia dónde apuntar con una flecha.</td></tr>
+      <tr><td><b>➕ Añadir</b></td><td>Verde</td><td>Añade un lugar que falte, desde OpenStreetMap o a mano. Se guarda solo en este móvil.</td></tr>
+      <tr><td><b>✕ Terminar</b></td><td>Rojo</td><td>Apaga cámara, GPS y brújula. Es la acción destructiva: sirve para dejar de usar la app.</td></tr>
+    </table>
+    <h3>Abajo, la barra de cámara</h3>
+    <table>
+      <tr><th>Botón</th><th>Cuándo está verde</th><th>Qué hace</th></tr>
+      <tr><td><b>🎯 Calibrar</b></td><td>Siempre azul (acción)</td><td>Abre las 4 formas de corregir la brújula, con sus pasos.</td></tr>
+      <tr><td><b>⛰ Picos</b></td><td>Con «Sí»</td><td>Muestra solo picos, con altura y distancia. Se descargan los de la zona.</td></tr>
+      <tr><td><b>🔭 Más lejos</b></td><td>Con 80 km</td><td>Amplía el alcance de 40 a 80 km (más etiquetas y más datos).</td></tr>
+      <tr><td><b>🏔 Relieve</b></td><td>Con «Sí»</td><td>Comprueba si una montaña tapa un lugar y dibuja la silueta. Si lo apagas, se muestran todos por dirección.</td></tr>
+      <tr><td><b>Solo pueblos</b></td><td>Cuando está activo</td><td>Oculta aldeas y caseríos. Es el modo por defecto.</td></tr>
+      <tr><td><b>Con aldeas</b></td><td>Cuando está activo</td><td>Muestra también aldeas y caseríos (hasta 12 km).</td></tr>
+    </table>
+    <div class="aviso"><b>Picos, Solo pueblos y Con aldeas son excluyentes.</b> Al encender uno se apagan los otros. Por eso, en modo Picos, los dos botones de pueblo aparecen apagados: es normal, no es un fallo.</div>
+    <h3>Colores de un vistazo</h3>
+    <div class="colores">
+      <div class="color"><span class="punto" style="background:#22c55e"></span><b>Verde:</b> activo / correcto.</div>
+      <div class="color"><span class="punto" style="background:#3b425e"></span><b>Gris:</b> apagado / esperando.</div>
+      <div class="color"><span class="punto" style="background:#2563eb"></span><b>Azul:</b> acción principal.</div>
+      <div class="color"><span class="punto" style="background:#e11d48"></span><b>Rojo:</b> terminar / peligro.</div>
+      <div class="color"><span class="punto" style="background:#ffd60a"></span><b>Amarillo:</b> seleccionado / atención.</div>
+      <div class="color"><span class="punto" style="background:#00e5ff"></span><b>Cian:</b> aldea / silueta.</div>
+    </div>
+  </section>
+
+  <section id="zoom">
+    <h2><span class="num">10</span>Zoom y enfoque</h2>
+    <h3>Zoom</h3>
+    <ul>
+      <li>Botones <b>＋</b> y <b>−</b> a la derecha, o pellizco con dos dedos. Va de <b>×1</b> a <b>×6</b>.</li>
+      <li>Sirve para identificar pueblos lejanos: acerca la imagen y las etiquetas se recolocan solas.</li>
+      <li>Con mucho zoom el pulso se nota más. Para calibrar con el horizonte, la app exige <b>×1</b>.</li>
+      <li>El zoom es de la cámara: no cambia la dirección a la que apuntas ni la calibración.</li>
+    </ul>
+    <h3>Foco</h3>
+    <ul>
+      <li>La barra de la izquierda ajusta la distancia de enfoque; <b>Auto</b> la deja automática.</li>
+      <li>Tocar la pantalla enfoca en ese punto (y, si tocas una etiqueta, la consulta).</li>
+      <li>Si la cámara no permite enfoque manual, la barra puede no tener efecto: es normal.</li>
+    </ul>
+  </section>
+
+  <section id="simbolos">
+    <h2><span class="num">11</span>Significado de cada símbolo</h2>
+    <table>
+      <tr><th>Símbolo</th><th>Dónde</th><th>Qué significa</th></tr>
+      <tr><td class="simbolo">🌄</td><td>Portada</td><td>Logotipo de la app: un paisaje con la mira.</td></tr>
+      <tr><td class="simbolo">📍</td><td>Permisos / ubicación</td><td>Ubicación GPS. También aparece en los avisos de ubicación desactivada.</td></tr>
+      <tr><td class="simbolo">🧭</td><td>Permisos / brújula</td><td>Brújula y sensor de orientación.</td></tr>
+      <tr><td class="simbolo">📷</td><td>Permisos / cámara</td><td>Cámara. La imagen no se guarda ni se sube.</td></tr>
+      <tr><td class="simbolo">🎯</td><td>Barra inferior</td><td>Calibrar la brújula. Abre el menú de métodos.</td></tr>
+      <tr><td class="simbolo">🔍</td><td>Arriba / portada</td><td>Buscar un pueblo o pico por nombre.</td></tr>
+      <tr><td class="simbolo">➕</td><td>Arriba / sección</td><td>Añadir un lugar que falta.</td></tr>
+      <tr><td class="simbolo">✕</td><td>Arriba a la derecha</td><td>Terminar: apaga cámara, GPS y brújula. También cierra diálogos.</td></tr>
+      <tr><td class="simbolo">⛰</td><td>Barra inferior</td><td>Modo picos. Muestra solo picos, con altura.</td></tr>
+      <tr><td class="simbolo">🔭</td><td>Barra inferior</td><td>Más lejos: 40 km ↔ 80 km.</td></tr>
+      <tr><td class="simbolo">🏔</td><td>Barra inferior</td><td>Relieve: comprueba montañas y dibuja la silueta.</td></tr>
+      <tr><td class="simbolo">🏘</td><td>Barra inferior</td><td>Solo pueblos / Con aldeas (filtro de tipos).</td></tr>
+      <tr><td class="simbolo">＋ / −</td><td>Derecha</td><td>Zoom de la cámara.</td></tr>
+      <tr><td class="simbolo">◎</td><td>Izquierda</td><td>Foco: distancia de enfoque.</td></tr>
+      <tr><td class="simbolo">▲</td><td>Panel / etiquetas</td><td>Plegar el panel (▲ dentro de un botón) o pico (▲ delante del nombre).</td></tr>
+      <tr><td class="simbolo">●</td><td>Etiquetas / lista</td><td>Punto de un pueblo, ciudad o aldea. Su color indica el tipo.</td></tr>
+      <tr><td class="simbolo">▲</td><td>Etiquetas de pico</td><td>Triángulo verde de un pico.</td></tr>
+      <tr><td class="simbolo">◯</td><td>Centro</td><td>Mira: círculo cian con punto rosa.</td></tr>
+      <tr><td class="simbolo">┄┄</td><td>Sobre la imagen</td><td>Silueta del relieve calculada (cian discontinuo).</td></tr>
+      <tr><td class="simbolo">▬</td><td>Sobre la imagen</td><td>Horizonte detectado en la cámara (amarillo), si coincide.</td></tr>
+      <tr><td class="simbolo">↗</td><td>Modo búsqueda</td><td>Flecha que indica hacia dónde está el destino buscado.</td></tr>
+      <tr><td class="simbolo">⬇</td><td>Esta guía</td><td>Descargar la guía en PDF.</td></tr>
+      <tr><td class="simbolo">📘</td><td>Panel</td><td>Abrir esta guía completa dentro de la app.</td></tr>
+    </table>
+    <p class="fuente">Los emojis pueden verse distintos según el móvil; lo importante es el color y la posición.</p>
+  </section>
+
+  <section id="funciona">
+    <h2><span class="num">12</span>Cómo funciona por dentro</h2>
+    <h3>1. Dónde estás</h3>
+    <p>La app pide la posición al GPS. Con ella calcula la distancia y la dirección (rumbo) a cada pueblo o pico de la base de datos. La precisión del GPS se muestra en el chip; cuanto mejor sea, más finas son las distancias.</p>
+    <h3>2. Hacia dónde apuntas</h3>
+    <p>La brújula del móvil da el rumbo. La app lo filtra para quitar temblor (filtro One-Euro), descarta saltos aislados por interferencias y permite correcciones por dirección. Ese rumbo es el que decide qué etiqueta cae en la mira.</p>
+    <h3>3. Qué se ve</h3>
+    <p>La cámara tiene un campo de visión (FOV). La app proyecta cada lugar en la pantalla con la fórmula de la lente: la dirección horizontal se convierte en píxeles y la elevación (altura del lugar menos la tuya, más la curvatura de la Tierra) se convierte en altura en pantalla. El zoom y el estabilizador se tienen en cuenta.</p>
+    <h3>4. Qué montañas tapan qué</h3>
+    <p>Con el relieve (Open-Meteo o una copia guardada en el móvil) la app construye un panorama en abanico de ±45° y hasta 40/80 km. Para cada dirección calcula el ángulo máximo del terreno y compara: si un pueblo queda por debajo de una montaña, no se dibuja. Si apagas Relieve, se muestran todos por dirección.</p>
+    <h3>5. Qué etiqueta se elige</h3>
+    <p>El lugar bajo la mira es el más cercano en dirección y, a igualdad, el más cercano en distancia. En los picos se tiene en cuenta la altura y el encuadre vertical. Para que no parpadee, el pico elegido se mantiene 2,5 s si otro no le gana por más de 0,8°.</p>
+    <h3>6. Dónde se colocan las etiquetas</h3>
+    <p>La app evita el panel, el botón de plegar, la leyenda y las demás etiquetas. Primero coloca la seleccionada; después el resto, por distancia o altura. Si no caben, las apila o las omite; nunca deberían quedar debajo de la interfaz.</p>
+    <h3>7. Qué se guarda en el móvil</h3>
+    <p>La base de pueblos y picos, el relieve consultado, la calibración y los lugares añadidos se guardan en el propio móvil para que la app funcione sin conexión. La imagen de la cámara no se guarda.</p>
+  </section>
+
+  <section id="calibracion">
+    <h2><span class="num">13</span>Calibración de la brújula</h2>
+    <p>La brújula del móvil puede desviarse 10°, 20° o más por el metal, un coche, una funda magnética, una pared o el propio sensor. La calibración no “arregla” el móvil: guarda una <b>corrección dentro de la app</b> para que las etiquetas caigan donde deben.</p>
+    <div class="nota"><b>La calibración es de la app, no del sistema.</b> No cambia Google Maps ni otras apps. Solo afecta a ¿Qué pueblo es? en este móvil y en este navegador/perfil. Para ayudar al sensor físico de verdad, haz el 8 en el aire; eso sí lo aprovechan todas las apps.</div>
+
+    <h3>Cuándo calibrar</h3>
+    <ul>
+      <li>El nombre no coincide con el pueblo que ves.</li>
+      <li>Has cambiado de funda, de coche o de sitio con mucho metal.</li>
+      <li>La app se ha movido de ciudad o el chip dice «Sin calibrar».</li>
+      <li>Después de un viaje largo o de tener el móvil cerca de imanes/altavoces.</li>
+    </ul>
+
+    <h3>Antes de empezar</h3>
+    <ul>
+      <li>Sal a un sitio despejado o asómate a una ventana con vista. Evita coches, barandillas, imanes y paredes metálicas.</li>
+      <li>Móvil en vertical, como para hacer una foto. Espera a <b>GPS ✓</b> y <b>Brújula ✓</b>.</li>
+      <li>Si puedes, haz primero un 8 en el aire durante 10 s para despertar el sensor.</li>
+    </ul>
+
+    <details open>
+      <summary>Método 1 · Con un lugar que veo (recomendado)</summary>
+      <div class="cuerpo">
+        <ol class="pasos">
+          <li>Pulsa <b>🎯 Calibrar</b> y elige <b>Con un lugar que veo</b>.</li>
+          <li>Elige de la lista un pueblo o ciudad que <b>estés viendo de verdad</b>. La lista llega hasta <b>25 km</b> (hasta 120 lugares).</li>
+          <li>Gira el móvil hasta que ese lugar quede <b>justo debajo del punto rosa</b> de la mira. Solo importa la alineación de lado a lado; la altura da igual.</li>
+          <li>Pulsa <b>✓ Está en la mira</b>. Verás <b>«✓ Calibrado (+X°)»</b> y el chip pasará a <b>«Calibrada ✓»</b>.</li>
+          <li>Si quieres más precisión, marca <b>Usar dos lugares</b>, elige un segundo lugar en otra dirección (al menos 30° de diferencia), alinéalo y pulsa otra vez. Promedia los dos.</li>
+        </ol>
+        <p class="fuente">Puedes hacer zoom para ver mejor el pueblo; el cálculo usa el GPS y la brújula, no la cámara.</p>
+      </div>
+    </details>
+
+    <details open>
+      <summary>Método 2 · Andando o en coche</summary>
+      <div class="cuerpo">
+        <ol class="pasos">
+          <li>Elige <b>Andando o en coche</b> y pulsa <b>Empezar</b>.</li>
+          <li>Avanza en línea recta <b>unos 30 m</b> (o 2,5 × la precisión del GPS) con el móvil en vertical apuntando hacia delante.</li>
+          <li>La app compara la dirección real del recorrido con la brújula y se calibra sola: <b>«✓ Calibrado andando»</b>.</li>
+        </ol>
+        <p>En coche, que lo haga el acompañante. Si el móvil se mueve demasiado, la app pedirá repetirlo.</p>
+      </div>
+    </details>
+
+    <details open>
+      <summary>Método 3 · Hacer el 8 en el aire</summary>
+      <div class="cuerpo">
+        <ol class="pasos">
+          <li>Elige <b>Hacer el 8</b> y dibuja un 8 en el aire girando la muñeca unos <b>10 segundos</b>.</li>
+          <li>Sigue el punto amarillo de la figura.</li>
+          <li>Cuando diga «✓ Brújula calibrada», pulsa <b>Listo</b>.</li>
+        </ol>
+        <div class="aviso"><b>En Android</b> Chrome no informa de la precisión, así que este método no cambia el chip a «Calibrada ✓». Sirve para mover el sensor; después usa el método 1 o el 2 para guardar una corrección.</div>
+      </div>
+    </details>
+
+    <details open>
+      <summary>Método 4 · Con el horizonte</summary>
+      <div class="cuerpo">
+        <ol class="pasos">
+          <li>Elige <b>Con el horizonte</b>.</li>
+          <li>Apunta a un horizonte despejado con montañas, con el <b>zoom en ×1</b> y el móvil recto (no al suelo).</li>
+          <li>Pulsa <b>📷 Alinear ahora</b>.</li>
+          <li>Verás <b>«✓ Alineado con el horizonte (+X°, confianza Y%)»</b>. Si la confianza es baja (&lt;30%), no guarda; si es alta (&gt;60%), es una buena corrección.</li>
+          <li>Puedes repetirlo 2–3 veces para afinar. Es un método <b>relativo</b>: suma su ajuste al que ya había.</li>
+        </ol>
+        <p>Cuanto más clara y lejana sea la silueta de las montañas, mejor. Evita setos, árboles y edificios que tapen el horizonte.</p>
+      </div>
+    </details>
+
+    <h3>Qué se guarda exactamente</h3>
+    <p>La app guarda una <b>corrección global</b> y un mapa de <b>8 sectores</b> (cada 45°):</p>
+    <ul>
+      <li><b>Mismo sector:</b> la última calibración sustituye a la anterior. No se suman.</li>
+      <li><b>Sectores distintos:</b> se conservan las dos y la app interpola según hacia dónde mires.</li>
+      <li><b>Con un lugar</b> y <b>Andando</b> son absolutos: recalculan la corrección de esa dirección.</li>
+      <li><b>Con el horizonte</b> es relativo: afina la corrección que ya había.</li>
+      <li><b>El GPS en movimiento</b> (cuando vas en coche) mezcla poco a poco (15% por lectura) y afina sola.</li>
+    </ul>
+    <p>El contador <b>«2 de 8 direcciones»</b> indica sectores guardados, no número de calibraciones. Si calibras dos veces hacia el mismo lado, sigue siendo 1 sector.</p>
+
+    <h3>Cómo comprobar que ha quedado bien</h3>
+    <ol class="pasos">
+      <li>Cierra el menú de calibración y levanta el móvil.</li>
+      <li>Apunta a un pueblo que veas: su etiqueta debe caer <b>sobre el pueblo</b>.</li>
+      <li>Si falla siempre en la misma dirección, repite la calibración en esa dirección.</li>
+      <li>Si falla en todas, revisa que el GPS esté ✓ y que no estés cerca de metal; repite con un lugar o andando.</li>
+    </ol>
+
+    <h3>Quitar la calibración</h3>
+    <p><b>Calibrar → Quitar calibración</b> borra la corrección global y los 8 sectores. No toca el sensor del móvil ni otras apps. Úsalo si has hecho una calibración mala o si cambias de teléfono/funda.</p>
+
+    <div class="aviso"><b>Confianza baja:</b> si el horizonte da 19–25%, no insistas: el mínimo para guardar es 30%. Apunta a una cresta más clara, sube el móvil y prueba otra vez. Si sigue bajo, usa un lugar que veas o andando.</div>
+  </section>
+
+  <section id="filtros">
+    <h2><span class="num">14</span>Picos, aldeas, relieve y alcance</h2>
+    <h3>Picos</h3>
+    <p>Al activar <b>⛰ Picos</b>, la app descarga los picos de la zona (decenas de miles en total, según el sitio) y dibuja solo picos, con su <b>altura</b> y distancia. El pico elegido por la mira se resalta en verde y siempre se dibuja; si hay muchos, se muestran los más altos. Los picos se guardan para no volver a descargarlos.</p>
+    <h3>Aldeas</h3>
+    <p><b>Solo pueblos</b> (por defecto) oculta aldeas y caseríos. <b>Con aldeas</b> los muestra, pero solo hasta <b>12 km</b>. Los tres filtros (Picos, Solo pueblos, Con aldeas) son excluyentes.</p>
+    <h3>Relieve</h3>
+    <p>Con <b>🏔 Relieve: Sí</b>, la app comprueba si una montaña tapa un lugar y dibuja la silueta cian. Si lo apagas, muestra todos los lugares por dirección, sin comprobar montañas. El relieve se descarga por zonas y se guarda en el móvil; si no hay datos, avisa y solo comprueba lo cercano.</p>
+    <h3>Alcance</h3>
+    <p><b>40 km</b> es el modo normal. <b>Más lejos (80 km)</b> amplía la búsqueda: verás más etiquetas, pero también más datos, más batería y más tiempo de descarga de relieve.</p>
+  </section>
+
+  <section id="buscar">
+    <h2><span class="num">15</span>Buscar un pueblo o pico</h2>
+    <ol class="pasos">
+      <li>Pulsa <b>🔍 Buscar</b>.</li>
+      <li>Escribe parte del nombre. Puedes filtrar por <b>Todos, Pueblos o Picos</b>.</li>
+      <li>Elige un resultado de la lista (solo aparecen los que están a menos de 80 km).</li>
+      <li>Pulsa <b>▶ Activar búsqueda</b>: la app entra en modo flecha y te indica hacia dónde girar, con la distancia.</li>
+      <li>Cuando lo tengas delante, sal del modo búsqueda con <b>✕ Salir de la búsqueda</b>.</li>
+    </ol>
+    <p>La búsqueda ajusta sola los filtros: un pueblo deja «Solo pueblos», una aldea pone «Con aldeas» y un pico enciende «Picos».</p>
+  </section>
+
+  <section id="anadir">
+    <h2><span class="num">16</span>Añadir lugares que faltan</h2>
+    <p>Si ves un pueblo o pico que no aparece, tienes dos caminos:</p>
+    <ul>
+      <li><b>🔄 Actualizar desde OpenStreetMap</b>: busca en OSM los lugares que falten cerca de ti. Necesita conexión y ubicación.</li>
+      <li><b>➕ Añadir un lugar a mano</b>: escribe el nombre, el tipo (pueblo, ciudad, aldea, caserío o pico), la altura si es pico y la dirección/distancia desde donde estás (o usa el rumbo actual).</li>
+    </ul>
+    <p>Los lugares añadidos se guardan <b>solo en este móvil</b>. Puedes verlos y borrarlos desde la misma pantalla con <b>🗑️ Borrar todos mis datos añadidos</b>. No se toca la base de pueblos/picos ni el relieve.</p>
+  </section>
+
+  <section id="consejos">
+    <h2><span class="num">17</span>Consejos para que funcione mejor</h2>
+    <ul>
+      <li><b>Apunta al horizonte, no al suelo.</b> El móvil en vertical; el centro de la pantalla es la dirección.</li>
+      <li><b>Espera a GPS ✓ y Brújula ✓.</b> Si acabas de abrir, dale unos segundos.</li>
+      <li><b>Calibra si el nombre no coincide.</b> Un lugar que veas o el horizonte; evita el 8 solo como calentamiento en Android.</li>
+      <li><b>Aléjate del metal</b>: coches, barandillas, altavoces, imanes, fundas con cierre magnético.</li>
+      <li><b>Usa el zoom</b> para pueblos lejanos; vuelve a ×1 para el horizonte.</li>
+      <li><b>El relieve ayuda</b>: con montañas, déjalo en «Sí»; si no hay datos, la app te avisa y sigue funcionando con lo cercano.</li>
+      <li><b>La batería</b>: cámara + GPS + brújula gastan. Si vas a estar un rato, baja el brillo o cierra cuando no la uses.</li>
+      <li><b>Sin conexión</b>: la base y el relieve ya descargados siguen funcionando; los lugares nuevos y el relieve no descargado, no.</li>
+      <li><b>No la uses conduciendo</b>: que la maneje el acompañante.</li>
+    </ul>
+  </section>
+
+  <section id="problemas">
+    <h2><span class="num">18</span>Problemas y soluciones</h2>
+    <table>
+      <tr><th>Problema</th><th>Qué probar</th></tr>
+      <tr><td>No sale ninguna etiqueta</td><td>Móvil vertical y apuntando al horizonte; espera GPS ✓; comprueba que no estás en modo Picos sin picos o con un filtro que los oculte; acerca el alcance; espera al relieve.</td></tr>
+      <tr><td>El nombre no coincide con lo que veo</td><td>Calibra (lugar que veas, andando u horizonte). Evita metal. Comprueba el chip de calibración.</td></tr>
+      <tr><td>El chip dice «Calibración …»</td><td>En Android es normal si no hay precisión. Guarda una calibración con un lugar; entonces pasa a «Calibrada ✓».</td></tr>
+      <tr><td>«Brújula ✕ sin datos»</td><td>Revisa el permiso de movimiento/brújula; usa Chrome o Safari actualizados; en iPhone, abre en Safari, no dentro de otra app.</td></tr>
+      <tr><td>«GPS ✕» o «GPS ⚠»</td><td>Activa la ubicación del móvil; sal al exterior; espera; usa «Usar la última ubicación» o elige tu pueblo en la lista.</td></tr>
+      <tr><td>La cámara se ve negra</td><td>Permiso de cámara; cierra otras apps que la usen; vuelve a entrar; en la app instalada, revisa los permisos de Android.</td></tr>
+      <tr><td>«Sin datos de relieve»</td><td>Sin conexión o límite de consultas; la app reintenta sola y mientras usa solo lo cercano. Puedes apagar Relieve para ver todo por dirección.</td></tr>
+      <tr><td>La lista de calibración no muestra un pueblo lejano</td><td>Ahora llega hasta 25 km. Si está más lejos, usa Andando o el horizonte, o calibra con otro lugar que veas.</td></tr>
+      <tr><td>Dos calibraciones no coinciden</td><td>Cada una se guarda en su sector. Si discrepan mucho, quita la calibración y empieza por la más fiable (un lugar que veas).</td></tr>
+      <tr><td>La app se cierra sola</td><td>Suele ser memoria del móvil: cierra otras apps y vuelve a abrir. La calibración y los datos quedan guardados.</td></tr>
+      <tr><td>No se descarga el PDF</td><td>Abre la guía en una pestaña normal y usa «Descargar PDF»; comprueba el espacio y los permisos de descargas.</td></tr>
+    </table>
+  </section>
+
+  <section id="privacidad">
+    <h2><span class="num">19</span>Privacidad, permisos y datos</h2>
+    <ul>
+      <li><b>La cámara no sale del móvil.</b> La imagen se procesa en el dispositivo para dibujar las etiquetas; no se sube ni se guarda.</li>
+      <li><b>La ubicación</b> se usa solo mientras la app está abierta, para buscar lugares y relieve. No se envía a un servidor propio.</li>
+      <li><b>Los datos</b> (base de pueblos/picos, relieve consultado, calibración y lugares añadidos) se guardan en el almacenamiento local del móvil. Puedes borrarlos desde la app o desde los ajustes del navegador.</li>
+      <li><b>Terceros:</b> los datos de pueblos y picos son de OpenStreetMap (ODbL); la elevación se consulta a Open-Meteo (CC BY 4.0); la web se sirve desde GitHub Pages.</li>
+      <li><b>Sin cuentas, sin anuncios y sin seguimiento</b> publicitario.</li>
+      <li>Puedes revocar cámara, ubicación o movimiento en los ajustes del móvil/navegador; la app avisará y ofrecerá alternativas.</li>
+    </ul>
+  </section>
+
+  <section id="glosario">
+    <h2><span class="num">20</span>Glosario</h2>
+    <table>
+      <tr><th>Término</th><th>Qué es</th></tr>
+      <tr><td><b>Rumbo</b></td><td>Dirección hacia la que apuntas, en grados (0° = norte, 90° = este…).</td></tr>
+      <tr><td><b>Inclinación</b></td><td>Ángulo vertical del móvil. 0° = vertical; negativo = mirando abajo.</td></tr>
+      <tr><td><b>Mira</b></td><td>Círculo cian con punto rosa en el centro: la dirección exacta.</td></tr>
+      <tr><td><b>Etiqueta</b></td><td>Nombre flotante de un pueblo, aldea o pico.</td></tr>
+      <tr><td><b>Margen ±</b></td><td>Precisión que declara la brújula; no es un error de la app.</td></tr>
+      <tr><td><b>Relieve</b></td><td>Modelo de montañas y terreno que permite saber qué tapa qué.</td></tr>
+      <tr><td><b>Panorama</b></td><td>Vista del relieve en abanico alrededor de ti, hasta 40/80 km.</td></tr>
+      <tr><td><b>Sector</b></td><td>Cada una de las 8 direcciones (45°) donde se guarda una corrección.</td></tr>
+      <tr><td><b>Calibración</b></td><td>Corrección de la brújula guardada dentro de la app.</td></tr>
+      <tr><td><b>Pico</b></td><td>Cumbre de montaña, con altura y distancia.</td></tr>
+      <tr><td><b>Aldea / caserío</b></td><td>Núcleo pequeño; se muestra con «Con aldeas» y hasta 12 km.</td></tr>
+      <tr><td><b>Alcance</b></td><td>Distancia máxima de búsqueda: 40 km o 80 km.</td></tr>
+      <tr><td><b>PWA / WebAPK</b></td><td>App web instalable; se abre como una app y funciona sin conexión tras la primera visita.</td></tr>
+    </table>
+  </section>
+
+  <section id="creditos">
+    <h2><span class="num">21</span>Créditos y licencias</h2>
+    <p><b>¿Qué pueblo es?</b> · Guía de uso · versión 41 · noviembre 2026.</p>
+    <p>Autor: Miguel Marín.</p>
+    <ul>
+      <li>Datos de pueblos y picos: © colaboradores de <b>OpenStreetMap</b>, bajo <b>ODbL 1.0</b>.</li>
+      <li>Elevación y apoyo al relieve: <b>Open-Meteo</b>, bajo <b>CC BY 4.0</b>.</li>
+      <li>El perfil de relieve lo calcula la app.</li>
+      <li>Esta guía es un documento de uso de la app; las licencias de los datos son las de sus fuentes.</li>
+    </ul>
+    <p class="fuente">Si algo no cuadra o falta un pueblo, la app incluye «Actualizar desde OpenStreetMap» y «Añadir un lugar a mano».</p>
+  </section>
+
+  <p class="pie">¿Qué pueblo es? · Guía completa · v41 · Esta guía también está disponible dentro de la app, en el panel inferior: <b>📘 Guía completa</b>.</p>
+</main>
+
+<a class="volver no-print" href="#indice" aria-label="Volver al índice">↑</a>
+
+<script>
+  (function(){
+    var b=document.getElementById('cerrarGuia');
+    if(b) b.addEventListener('click',function(){
+      if(window.parent && window.parent!==window){ window.parent.postMessage({tipo:'cerrar-ayuda'},'*'); }
+      else { window.close(); }
+    });
+  })();
+</script>
+</body>
+</html>

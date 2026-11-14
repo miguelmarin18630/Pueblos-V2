@@ -1,0 +1,97 @@
+/* Guía completa dentro de la app */
+#ayuda {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    flex-direction: column;
+    background: #070a19;
+    color: #fff;
+}
+
+#ayuda.abierta {
+    display: flex;
+}
+
+.ayuda-cab {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: none;
+    padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px;
+    background: rgba(7, 10, 25, .98);
+    border-bottom: 1px solid rgba(255, 255, 255, .16);
+}
+
+.ayuda-cab h2 {
+    flex: 1;
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.2;
+    color: #fff;
+}
+
+.ayuda-cab .acciones {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ayuda-cab a,
+.ayuda-cab button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, .28);
+    background: rgba(255, 255, 255, .10);
+    color: #fff;
+    font: 700 14px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.ayuda-cab a:hover,
+.ayuda-cab button:hover {
+    background: rgba(255, 255, 255, .18);
+}
+
+#ayudaPdf {
+    background: linear-gradient(135deg, #80ed99, #22c55e);
+    border-color: transparent;
+    color: #04210f;
+}
+
+#ayudaCerrar {
+    width: 40px;
+    padding: 0;
+    font-size: 20px;
+}
+
+#ayudaMarco {
+    flex: 1;
+    width: 100%;
+    border: 0;
+    display: block;
+    background: #070a19;
+}
+
+body.ayuda-abierta {
+    overflow: hidden;
+}
+
+@media (max-width: 380px) {
+    .ayuda-cab h2 {
+        font-size: 14px;
+    }
+
+    .ayuda-cab a,
+    .ayuda-cab button {
+        min-height: 38px;
+        padding: 0 11px;
+        font-size: 13px;
+    }
+}

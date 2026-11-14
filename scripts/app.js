@@ -1175,9 +1175,36 @@ function consejosPrimeraVez(){
     mostrarGuia(false);
   },1500);
 }
-$("vconsejos").onclick=function(){
-  mostrarGuia(true);
+// ---- Guía completa interactiva y descarga del PDF ----
+var ayudaCargada=false,ayudaFoco=null;
+function abrirAyuda(){
+  var a=$("ayuda");
+  if(!a)return;
+  if(!ayudaCargada){$("ayudaMarco").src="docs/guia.html?embed=1";ayudaCargada=true}
+  ayudaFoco=document.activeElement;
+  a.classList.add("abierta");
+  document.body.classList.add("ayuda-abierta");
+  setTimeout(function(){try{$("ayudaCerrar").focus()}catch(e){}},60);
+}
+function cerrarAyuda(){
+  var a=$("ayuda");
+  if(!a||!a.classList.contains("abierta"))return;
+  a.classList.remove("abierta");
+  document.body.classList.remove("ayuda-abierta");
+  try{if(ayudaFoco&&ayudaFoco.focus)ayudaFoco.focus()}catch(e){}
+}
+$("vconsejos").onclick=abrirAyuda;
+$("ayudaCerrar").onclick=cerrarAyuda;
+$("descargarGuia").onclick=function(){
+  try{
+    var a=document.createElement("a");
+    a.href="docs/guia-pueblos.pdf";a.download="Guia-Que-Pueblo-Es.pdf";a.rel="noopener";
+    document.body.appendChild(a);a.click();a.remove();
+    avisar("Descargando la guía en PDF…",4000);
+  }catch(e){}
 };
+window.addEventListener("message",function(e){if(e&&e.data&&e.data.tipo==="cerrar-ayuda")cerrarAyuda()});
+document.addEventListener("keydown",function(e){if(e.key==="Escape")cerrarAyuda()});
 ["gesturestart","gesturechange","gestureend"].forEach(function(n){document.addEventListener(n,function(e){if(document.body.classList.contains("on"))e.preventDefault()},{passive:false})});
 // ---- Panorama del terreno: relieve en abanico de ±45° y hasta 80 km ----
 var pan=null,panEnCurso=false,panBloq=0,elevC={},colaE={},pidiendoE=false,FOVL=69.4;

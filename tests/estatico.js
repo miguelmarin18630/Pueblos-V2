@@ -307,6 +307,18 @@ const vSw = /VERSION = 'v(\d+)'/.exec(sw);
 if (vSw && vSw[1] === vers[0]) ok('sw.js VERSION = v' + vSw[1]);
 else mal('VERSION del sw.js (' + (vSw ? vSw[1] : '?') + ') no coincide con ?v=' + vers.join(','));
 
+// ---------- guía completa ----------
+console.log('\nguía completa');
+if (existe('docs/guia.html')) {
+  const g = leer('docs/guia.html');
+  if (/id="indice"/.test(g) && /Calibración de la brújula/.test(g)) ok('guía con índice y capítulo de calibración');
+  else mal('la guía no tiene índice o capítulo de calibración');
+} else mal('falta docs/guia.html');
+if (existe('docs/guia-pueblos.pdf')) ok('PDF de la guía incluido');
+else mal('falta docs/guia-pueblos.pdf');
+if (/id="ayudaMarco"/.test(html) && /id="descargarGuia"/.test(html) && /id="ayudaPdf"/.test(html)) ok('guía interactiva y botón de descarga en la app');
+else mal('faltan la guía interactiva o sus botones de descarga');
+
 // ---------- resultado ----------
 console.log('');
 if (fallos.length) {

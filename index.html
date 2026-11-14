@@ -40,10 +40,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="¿Qué pueblo?">
 
-<link rel="stylesheet" href="styles/base.css?v=40">
-<link rel="stylesheet" href="styles/portada.css?v=40">
-<link rel="stylesheet" href="styles/layout.css?v=40">
-<link rel="stylesheet" href="styles/camera.css?v=40">
+<link rel="stylesheet" href="styles/base.css?v=41">
+<link rel="stylesheet" href="styles/portada.css?v=41">
+<link rel="stylesheet" href="styles/layout.css?v=41">
+<link rel="stylesheet" href="styles/camera.css?v=41">
+<link rel="stylesheet" href="styles/ayuda.css?v=41">
 
 <!-- La base de pueblos se necesita siempre: que empiece a descargarse ya -->
 <link rel="preload" href="data/pueblos.js" as="script">
@@ -136,7 +137,8 @@
             <button id="anadirb" type="button">➕ Añadir un lugar a mano</button>
         </section>
 
-        <button id="vconsejos" type="button">💡 Consejos y avisos</button>
+        <button id="vconsejos" type="button">📘 Guía completa y consejos</button>
+        <button id="descargarGuia" type="button">⬇️ Descargar guía (PDF)</button>
         <button id="cerrar" type="button">Salir de la app</button>
 
         <p class="creditos">
@@ -401,6 +403,18 @@
     <button id="guiaok" type="button">Entendido</button>
 </div>
 
+<!-- ================= Guía completa (interactiva + PDF) ================= -->
+<div id="ayuda" role="dialog" aria-modal="true" aria-labelledby="ayudaT">
+    <div class="ayuda-cab">
+        <h2 id="ayudaT">📘 Guía completa</h2>
+        <div class="acciones">
+            <a id="ayudaPdf" href="docs/guia-pueblos.pdf" download="Guia-Que-Pueblo-Es.pdf">⬇ PDF</a>
+            <button id="ayudaCerrar" type="button" aria-label="Cerrar la guía">✕</button>
+        </div>
+    </div>
+    <iframe id="ayudaMarco" title="Guía completa de ¿Qué pueblo es?" src="about:blank" loading="lazy"></iframe>
+</div>
+
 <div id="adios" role="dialog" aria-modal="true" aria-labelledby="adiosT">
     <div class="emoji" aria-hidden="true">👋</div>
     <h2 id="adiosT">Hasta pronto</h2>
@@ -457,7 +471,7 @@ setTimeout(__comprobarMotor, 9000);
 
 <!-- Datos: la base de pueblos (3,8 MB) se descarga una vez y queda guardada en el móvil.
      El motor (app.js) la pide por su cuenta y no bloquea la pantalla. -->
-<script defer src="scripts/app.js?v=40"></script>
+<script defer src="scripts/app.js?v=41"></script>
 
 <!-- ================= Diálogo de búsqueda: buscar pueblo o pico por nombre ================= -->
 <div id="buscar" role="dialog" aria-modal="true" aria-labelledby="buscarT" style="display:none;">
