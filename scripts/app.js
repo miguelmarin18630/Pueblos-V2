@@ -1004,6 +1004,12 @@ function aplicarTransformCam(){
   var tx=stab?stabX:0,ty=stab?stabY:0;
   var t=(Math.abs(tx)<0.1&&Math.abs(ty)<0.1&&Math.abs(s-1)<1e-4)?"":"translate("+tx.toFixed(1)+"px,"+ty.toFixed(1)+"px) scale("+s.toFixed(4)+")";
   if(v._tr!==t){v.style.transform=t;v._tr=t}
+  // Las etiquetas se mueven con la imagen estabilizada para que coincidan
+  // con el paisaje (y con la mira fija del centro).
+  var e=$("etq");if(e){
+    var et=(Math.abs(tx)<0.1&&Math.abs(ty)<0.1)?"":"translate("+tx.toFixed(1)+"px,"+ty.toFixed(1)+"px)";
+    if(e._tr!==et){e.style.transform=et;e._tr=et}
+  }
 }
 function estabilizar(){
   if(rafS)return;
