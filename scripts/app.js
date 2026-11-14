@@ -359,7 +359,7 @@ function pintarYa(){
       pm?PK.length+" picos cargados · alcance "+alcance+" km":
       "Ningún pico en la mira (hasta "+alcance+" km). Prueba a girar o pulsa «Más lejos».";
   }
-  if(document.body.classList.contains("on")&&!fuera)etiquetas(pe,hdc);else limpiarEtq();
+  if(document.body.classList.contains("on")&&!fuera)etiquetas(pe,hdc,pm);else limpiarEtq();
   dibujarSilueta(hdc);
   if(invActivo)pintarInv();
   if(ochoActivo)actOcho();
@@ -1069,7 +1069,7 @@ function enfocar(x,y){
 }
 $("cam").addEventListener("click",function(e){if(Date.now()-pzFin<500)return;enfocar(e.clientX,e.clientY);identificarToque(e.clientX,e.clientY)});
 // ---- Pulsar sobre la imagen para saber qué pueblo hay en ese punto ----
-var tapSel=null,etqHit=[],tTap=null;
+var tapSel=null,tapPico=null,etqHit=[],tTap=null;
 function distTxt(k){return (k<10?k.toFixed(1):Math.round(k)).toString().replace(".",",")+" km"}
 function mostrarToque(x,html){
   var b=$("toque"),W=innerWidth,H=innerHeight;
@@ -1081,7 +1081,7 @@ function mostrarToque(x,html){
 }
 var toqueY=0;
 function identificarToque(x,y){
-  clearTimeout(tTap);
+  clearTimeout(tTap);tapPico=null;
   var W=innerWidth,H=innerHeight,f=fEff(),best=null,i,p;
   toqueY=y;
   if(pit<-40||pit>(verPicos?55:30)){tapSel=null;mostrarToque(x,verPicos?"Baja un poco el móvil":"Apunta hacia el horizonte");tTap=setTimeout(finToque,3000);return}
@@ -1134,6 +1134,18 @@ function identificarToque(x,y){
   if(!best){tapSel=null;mostrarToque(x,(verPicos?"Aquí no veo ningún pico":"Aquí no veo ningún pueblo")+'<small>Prueba a pulsar más cerca de un punto de color</small>');tTap=setTimeout(finToque,3500);pintar();return}
   if(best.pico){
     tapSel=null;
+    // Si la etiqueta del pico ya está dibujada, se resalta en vez de abrir un
+    // bocadillo que la duplique y tape las etiquetas de al lado.
+    var ya=null;
+    for(i=0;i<etqHit.length;i++){
+      var ph=etqHit[i];
+      if(ph.pico&&ph.n===best.n&&Math.abs(ph.la-best.la)<1e-6&&Math.abs(ph.lo-best.lo)<1e-6){ya=ph;break}
+    }
+    if(ya){
+      tapPico={n:best.n,la:best.la,lo:best.lo};
+      $("toque").style.display="none";
+      tTap=setTimeout(finToque,6000);pintar();return;
+    }
     mostrarToque(x,'<span style="color:'+COLPK+'">▲</span> '+esc(best.n)+'<small>'+Math.round(best.e).toLocaleString("es-ES")+' m · a '+distTxt(best.dk)+'</small>');
     tTap=setTimeout(finToque,6000);pintar();return;
   }
@@ -1142,7 +1154,7 @@ function identificarToque(x,y){
   tTap=setTimeout(finToque,6000);
   pintar();
 }
-function finToque(){tapSel=null;$("toque").style.display="none";pintar()}
+function finToque(){tapSel=null;tapPico=null;$("toque").style.display="none";pintar()}
 
 var tToast=null,tCons=null;
 function avisar(txt,ms){var t=$("toast");t.textContent=txt;t.className="";void t.offsetWidth;t.className="v";clearTimeout(tToast);tToast=setTimeout(function(){t.className=""},ms||6200)}
@@ -1547,8 +1559,12 @@ function filtroSegunTipo(t){
 // posible en pantalla (distancia angular 2D), no solo el que menos se desvia en
 // horizontal. Asi una cumbre cercana que asoma muy alta no le gana a la que de
 // verdad estas apuntando. La altura aparente lleva la correccion de curvatura.
+// Pico elegido por la mira. Se guarda el anterior para no cambiar de pico con
+// cada temblor de la brújula: si el anterior sigue en la mira y no pierde por
+// mucho, se mantiene hasta 2,5 s. Así el panel grande y su etiqueta no parpadean.
+var pkSel=null,pkSelT=0;
 function picoMira(pe,hdc){
-  var best=null,bs=1e9,i,k,dd,dk,vv,sc,el,dv,tol=tolMira();
+  var best=null,bs=1e9,prev=null,prevSc=1e9,i,k,dd,dk,vv,sc,el,dv,tol=tolMira();
   var f=fEff(),vMax=Math.atan(innerHeight*0.5/f)/R+3;
   var h0=pan?pan.H0:(pos&&typeof pos.altitude==="number"&&isFinite(pos.altitude)?pos.altitude+2:null);
   for(i=0;i<PK.length;i++){
@@ -1567,11 +1583,14 @@ function picoMira(pe,hdc){
       if(dv>vMax)continue; // ni siquiera cabe en el encuadre vertical
     }
     sc=Math.sqrt(dd*dd+0.6*dv*dv)-k.e/10000; // centrado en pantalla; a igualdad, el mas alto
+    if(pkSel&&k.n===pkSel.n&&Math.abs(k.la-pkSel.la)<1e-6&&Math.abs(k.lo-pkSel.lo)<1e-6){prev={n:k.n,la:k.la,lo:k.lo,e:k.e,dk:dk};prevSc=sc}
     if(sc<bs){bs=sc;best={n:k.n,la:k.la,lo:k.lo,e:k.e,dk:dk}}
   }
+  if(best&&prev&&prev.n!==best.n&&prevSc<=bs+0.8&&Date.now()-pkSelT<2500){best=prev;bs=prevSc}
+  if(best&&(!pkSel||pkSel.n!==best.n||Math.abs(pkSel.la-best.la)>1e-6||Math.abs(pkSel.lo-best.lo)>1e-6)){pkSel={n:best.n,la:best.la,lo:best.lo,e:best.e};pkSelT=Date.now()}
   return best;
 }
-function etiquetas(pe,hdc){
+function etiquetas(pe,hdc,pm){
   var W=innerWidth,H=innerHeight,f=fEff(),med=Math.atan((W/2)/f)/R+3,c=[],i;
   var cand=enRecuadro(pe.latitude,pe.longitude,0.75,0.95);
   for(i=0;i<cand.length;i++){
@@ -1591,9 +1610,17 @@ function etiquetas(pe,hdc){
   var out=[],used=[],fc=0,fp=0,fa=0;
   // Las etiquetas no se colocan debajo del panel superior (quedarían tapadas)
   var topMin=document.body.classList.contains("on")?document.querySelector("main").getBoundingClientRect().bottom+4:0;
+  // Tampoco debajo de la pestaña de plegar (sobresale del panel) ni de la leyenda lateral
+  function obst(id){
+    var e=$(id);if(!e)return;
+    var s=getComputedStyle(e);if(s.display==="none"||s.visibility==="hidden"||parseFloat(s.opacity)===0)return;
+    var r=e.getBoundingClientRect();if(r.width>2&&r.height>2)used.push({a:r.left-3,b:r.right+3,c:r.top-3,d:r.bottom+3});
+  }
+  obst("plegar");obst("leyenda");
+  function esPm(q,p){return !!(p&&q.n===p.n&&Math.abs(q.la-p.la)<1e-6&&Math.abs(q.lo-p.lo)<1e-6)}
   function hueco(x,w,yb){
     for(var L=0;L<6;L++){
-      var y2=yb-L*34,r={a:x-w/2-3,b:x+w/2+3,c:y2-31,d:y2};
+      var y2=yb-L*36,r={a:x-w/2-3,b:x+w/2+3,c:y2-31,d:y2};
       if(r.c<topMin)break;
       if(!used.some(function(o){return r.a<o.b&&r.b>o.a&&r.c<o.d&&r.d>o.c})){used.push(r);return L}
     }
@@ -1616,7 +1643,7 @@ function etiquetas(pe,hdc){
     var y=H/2-f*Math.tan(el-pitF*R),col=colorDe(q);
     var L=hueco(lx,w,y-8);
     if(L<0){if(!q.sel&&!q.tap)continue;L=0}
-    var ty=y-8-L*34;n++;
+    var ty=y-8-L*36;n++;
     if(q.t==="city")fc=1;else if(q.t==="hamlet"||q.t==="isolated_dwelling")fa=1;else fp=1;
     if(Math.abs(lx-x)<25)out.push({k:"ln",x:Math.round(lx),y:Math.round(ty),h:Math.max(0,Math.round(y-ty)),c:col});
     out.push({k:"pt",x:Math.round(x),y:Math.round(y),c:col,sel:q.sel||q.tap});
@@ -1635,23 +1662,28 @@ function etiquetas(pe,hdc){
       if(dkk<0.5||dkk>alcance)continue;
       cp.push({n:k.n,la:k.la,lo:k.lo,e:k.e,dk:dkk,d:dd});
     }
-    cp.sort(function(a,b){return b.e-a.e});
+    // El pico de la mira (o el tocado) va primero y siempre se dibuja
+    cp.sort(function(a,b){var A=esPm(a,pm)||esPm(a,tapPico),B=esPm(b,pm)||esPm(b,tapPico);return (B?1:0)-(A?1:0)||b.e-a.e});
     var np=0;
     for(i=0;i<cp.length&&np<12;i++){
-      var m=cp[i],vv=panVis(m);
+      var m=cp[i],vv=panVis(m),esSel=esPm(m,pm)||esPm(m,tapPico);
       if(vv===null)vv=m.dk<=10;
       if(vv!==true)continue;
       var px=W/2+f*Math.tan(m.d*R),py=H/2-f*Math.tan(elev(m,m.e,m.dk)-pitF*R);
-      if(py<topMin+14||py>H-100)continue;
+      if(py<topMin+14||py>H-100){
+        if(!esSel)continue;
+        // El pico elegido puede quedar tras el panel o fuera de abajo: su nombre se ve igual
+        py=Math.max(topMin+22,Math.min(H-96,py));
+      }
       var txt='▲ '+m.n,sub=' '+Math.round(m.e).toLocaleString("es-ES")+' m · '+(m.dk<10?m.dk.toFixed(1):Math.round(m.dk))+' km',pw=Math.round(8*(txt.length+sub.length)*0.95+24);
       var lpx=Math.max(pw/2+6,Math.min(W-pw/2-6,px));
       var PL=hueco(lpx,pw,py-10);
-      if(PL<0)continue;
-      var pty=py-10-PL*34;np++;
+      if(PL<0){if(!esSel)continue;PL=0}
+      var pty=py-10-PL*36;np++;
       if(Math.abs(lpx-px)<25)out.push({k:"ln",x:Math.round(lpx),y:Math.round(pty),h:Math.max(0,Math.round(py-pty)),c:COLPK});
-      out.push({k:"pk",x:Math.round(px),y:Math.round(py)});
-      etqHit.push({n:m.n,la:m.la,lo:m.lo,e:m.e,dk:m.dk,x:lpx,y:py,ty:pty,w:pw,pico:true});
-      out.push({k:"et",x:Math.round(lpx),y:Math.round(pty),c:COLPK,html:esc(txt)+'<small>'+esc(sub)+'</small>'});
+      out.push({k:"pk",x:Math.round(px),y:Math.round(py),sel:esSel});
+      etqHit.push({n:m.n,la:m.la,lo:m.lo,e:m.e,dk:m.dk,x:lpx,y:py,ty:pty,w:pw,pico:true,sel:esSel});
+      out.push({k:"et",x:Math.round(lpx),y:Math.round(pty),c:COLPK,sel:esSel,pico:true,html:esc(txt)+'<small>'+esc(sub)+'</small>'});
     }
   }
   leyenda(fc,fp,fa,!!np);
@@ -1674,7 +1706,7 @@ function pintarEtq(out){
     if(!el){el=document.createElement(o.k==="et"?"div":"i");el.className=o.k;el._cl=o.k;cont.appendChild(el);pool.push(el)}
     n[o.k]++;
     if(el._oc){el.style.display="";el._oc=false}
-    v=o.k+(o.sel?" sel":"");
+    v=o.k+(o.sel?" sel":"")+(o.pico?" pico":"");
     if(el._cl!==v){el.className=v;el._cl=v}
     t="translate("+o.x+"px,"+o.y+"px)"+(o.k==="et"?" translate(-50%,-100%)":"");
     if(el._tr!==t){el.style.transform=t;el._tr=t}

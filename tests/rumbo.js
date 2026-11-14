@@ -58,6 +58,8 @@ function montar(frag, extra, cual) {
     TOL: 3, prec: null, R,
     sm: null, smRaw: null, smDx: 0, smT: 0, smPend: null,
     hd: 0, tp: 0, reloj: 1e6, pintados: 0,
+    pit: 0, pitF: 0, pkSel: null, pkSelT: 0,
+    estabilizar() {},
     pintar() { ctx.pintados++; },
     Date: { now() { return ctx.reloj; } },
   }, extra || {});
@@ -212,6 +214,8 @@ console.log('\nPicos: la cumbre que de verdad estás apuntando');
   else mal('mirando al horizonte eligió ' + (r ? r.n : 'ninguna') + ' (se esperaba Lejos)');
 
   picoMira.ctx.pit = 25;
+  picoMira.ctx.pitF = 25;
+  picoMira.ctx.pkSel = null;
   r = picoMira(pe, 0);
   if (r && r.n === 'Cerca') ok('si apuntas arriba (25°) gana la cumbre cercana');
   else mal('apuntando a 25° eligió ' + (r ? r.n : 'ninguna') + ' (se esperaba Cerca)');
@@ -220,6 +224,8 @@ console.log('\nPicos: la cumbre que de verdad estás apuntando');
   const p25 = picoA('Dos y medio', 2.5, 10, 100 + 10000 * Math.tan(1 * R));
   picoMira.ctx.PK = [p25];
   picoMira.ctx.pit = 1;
+  picoMira.ctx.pitF = 1;
+  picoMira.ctx.pkSel = null;
   picoMira.ctx.prec = 8;
   if (picoMira(pe, 0)) ok('con brújula de ±8° acepta un pico a 2,5° de la mira');
   else mal('con brújula de ±8° pierde un pico a 2,5°');
@@ -231,9 +237,28 @@ console.log('\nPicos: la cumbre que de verdad estás apuntando');
   // fuera del encuadre vertical
   picoMira.ctx.prec = 8;
   picoMira.ctx.pit = 0;
+  picoMira.ctx.pitF = 0;
+  picoMira.ctx.pkSel = null;
   picoMira.ctx.PK = [picoA('Muy alto', 0, 1, 100 + 1000 * Math.tan(50 * R))];
   if (!picoMira(pe, 0)) ok('descarta un pico a 50° de altura (no cabe en el encuadre)');
   else mal('acepta un pico a 50° de altura');
+
+  // histéresis: dos picos casi alineados no cambian la mira con un temblor
+  const pa = picoA('A', 0, 20, 100 + 20000 * Math.tan(1.2 * R));
+  const pb = picoA('B', 0.3, 20, 100 + 20000 * Math.tan(1.0 * R));
+  picoMira.ctx.PK = [pa, pb];
+  picoMira.ctx.prec = 3;
+  picoMira.ctx.pit = 1.1;
+  picoMira.ctx.pitF = 1.1;
+  picoMira.ctx.pkSel = { n: 'A', la: pa.la, lo: pa.lo, e: pa.e };
+  picoMira.ctx.pkSelT = picoMira.ctx.reloj;
+  let rh = picoMira(pe, 0.3);
+  if (rh && rh.n === 'A') ok('con dos picos casi alineados mantiene el elegido (histéresis)');
+  else mal('el temblor cambió de pico: ' + (rh ? rh.n : 'ninguno') + ' (se esperaba A)');
+  picoMira.ctx.reloj += 3000;
+  rh = picoMira(pe, 0.3);
+  if (rh && rh.n === 'B') ok('pasados 3 s sí cambia al pico que está más centrado');
+  else mal('pasados 3 s no cambió al pico mejor centrado: ' + (rh ? rh.n : 'ninguno'));
 }
 
 // ---------- resultado ----------

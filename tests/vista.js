@@ -112,7 +112,7 @@ function montarPico(panVis) {
     R, envolver, brg, dst, tolMira: () => 3, fEff: () => 1200,
     innerHeight: 800, alcance: 40, PK: [{ n: 'Pico', la: pico[1], lo: pico[2], e: 2000 }],
     pan: null, pos: { latitude: LA, longitude: LO, altitude: 600 },
-    pit: 0, panVis,
+    pit: 0, pitF: 0, pkSel: null, pkSelT: 0, panVis,
   };
   const fn = new Function('ctx', 'with(ctx){' + fragPico + '\nreturn picoMira;}');
   return fn(ctx)({ latitude: LA, longitude: LO }, 0);

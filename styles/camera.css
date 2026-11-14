@@ -94,6 +94,13 @@
     opacity: .9;
 }
 
+/* La etiqueta del pico elegido se rellena pero no crece: los nombres de pico
+   ya son largos y a 18 px se saldrían de la pantalla */
+.et.pico,
+.et.pico.sel {
+    font-size: 15px;
+}
+
 body.on #cam,
 body.on #mira {
     display: block;
@@ -148,6 +155,11 @@ body.on #mira {
     border-right: 8px solid transparent;
     border-bottom: 15px solid #80ed99;
     filter: drop-shadow(0 0 2px #000);
+}
+
+.pk.sel {
+    border-bottom-color: #fff;
+    filter: drop-shadow(0 0 3px #80ed99) drop-shadow(0 0 8px #80ed99);
 }
 
 /* Leyenda lateral: solo los tipos que hay en pantalla */
