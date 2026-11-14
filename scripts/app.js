@@ -2930,6 +2930,17 @@ $("a2hsBtn").onclick=function(){
   a2hsPedir();
 };
 a2hsBoton();
+// Muestra el número de versión en la portada para saber qué web se está usando
+function mostrarVersion(){
+  var v="??";try{
+    var s=document.scripts;for(var i=0;i<s.length;i++){
+      var src=s[i].src||"";var m=src.match(/app\.js\?v=([^&"']+)/);
+      if(m){v="web "+m[1];break}
+    }
+  }catch(e){}
+  var el=$("versionWeb");if(el)el.textContent=v;
+}
+mostrarVersion();
 // ---- Arranque de la interfaz ----
 (function arrancarUI(){
   // El motor ha arrancado: se quita el vigilante de "no se pudo cargar"
