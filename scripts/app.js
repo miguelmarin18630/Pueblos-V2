@@ -1553,6 +1553,11 @@ function fEff(){
 var COL={city:"#ff4d6d",town:"#ffd60a",village:"#ffd60a",hamlet:"#00e5ff",isolated_dwelling:"#00e5ff"},COLPK="#80ed99";
 // El color indica el tamaño de la localidad (ciudad / pueblo / aldea); el verde queda para los picos
 function colorDe(q){return COL[q.t]||COL.city}
+// Radio aparente de un pueblo en grados: una ciudad ocupa mucho más horizonte que una aldea
+function radPueblo(t,dk){
+  var km=t==="city"?2.5:t==="town"?1.2:t==="village"?0.6:0.35;
+  return dk>0?Math.atan(km/dk)/R:0;
+}
 // ---- Picos de montaña (OpenStreetMap, natural=peak) ----
 var PK=[],verPicos=false,pkCentro=null,pkCargando=false,pkEstado="",pkProx=0;
 // OpenStreetMap suele tener el mismo pico dos veces (dos nodos, o con nombres como «Veleta» y «Pico Veleta»).
@@ -1803,10 +1808,13 @@ function etiquetas(pe,hdc,pm){
     if(corto&&!verAldeas)continue;
     if(Math.abs(p[1]-pe.latitude)>0.75||Math.abs(p[2]-pe.longitude)>0.95)continue;
     var d=envolver(brg(pe.latitude,pe.longitude,p[1],p[2])-hdc);
-    if(Math.abs(d)>med)continue;
     var dk=dst(pe.latitude,pe.longitude,p[1],p[2]);
     if(dk<0.4||dk>alcance||(corto&&dk>12))continue;
-    c.push({n:p[0],la:p[1],lo:p[2],t:t,dk:dk,d:d,sel:!!(selVis&&selVis.n===p[0]&&Math.abs(selVis.la-p[1])<1e-6&&Math.abs(selVis.lo-p[2])<1e-6),tap:!!(tapSel&&tapSel.n===p[0]&&Math.abs(tapSel.la-p[1])<1e-6&&Math.abs(tapSel.lo-p[2])<1e-6)});
+    // Un pueblo no es un punto: ocupa una porción del horizonte. La etiqueta se mantiene
+    // mientras se vea parte de él, no solo mientras su centro esté en el encuadre.
+    var rad=radPueblo(t,dk);
+    if(Math.abs(d)-rad>med)continue;
+    c.push({n:p[0],la:p[1],lo:p[2],t:t,dk:dk,d:d,rad:rad,sel:!!(selVis&&selVis.n===p[0]&&Math.abs(selVis.la-p[1])<1e-6&&Math.abs(selVis.lo-p[2])<1e-6),tap:!!(tapSel&&tapSel.n===p[0]&&Math.abs(tapSel.la-p[1])<1e-6&&Math.abs(tapSel.lo-p[2])<1e-6)});
   }
   // El pueblo señalado por la mira va primero y siempre se dibuja
   c.sort(function(a,b){return ((b.sel||b.tap)?1:0)-((a.sel||a.tap)?1:0)||a.dk-b.dk});
@@ -1844,6 +1852,9 @@ function etiquetas(pe,hdc,pm){
     if(v===null||v===undefined)v=(pan?true:q.dk<=10);
     if(v!==true)continue;
     var x=W/2+f*Math.tan(q.d*R);
+    // Si el centro del pueblo queda fuera de la pantalla, la línea apunta al borde:
+    // así se ve hacia dónde está aunque el pueblo sea muy grande.
+    var ax=Math.max(4,Math.min(W-4,x));
     // Ancho estimado de la etiqueta (nombre + distancia) y centro limitado al borde:
     // así ninguna etiqueta se corta por la izquierda ni por la derecha.
     var nom=rotular(q.n,(q.sel||q.tap)?26:20);
@@ -1859,7 +1870,7 @@ function etiquetas(pe,hdc,pm){
     if(q.t==="city")fc=1;else if(q.t==="hamlet"||q.t==="isolated_dwelling")fa=1;else fp=1;
     // El indicador une SIEMPRE la etiqueta con el punto del pueblo, aunque la etiqueta
     // tenga que arrimarse al borde de la pantalla (antes se perdía y quedaba suelta).
-    out.push({k:"ln",x:Math.round(lx),y:Math.round(ty),h:Math.max(0,Math.round(y-ty)),dx:Math.round(x-lx),c:col});
+    out.push({k:"ln",x:Math.round(lx),y:Math.round(ty),h:Math.max(0,Math.round(y-ty)),dx:Math.round(ax-lx),c:col});
     out.push({k:"pt",x:Math.round(x),y:Math.round(y),c:col,sel:q.sel||q.tap});
     etqHit.push({n:q.n,la:q.la,lo:q.lo,t:q.t,dk:q.dk,x:lx,y:y,ty:ty,w:w});
     out.push({k:"et",x:Math.round(lx),y:Math.round(ty),c:col,sel:q.sel||q.tap,html:esc(nom)+'<small> '+(q.dk<10?q.dk.toFixed(1):Math.round(q.dk))+' km</small>'});

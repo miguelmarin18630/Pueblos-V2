@@ -186,6 +186,20 @@ const enNorte = { n: 'PUEBLO', la: LA + 10 / 111, lo: LO };
     : mal('un pueblo a 100 km no se descarta del panorama');
 }
 
+// ---------- etiquetas de pueblos grandes ----------
+{
+  const radPueblo = new Function('R', extraer('function radPueblo(', '\n}') + '\nreturn radPueblo;')(R);
+  const ciudad = radPueblo('city', 10);
+  ciudad > 13 && ciudad < 15
+    ? ok('una ciudad a 10 km ocupa ' + ciudad.toFixed(1) + '° de horizonte')
+    : mal('radio de ciudad raro: ' + ciudad);
+  const aldea = radPueblo('village', 10);
+  aldea > 3 && aldea < 3.8
+    ? ok('un pueblo a 10 km ocupa ' + aldea.toFixed(1) + '°')
+    : mal('radio de pueblo raro: ' + aldea);
+  radPueblo('city', 0) === 0 ? ok('a distancia cero no hay radio que aplicar') : mal('radio raro a distancia 0');
+}
+
 // ---------- nombres largos en las etiquetas ----------
 const rotular = new Function(extraer('function rotular(', '\n}') + '\nreturn rotular;')();
 {

@@ -305,7 +305,7 @@ else mal('los botones de la fila no se aprietan');
 
 // ---------- etiquetas ancladas al punto del pueblo ----------
 console.log('\netiquetas ancladas');
-if (/out\.push\(\{k:"ln",x:Math\.round\(lx\),y:Math\.round\(ty\),h:[\s\S]{0,90}dx:Math\.round\(x-lx\)/.test(app)) ok('la línea de unión se dibuja siempre, también al arrimar la etiqueta al borde');
+if (/out\.push\(\{k:"ln",x:Math\.round\(lx\),y:Math\.round\(ty\),h:[\s\S]{0,90}dx:Math\.round\(a?x-lx\)/.test(app)) ok('la línea de unión se dibuja siempre, también al arrimar la etiqueta al borde');
 else mal('la línea de unión desaparece cuando la etiqueta se arrima al borde');
 if (/out\.push\(\{k:"ln",x:Math\.round\(lpx\),y:Math\.round\(pty\),h:[\s\S]{0,90}dx:Math\.round\(px-lpx\)/.test(app)) ok('los picos usan la misma línea de unión');
 else mal('los picos pierden la línea de unión');
@@ -328,6 +328,15 @@ if (/if\(vv===null\|\|vv===undefined\)vv=\(pan\?true:m\.dk<=10\)/.test(app)) ok(
 else mal('el pico desaparece sin dato del panorama');
 if (/vv=panVis\(k\);if\(vv===null\|\|vv===undefined\)vv=\(pan\?true:dk<=10\)/.test(app)) ok('la mira también mantiene el pico sin dato del panorama');
 else mal('la mira descarta el pico sin dato del panorama');
+
+// ---------- un pueblo grande no es un punto ----------
+console.log('\npueblos grandes');
+if (/function radPueblo\(/.test(app)) ok('radio aparente según el tipo de lugar');
+else mal('falta radPueblo(): una ciudad se trataría como un punto');
+if (/var rad=radPueblo\(t,dk\);\s*\n?\s*if\(Math\.abs\(d\)-rad>med\)continue/.test(app)) ok('la etiqueta aguanta mientras se vea parte del pueblo');
+else mal('la etiqueta desaparece en cuanto el centro sale del encuadre');
+if (/var ax=Math\.max\(4,Math\.min\(W-4,x\)\)/.test(app)) ok('la línea apunta al borde cuando el centro queda fuera');
+else mal('la línea se va fuera de la pantalla');
 
 // ---------- estabilizador de cámara ----------
 console.log('\nestabilizador de cámara');
