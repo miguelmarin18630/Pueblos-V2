@@ -303,6 +303,23 @@ else mal('el rumbo se sigue recortando');
 if (/body\.on #buscar2,\s*body\.on #anadircam,\s*body\.on #salir\s*\{[^}]*font-size: 12px/.test(css)) ok('los botones de la fila se aprietan en pantallas estrechas');
 else mal('los botones de la fila no se aprietan');
 
+// ---------- etiquetas ancladas al punto del pueblo ----------
+console.log('\netiquetas ancladas');
+if (/out\.push\(\{k:"ln",x:Math\.round\(lx\),y:Math\.round\(ty\),h:[\s\S]{0,90}dx:Math\.round\(x-lx\)/.test(app)) ok('la línea de unión se dibuja siempre, también al arrimar la etiqueta al borde');
+else mal('la línea de unión desaparece cuando la etiqueta se arrima al borde');
+if (/out\.push\(\{k:"ln",x:Math\.round\(lpx\),y:Math\.round\(pty\),h:[\s\S]{0,90}dx:Math\.round\(px-lpx\)/.test(app)) ok('los picos usan la misma línea de unión');
+else mal('los picos pierden la línea de unión');
+if (!/Math\.abs\(lx-x\)<25/.test(app) && !/Math\.abs\(lpx-px\)<25/.test(app)) ok('ya no se descarta la línea por distancia');
+else mal('sigue el descarte de la línea por distancia');
+if (/transform-origin: 50% 0/.test(css)) ok('la línea gira sobre la etiqueta (no se despega)');
+else mal('la línea no tiene origen de giro en la etiqueta');
+if (/var rot=\(o\.k==="ln"&&o\.dx\)/.test(app)) ok('la línea puede ir en diagonal hacia el punto');
+else mal('la línea no se inclina hacia el punto');
+if (/etqNivel\[id\]/.test(app) && /nivel\[id\]=L/.test(app)) ok('cada etiqueta recuerda su altura y no salta al girar');
+else mal('las etiquetas pueden saltar de altura al girar');
+if (/if\(v===null\|\|v===undefined\)v=\(pan\?true:q\.dk<=10\)/.test(app)) ok('una etiqueta no desaparece cuando el panorama aún no sabe si se ve');
+else mal('la etiqueta desaparece al girar por falta de dato del panorama');
+
 // ---------- estabilizador de cámara ----------
 console.log('\nestabilizador de cámara');
 if (/function stabEscala\(\)/.test(app) && /function aplicarTransformCam\(\)/.test(app)) ok('estabilizador con sobreencuadre');

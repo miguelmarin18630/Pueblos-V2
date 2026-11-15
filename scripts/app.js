@@ -1793,6 +1793,9 @@ function rotular(n,max){
 }
 function etiquetas(pe,hdc,pm){
   var W=innerWidth,H=innerHeight,f=fEff(),med=Math.atan((W/2)/f)/R+3,c=[],i;
+  // Nivel de apilado de cada etiqueta en el fotograma anterior: así un nombre no salta
+  // de altura cuando entran o salen otros al girar el móvil.
+  var nivel={};
   var cand=enRecuadro(pe.latitude,pe.longitude,0.75,0.95);
   for(i=0;i<cand.length;i++){
     var p=cand[i],t=p[3]||"city",corto=(t==="hamlet"||t==="isolated_dwelling");
@@ -1819,11 +1822,15 @@ function etiquetas(pe,hdc,pm){
   }
   obst("plegar");obst("leyenda");
   function esPm(q,p){return !!(p&&q.n===p.n&&Math.abs(q.la-p.la)<1e-6&&Math.abs(q.lo-p.lo)<1e-6)}
-  function hueco(x,w,yb){
-    for(var L=0;L<6;L++){
+  function hueco(x,w,yb,id){
+    // Primero se prueba la altura que tenía esta misma etiqueta: así se queda quieta
+    var pref=(id!=null&&etqNivel[id]!=null)?etqNivel[id]:0,orden=[pref],L,j;
+    for(j=0;j<6;j++)if(j!==pref)orden.push(j);
+    for(j=0;j<orden.length;j++){
+      L=orden[j];
       var y2=yb-L*36,r={a:x-w/2-3,b:x+w/2+3,c:y2-31,d:y2};
-      if(r.c<topMin)break;
-      if(!used.some(function(o){return r.a<o.b&&r.b>o.a&&r.c<o.d&&r.d>o.c})){used.push(r);return L}
+      if(r.c<topMin)continue;
+      if(!used.some(function(o){return r.a<o.b&&r.b>o.a&&r.c<o.d&&r.d>o.c})){used.push(r);if(id!=null)nivel[id]=L;return L}
     }
     return -1;
   }
@@ -1831,10 +1838,12 @@ function etiquetas(pe,hdc,pm){
   var n=0;
   for(i=0;i<c.length&&n<14;i++){
     var q=c[i],v=(q.sel||q.tap)?true:panVis(q);
-    if(v===null)v=q.dk<=10;
+    // Solo se oculta cuando el relieve dice claramente que no se ve. Si no hay dato
+    // (elevación pendiente, o el punto se sale del panorama mientras se gira) la
+    // etiqueta se mantiene: antes desaparecía y volvía a aparecer al girar.
+    if(v===null||v===undefined)v=(pan?true:q.dk<=10);
     if(v!==true)continue;
-    var relRumbo = ((brg(pos.latitude, pos.longitude, q.la, q.lo) - hdc + 540) % 360 - 180);
-var x = W/2 + f * Math.tan(q.d * R * (relRumbo > 0 ? 1 : -1));
+    var x=W/2+f*Math.tan(q.d*R);
     // Ancho estimado de la etiqueta (nombre + distancia) y centro limitado al borde:
     // así ninguna etiqueta se corta por la izquierda ni por la derecha.
     var nom=rotular(q.n,(q.sel||q.tap)?26:20);
@@ -1844,11 +1853,13 @@ var x = W/2 + f * Math.tan(q.d * R * (relRumbo > 0 ? 1 : -1));
     var lx=Math.max(w/2+6,Math.min(W-w/2-6,x));
     var e=elevC[ek(q)],el=(pan&&typeof e==="number")?Math.atan2(e+10-pan.H0-Math.pow(q.dk*1000,2)/14.6e6,q.dk*1000):0;
     var y=H/2-f*Math.tan(el-pitF*R),col=colorDe(q);
-    var L=hueco(lx,w,y-8);
+    var L=hueco(lx,w,y-8,q.n+"|"+q.la+"|"+q.lo);
     if(L<0){if(!q.sel&&!q.tap)continue;L=0}
     var ty=y-8-L*36;n++;
     if(q.t==="city")fc=1;else if(q.t==="hamlet"||q.t==="isolated_dwelling")fa=1;else fp=1;
-    if(Math.abs(lx-x)<25)out.push({k:"ln",x:Math.round(lx),y:Math.round(ty),h:Math.max(0,Math.round(y-ty)),c:col});
+    // El indicador une SIEMPRE la etiqueta con el punto del pueblo, aunque la etiqueta
+    // tenga que arrimarse al borde de la pantalla (antes se perdía y quedaba suelta).
+    out.push({k:"ln",x:Math.round(lx),y:Math.round(ty),h:Math.max(0,Math.round(y-ty)),dx:Math.round(x-lx),c:col});
     out.push({k:"pt",x:Math.round(x),y:Math.round(y),c:col,sel:q.sel||q.tap});
     etqHit.push({n:q.n,la:q.la,lo:q.lo,t:q.t,dk:q.dk,x:lx,y:y,ty:ty,w:w});
     out.push({k:"et",x:Math.round(lx),y:Math.round(ty),c:col,sel:q.sel||q.tap,html:esc(nom)+'<small> '+(q.dk<10?q.dk.toFixed(1):Math.round(q.dk))+' km</small>'});
@@ -1880,18 +1891,21 @@ var x = W/2 + f * Math.tan(q.d * R * (relRumbo > 0 ? 1 : -1));
       }
       var txt='▲ '+rotular(m.n,esSel?26:20),sub=' '+Math.round(m.e).toLocaleString("es-ES")+' m · '+(m.dk<10?m.dk.toFixed(1):Math.round(m.dk))+' km',pw=Math.round(8*(txt.length+sub.length)*0.95+24);
       var lpx=Math.max(pw/2+6,Math.min(W-pw/2-6,px));
-      var PL=hueco(lpx,pw,py-10);
+      var PL=hueco(lpx,pw,py-10,m.n+"|"+m.la+"|"+m.lo);
       if(PL<0){if(!esSel)continue;PL=0}
       var pty=py-10-PL*36;np++;
-      if(Math.abs(lpx-px)<25)out.push({k:"ln",x:Math.round(lpx),y:Math.round(pty),h:Math.max(0,Math.round(py-pty)),c:COLPK});
+      out.push({k:"ln",x:Math.round(lpx),y:Math.round(pty),h:Math.max(0,Math.round(py-pty)),dx:Math.round(px-lpx),c:COLPK});
       out.push({k:"pk",x:Math.round(px),y:Math.round(py),sel:esSel});
       etqHit.push({n:m.n,la:m.la,lo:m.lo,e:m.e,dk:m.dk,x:lpx,y:py,ty:pty,w:pw,pico:true,sel:esSel});
       out.push({k:"et",x:Math.round(lpx),y:Math.round(pty),c:COLPK,sel:esSel,pico:true,html:esc(txt)+'<small>'+esc(sub)+'</small>'});
     }
   }
+  etqNivel=nivel;
   leyenda(fc,fp,fa,!!np);
   pintarEtq(out);
 }
+// Altura de apilado que tenía cada etiqueta en el fotograma anterior
+var etqNivel={};
 var legC="";
 // La leyenda solo muestra los tipos de localidad que hay dibujados en este momento (y los picos si se ven)
 function leyenda(c,p,a,k){
@@ -1911,10 +1925,13 @@ function pintarEtq(out){
     if(el._oc){el.style.display="";el._oc=false}
     v=o.k+(o.sel?" sel":"")+(o.pico?" pico":"");
     if(el._cl!==v){el.className=v;el._cl=v}
-    t="translate("+o.x+"px,"+o.y+"px)"+(o.k==="et"?" translate(-50%,-100%)":"");
+    // La línea de unión puede ir en diagonal cuando la etiqueta se arrima al borde
+    var rot=(o.k==="ln"&&o.dx)?" rotate("+(Math.round(Math.atan2(-o.dx,o.h)*1800/Math.PI)/10)+"deg)":"";
+    t="translate("+o.x+"px,"+o.y+"px)"+rot+(o.k==="et"?" translate(-50%,-100%)":"");
     if(el._tr!==t){el.style.transform=t;el._tr=t}
     if(o.k==="ln"){
-      if(el._h!==o.h){el.style.height=o.h+"px";el._h=o.h}
+      var hl=o.dx?Math.round(Math.sqrt(o.h*o.h+o.dx*o.dx)):o.h;
+      if(el._h!==hl){el.style.height=hl+"px";el._h=hl}
       if(el._co!==o.c){el.style.background=o.c;el._co=o.c}
     }else if(o.k==="pt"){
       if(el._co!==o.c){el.style.background=o.c;el._co=o.c}
@@ -1929,7 +1946,7 @@ function pintarEtq(out){
 function ocultarSobrantes(n){
   for(var k in etqPool){var pool=etqPool[k],used=n?n[k]:0;for(var i=used;i<pool.length;i++){if(!pool[i]._oc){pool[i].style.display="none";pool[i]._oc=true}}}
 }
-function limpiarEtq(){etqHit=[];ocultarSobrantes(null);leyenda(0,0,0,0)}
+function limpiarEtq(){etqHit=[];etqNivel={};ocultarSobrantes(null);leyenda(0,0,0,0)}
 // ---- Alinear la brújula con el horizonte ----
 function skyline(g,w,h){
   var E=[],x,y,k,lim=Math.floor(h*0.85);

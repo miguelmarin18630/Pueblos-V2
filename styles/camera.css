@@ -143,6 +143,9 @@ body.on #mira {
     position: absolute;
     width: 2px;
     margin-left: -1px;
+    /* La línea gira sobre su extremo superior, pegado a la etiqueta, para que
+       nunca se separe del punto del pueblo al arrimarse la etiqueta al borde */
+    transform-origin: 50% 0;
     opacity: .85;
 }
 
