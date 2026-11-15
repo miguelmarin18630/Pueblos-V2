@@ -577,6 +577,27 @@ body.on #estado {
     margin: 8px 0 0;
 }
 
+#cal .fovl {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-top: 14px;
+    font-size: 14px;
+}
+
+#cal .fovl b {
+    color: #00f5d4;
+    font-size: 20px;
+}
+
+#cal #fovr {
+    width: 100%;
+    margin: 10px 0 4px;
+    accent-color: #00f5d4;
+    min-height: 40px;
+}
+
 /* ================= Guía ================= */
 #guia {
     display: none;

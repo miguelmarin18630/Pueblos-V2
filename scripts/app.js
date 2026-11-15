@@ -278,9 +278,10 @@ function actualizarEstado(){
   else if(prec!==null&&prec>20)b=["av","Brújula ⚠ ±"+Math.round(prec)+"°"];
   else b=["ok","Brújula ✓"+(prec!==null?" ±"+Math.round(prec)+"°":"")];
   if(prec!==null&&(prec<0||prec>20))ocho8=false;
-  // Verde si la brújula está bien (calibrada, o precisa sin necesidad de calibrar); ámbar «Sin calibrar» si hace falta; gris si el móvil no informa de la precisión
+  // Verde si la brújula está bien (calibrada, o precisa sin necesidad de calibrar); ámbar «Sin calibrar»
+  // si hay datos de brújula pero falta calibrar; gris solo mientras aún no llega ningún dato.
   var calOk=!!(off||Object.keys(tab).length||ocho8),imprecisa=prec!==null&&(prec<0||prec>20);
-  c=calOk?["ok","Calibrada ✓"]:imprecisa?["av","Sin calibrar"]:prec!==null?["ok","Calibración ✓"]:["n","Calibración …"];
+  c=calOk?["ok","Calibrada ✓"]:oriN===0?["n","Calibración …"]:imprecisa||prec===null?["av","Sin calibrar"]:["ok","Calibración ✓"];
   var k=g.join()+b.join()+c.join();
   if(k===estC)return;
   estC=k;
@@ -307,7 +308,8 @@ function pintarYa(){
   var av=[];
   if(prec!==null){if(prec<0)av.push("Brújula sin calibrar: dibuja un 8 con el móvil.");else if(prec>20)av.push("Brújula poco precisa (±"+Math.round(prec)+"°): dibuja un 8 con el móvil.")}
   var nT=Object.keys(tab).length;
-  if(off||nT)av.push("Calibrada: "+fmtOff(offPara(hd))+(nT?" ("+nT+" de 8 direcciones)":""));
+  if(!off&&!nT&&!ocho8&&oriN>10)av.push("Brújula sin calibrar: si el rumbo va desviado, usa «Calibrar».");
+  if(off||nT)av.push("Calibrada: "+fmtOff(offPara(hd))+(nT?" ("+nT+" de 8 direcciones)":"")+" · declinación "+fmtDec(declinacion()));
   if(!modoCoche&&Date.now()-autoT<5000)av.push("Brújula afinada con el GPS ("+fmtOff(offPara(hd))+").");
   if(modoCoche)av.push("🚗 Modo coche: que lo use el acompañante."+(Date.now()-autoT<5000?" Brújula corregida con el GPS ("+fmtOff(offPara(hd))+").":""));
   if(hzAuto&&Date.now()-hzT<8000)av.push("📷 Rumbo corregido con el horizonte ("+fmtOff(hzPara(hd))+", confianza "+Math.round(hzConf*100)+"%).");
@@ -850,6 +852,8 @@ $("calbtn").onclick=function(){
   $("calsel").innerHTML=calList.map(function(p,i){return '<option value="'+i+'">'+esc(p.n)+' · '+p.k.toFixed(0)+' km</option>'}).join("");
   calAnd=null;cal2={b:null,o:null};$("calst").textContent="";
   calVista(0);
+  var cd=declinacion();
+  $("caldecl").textContent="Declinación magnética (WMM2025): "+fmtDec(cd)+". Se aplica sola al rumbo.";
   $("cal").style.display="block";
   ajustarMira();
 };
@@ -866,24 +870,163 @@ function ajustarMira(){
 if(window.ResizeObserver)new ResizeObserver(ajustarMira).observe($("cal"));
 window.addEventListener("resize",ajustarMira);
 function calVista(v){
-  ["calmenu","calv1","calv2","calv3","calv4"].forEach(function(id,i){$(id).style.display=(i===v)?"block":"none"});
+  ["calmenu","calv1","calv2","calv3","calv4","calv5"].forEach(function(id,i){$(id).style.display=(i===v)?"block":"none"});
+  if(v===5){$("fovr").value=String(Math.round(FOVL*10)/10);$("fovv").textContent=fmtFov(FOVL)}
   $("cal").className=v===0?"menu":"";
   ajustarMira();
   ochoActivo=(v===3);
   calAnd=null;cal2={b:null,o:null};$("calst").textContent="";
   if(v===3)actOcho();
 }
-[1,2,3,4].forEach(function(n){$("cm"+n).onclick=function(){calVista(n)}});
+[1,2,3,4,5].forEach(function(n){$("cm"+n).onclick=function(){calVista(n)}});
 [].forEach.call(document.querySelectorAll("#cal .cback"),function(b){b.onclick=function(){calVista(0)}});
 var calAnd=null,cal2={b:null,o:null};
 calVista(0);
+$("fovr").oninput=function(){fijarFov(parseFloat(this.value))};
+$("fovdef").onclick=function(){fijarFov(FOVDEF)};
 function envolver(x){return ((x%360)+540)%360-180}
 function fmtOff(o){return (o>0?"+":"")+Math.round(o)+"°"}
+function fmtDec(o){return (o>0?"+":"")+o.toFixed(1).replace(".",",")+"°"}
+// ---- Declinación magnética: modelo WMM2025 de la NOAA (válido 2025–2030) ----
+// La brújula del móvil da el norte magnético y los pueblos se miden respecto al
+// norte geográfico. Hasta ahora el desfase se aprendía con el GPS; ahora se aplica
+// el modelo WMM2025, que en España vale entre +0,4° y +1,1° (2025–2030).
+// Coeficientes g/h del modelo principal y su variación anual (nT y nT/año).
+var WMM_G=[
+[0,0,0,0,0,0,0,0,0,0,0,0,0],
+[-29351.8,-1410.8,0,0,0,0,0,0,0,0,0,0,0],
+[-2556.6,2951.1,1649.3,0,0,0,0,0,0,0,0,0,0],
+[1361.0,-2404.1,1243.8,453.6,0,0,0,0,0,0,0,0,0],
+[895.0,799.5,55.7,-281.1,12.1,0,0,0,0,0,0,0,0],
+[-233.2,368.9,187.2,-138.7,-142.0,20.9,0,0,0,0,0,0,0],
+[64.4,63.8,76.9,-115.7,-40.9,14.9,-60.7,0,0,0,0,0,0],
+[79.5,-77.0,-8.8,59.3,15.8,2.5,-11.1,14.2,0,0,0,0,0],
+[23.2,10.8,-17.5,2.0,-21.7,16.9,15.0,-16.8,0.9,0,0,0,0],
+[4.6,7.8,3.0,-0.2,-2.5,-13.1,2.4,8.6,-8.7,-12.9,0,0,0],
+[-1.3,-6.4,0.2,2.0,-1.0,-0.6,-0.9,1.5,0.9,-2.7,-3.9,0,0],
+[2.9,-1.5,-2.5,2.4,-0.6,-0.1,-0.6,-0.1,1.1,-1.0,-0.2,2.6,0],
+[-2.0,-0.2,0.3,1.2,-1.3,0.6,0.6,0.5,-0.1,-0.4,-0.2,-1.3,-0.7]
+];
+var WMM_H=[
+[0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,4545.4,0,0,0,0,0,0,0,0,0,0,0],
+[0,-3133.6,-815.1,0,0,0,0,0,0,0,0,0,0],
+[0,-56.6,237.5,-549.5,0,0,0,0,0,0,0,0,0],
+[0,278.6,-133.9,212.0,-375.6,0,0,0,0,0,0,0,0],
+[0,45.4,220.2,-122.9,43.0,106.1,0,0,0,0,0,0,0],
+[0,-18.4,16.8,48.8,-59.8,10.9,72.7,0,0,0,0,0,0],
+[0,-48.9,-14.4,-1.0,23.4,-7.4,-25.1,-2.3,0,0,0,0,0],
+[0,7.1,-12.6,11.4,-9.7,12.7,0.7,-5.2,3.9,0,0,0,0],
+[0,-24.8,12.2,8.3,-3.3,-5.2,7.2,-0.6,0.8,10.0,0,0,0],
+[0,3.3,0.0,2.4,5.3,-9.1,0.4,-4.2,-3.8,0.9,-9.1,0,0],
+[0,0,2.9,-0.6,0.2,0.5,-0.3,-1.2,-1.7,-2.9,-1.8,-2.3,0],
+[0,-1.3,0.7,1.0,-1.4,0.0,0.6,-0.1,0.8,0.1,-1.0,0.1,0.2]
+];
+var WMM_DG=[
+[0,0,0,0,0,0,0,0,0,0,0,0,0],
+[12.0,9.7,0,0,0,0,0,0,0,0,0,0,0],
+[-11.6,-5.2,-8.0,0,0,0,0,0,0,0,0,0,0],
+[-1.3,-4.2,0.4,-15.6,0,0,0,0,0,0,0,0,0],
+[-1.6,-2.4,-6.0,5.6,-7.0,0,0,0,0,0,0,0,0],
+[0.6,1.4,0.0,0.6,2.2,0.9,0,0,0,0,0,0,0],
+[-0.2,-0.4,0.9,1.2,-0.9,0.3,0.9,0,0,0,0,0,0],
+[-0,-0.1,-0.1,0.5,-0.1,-0.8,-0.8,0.8,0,0,0,0,0],
+[-0.1,0.2,0.0,0.5,-0.1,0.3,0.2,-0,0.2,0,0,0,0],
+[-0,-0.1,0.1,0.3,-0.3,0,0.3,-0.1,0.1,-0.1,0,0,0],
+[0.1,0.0,0.1,0.1,-0,-0.3,0,-0.1,-0.1,-0,-0,0,0],
+[0,-0,0,0,0,-0.1,0,-0,-0.1,-0.1,-0.1,-0.1,0],
+[0,0,-0,-0,-0,-0,0.1,-0,0,0,-0.1,-0,-0.1]
+];
+var WMM_DH=[
+[0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,-21.5,0,0,0,0,0,0,0,0,0,0,0],
+[0,-27.7,-12.1,0,0,0,0,0,0,0,0,0,0],
+[0,4.0,-0.3,-4.1,0,0,0,0,0,0,0,0,0],
+[0,-1.1,4.1,1.6,-4.4,0,0,0,0,0,0,0,0],
+[0,-0.5,2.2,0.4,1.7,1.9,0,0,0,0,0,0,0],
+[0,0.3,-1.6,-0.4,0.9,0.7,0.9,0,0,0,0,0,0],
+[0,0.6,0.5,-0.8,0.0,-1.0,0.6,-0.2,0,0,0,0,0],
+[0,-0.2,0.5,-0.4,0.4,-0.5,-0.6,0.3,0.2,0,0,0,0],
+[0,-0.3,0.3,-0.3,0.3,0.2,-0.1,-0.2,0.4,0.1,0,0,0],
+[0,0,-0,-0.2,0.1,-0.1,0.1,0.0,-0.1,0.2,-0,0,0],
+[0,-0,0.1,-0,0.1,-0,-0,0.1,-0,0,0,0,0],
+[0,-0,0,-0.1,0.1,-0,-0,-0,0,-0,-0,0,-0.1]
+];
+// Tablas de Legendre y sus derivadas (se calculan una sola vez)
+var wmmP=[],wmmDP=[],wmmRoot=[],wmmRoots=[];
+(function(){
+  var n,m,mm;
+  for(n=0;n<=12;n++){wmmP.push(new Array(13).fill(0));wmmDP.push(new Array(13).fill(0));wmmRoot.push(0);wmmRoots.push([])}
+  for(n=2;n<=12;n++)wmmRoot[n]=Math.sqrt((2*n-1)/(2*n));
+  for(m=0;m<=12;m++){mm=m*m;for(n=Math.max(m+1,2);n<=12;n++)wmmRoots[m][n]=[Math.sqrt((n-1)*(n-1)-mm),1/Math.sqrt(n*n-mm)]}
+})();
+function wmmDecl(la,lo,hkm,anio){
+  var RAD=Math.PI/180,MAX=12,yf=Math.max(0,Math.min(5,anio-2025));
+  var lat=la*RAD,lon=lo*RAD,sl=Math.sin(lat),cl=Math.cos(lat);
+  var a=6378.137,b=6356.7523142,r0=6371.2;
+  var sr=Math.sqrt(a*a*cl*cl+b*b*sl*sl);
+  var th=Math.atan2(cl*(hkm*sr+a*a),sl*(hkm*sr+b*b));
+  var r=Math.sqrt(hkm*hkm+2*hkm*sr+(a*a*a*a-(a*a*a*a-b*b*b*b)*sl*sl)/(a*a-(a*a-b*b)*sl*sl));
+  var c=Math.cos(th),s=Math.sin(th),invS=1/(s||1e-8),n,m;
+  var P=wmmP,DP=wmmDP;
+  P[0][0]=1;P[1][1]=s;DP[0][0]=0;DP[1][1]=c;P[1][0]=c;DP[1][0]=-s;
+  for(n=2;n<=MAX;n++){
+    P[n][n]=P[n-1][n-1]*s*wmmRoot[n];
+    DP[n][n]=(DP[n-1][n-1]*s+P[n-1][n-1]*c)*wmmRoot[n];
+  }
+  for(m=0;m<=MAX;m++)for(n=Math.max(m+1,2);n<=MAX;n++){
+    var q=wmmRoots[m][n];
+    P[n][m]=(P[n-1][m]*c*(2*n-1)-P[n-2][m]*q[0])*q[1];
+    DP[n][m]=((DP[n-1][m]*c-P[n-1][m]*s)*(2*n-1)-DP[n-2][m]*q[0])*q[1];
+  }
+  var sm=[],cm=[];
+  for(m=0;m<=MAX;m++){sm[m]=Math.sin(m*lon);cm[m]=Math.cos(m*lon)}
+  var BR=0,BTH=0,BPHI=0,fn0=r0/r,fn=fn0*fn0;
+  for(n=1;n<=MAX;n++){
+    var c1=0,c2=0,c3=0;
+    for(m=0;m<=n;m++){
+      var g=WMM_G[n][m]+yf*WMM_DG[n][m],h=WMM_H[n][m]+yf*WMM_DH[n][m];
+      var tmp=g*cm[m]+h*sm[m];
+      c1+=tmp*P[n][m];c2+=tmp*DP[n][m];c3+=m*(g*sm[m]-h*cm[m])*P[n][m];
+    }
+    fn*=fn0;BR+=(n+1)*c1*fn;BTH-=c2*fn;BPHI+=c3*fn*invS;
+  }
+  var psi=th-(Math.PI/2-lat),x=-BTH*Math.cos(psi)-BR*Math.sin(psi),y=BPHI;
+  return Math.atan2(y,x)/RAD;
+}
+var declV=0,declLa=999,declLo=999,declAl=999,declT=0;
+// Declinación en grados (positiva al este). Se recalcula al cambiar de zona o
+// cada hora: el modelo varía muy despacio y así no se repite en cada fotograma.
+function declinacion(){
+  if(!pos)return 0;
+  var ahora=Date.now(),la=Math.round(pos.latitude*100)/100,lo=Math.round(pos.longitude*100)/100,al=Math.round((pos.altitude||0)/10)*10;
+  if(ahora-declT<3600000&&la===declLa&&lo===declLo&&al===declAl)return declV;
+  declLa=la;declLo=lo;declAl=al;declT=ahora;
+  var d=new Date(),y=d.getUTCFullYear();
+  var anio=y+(Date.UTC(y,d.getUTCMonth(),d.getUTCDate())-Date.UTC(y,0,1))/86400000/365.25;
+  declV=Math.round(wmmDecl(la,lo,al/1000,anio)*10)/10;
+  return declV;
+}
+// Las calibraciones guardadas por versiones anteriores ya llevaban dentro la
+// declinación: se descuenta una vez para no contarla dos veces.
+function migrarDecl(){
+  try{
+    if(localStorage.getItem("decl2025"))return;
+    if(!pos)return;
+    var d=declinacion();
+    if(off||Object.keys(tab).length){
+      off=envolver(off-d);
+      Object.keys(tab).forEach(function(k){tab[k].o=envolver(tab[k].o-d)});
+      guardarOff();
+    }
+    localStorage.setItem("decl2025","1");
+  }catch(e){}
+}
 function finCal(txt){hzOff=0;hzPrev=null;guardarOff();$("calst").textContent=txt;pintar()}
 $("calok").onclick=function(){
   var t=calList[+$("calsel").value];if(!t||!pos)return;
   calAnd=null;
-  var b=brg(pos.latitude,pos.longitude,t.la,t.lo),o=envolver(b-hd);
+  var b=brg(pos.latitude,pos.longitude,t.la,t.lo),o=envolver(b-hd-declinacion());
   if(!$("cal2").checked){off=o;ponerTab(hd,o);cal2={b:null,o:null};finCal("✓ Calibrado ("+fmtOff(o)+")");return}
   if(cal2.o===null){
     cal2={b:b,o:o,h:hd};
@@ -919,7 +1062,7 @@ function calAndar(c){
   var b=brg(calAnd.la,calAnd.lo,c.latitude,c.longitude);
   calAnd=null;
   if(mal>25){$("calst").textContent="El móvil se movió demasiado (±"+Math.round(mal)+"°). Inténtalo de nuevo apuntando siempre hacia delante.";return}
-  off=envolver(b-media);ponerTab(media,off);
+  off=envolver(b-media-declinacion());ponerTab(media,off);
   finCal("✓ Calibrado andando ("+fmtOff(off)+")");
 }
 $("calreset").onclick=function(){off=0;tab={};ocho8=false;calAnd=null;cal2={b:null,o:null};finCal("Calibración quitada")};
@@ -938,7 +1081,7 @@ function actualizarMarcha(c){
   // Solo si vas a más de 18 km/h, el móvil está quieto y apunta casi hacia delante (menos de 20° de diferencia).
   hdH.push(hd);if(hdH.length>3)hdH.shift();
   if(rumboGPS!==null&&v>=5&&Math.abs(pit)<30&&hdH.length===3&&maxDif(hdH)<=8){
-    var base=offPara(hd),d=envolver(rumboGPS-(hd+base+360)%360);
+    var base=offPara(hd),d=envolver(rumboGPS-(hd+base+declinacion()+360)%360);
     if(Math.abs(d)<=20){
       var k=Math.round(hd/45)%8;
       tab[k]={o:envolver(base+0.15*d),n:(tab[k]?tab[k].n:0)+1};
@@ -1195,19 +1338,23 @@ function cerrarAyuda(){
 }
 $("vconsejos").onclick=abrirAyuda;
 $("ayudaCerrar").onclick=cerrarAyuda;
-$("descargarGuia").onclick=function(){
-  try{
-    var a=document.createElement("a");
-    a.href="docs/guia-pueblos.pdf";a.download="Guia-Que-Pueblo-Es.pdf";a.rel="noopener";
-    document.body.appendChild(a);a.click();a.remove();
-    avisar("Descargando la guía en PDF…",4000);
-  }catch(e){}
-};
 window.addEventListener("message",function(e){if(e&&e.data&&e.data.tipo==="cerrar-ayuda")cerrarAyuda()});
 document.addEventListener("keydown",function(e){if(e.key==="Escape")cerrarAyuda()});
 ["gesturestart","gesturechange","gestureend"].forEach(function(n){document.addEventListener(n,function(e){if(document.body.classList.contains("on"))e.preventDefault()},{passive:false})});
 // ---- Panorama del terreno: relieve en abanico de ±45° y hasta 80 km ----
-var pan=null,panEnCurso=false,panBloq=0,elevC={},colaE={},pidiendoE=false,FOVL=69.4;
+var pan=null,panEnCurso=false,panBloq=0,elevC={},colaE={},pidiendoE=false,FOVL=69.4,FOVDEF=69.4;
+// El campo de visión real cambia con el móvil y con el recorte del vídeo: se puede
+// ajustar en «Calibrar → Campo de visión» y se guarda en el móvil.
+try{var fovG=parseFloat(localStorage.getItem("fov"));if(fovG>=45&&fovG<=95)FOVL=fovG}catch(e){}
+function fmtFov(v){return v.toFixed(1).replace(".",",")+"°"}
+function fijarFov(v){
+  if(!isFinite(v))return;
+  FOVL=Math.max(45,Math.min(95,v));
+  try{localStorage.setItem("fov",String(FOVL))}catch(e){}
+  if($("fovv"))$("fovv").textContent=fmtFov(FOVL);
+  if($("fovr"))$("fovr").value=String(Math.round(FOVL*10)/10);
+  pintar();
+}
 var selVis=null;
 var DS=[0.3,0.6,1,1.5,2,2.5,3,4,5,6,7,8,9,10,12,14,16,18,20,23,26,29,32,35,40,48,56,64,72,80];
 // Alcance normal 40 km; el interruptor 🔭 lo amplía a 80 km (pide solo los puntos lejanos que falten)
@@ -1617,6 +1764,15 @@ function picoMira(pe,hdc){
   if(best&&(!pkSel||pkSel.n!==best.n||Math.abs(pkSel.la-best.la)>1e-6||Math.abs(pkSel.lo-best.lo)>1e-6)){pkSel={n:best.n,la:best.la,lo:best.lo,e:best.e};pkSelT=Date.now()}
   return best;
 }
+// Los nombres muy largos no caben en una etiqueta: se cortan por palabra completa.
+// El nombre entero sigue en el panel y al tocar (etqHit guarda el original).
+function rotular(n,max){
+  n=String(n||"").trim();
+  if(n.length<=max)return n;
+  var c=n.slice(0,max+1),sp=c.lastIndexOf(" ");
+  c=sp>=Math.floor(max*0.55)?n.slice(0,sp):n.slice(0,max);
+  return c.replace(/[\s,;:.\-–—]+$/,"")+"…";
+}
 function etiquetas(pe,hdc,pm){
   var W=innerWidth,H=innerHeight,f=fEff(),med=Math.atan((W/2)/f)/R+3,c=[],i;
   var cand=enRecuadro(pe.latitude,pe.longitude,0.75,0.95);
@@ -1662,8 +1818,9 @@ function etiquetas(pe,hdc,pm){
     var x=W/2+f*Math.tan(q.d*R);
     // Ancho estimado de la etiqueta (nombre + distancia) y centro limitado al borde:
     // así ninguna etiqueta se corta por la izquierda ni por la derecha.
+    var nom=rotular(q.n,(q.sel||q.tap)?26:20);
     var dtx=(q.dk<10?q.dk.toFixed(1):Math.round(q.dk))+" km";
-    var w=Math.round(8.5*q.n.length+6.5*dtx.length+34);
+    var w=Math.round(8.5*nom.length+6.5*dtx.length+34);
     if(q.sel||q.tap)w=Math.round(w*1.2); // la etiqueta seleccionada usa 18 px
     var lx=Math.max(w/2+6,Math.min(W-w/2-6,x));
     var e=elevC[ek(q)],el=(pan&&typeof e==="number")?Math.atan2(e+10-pan.H0-Math.pow(q.dk*1000,2)/14.6e6,q.dk*1000):0;
@@ -1675,7 +1832,7 @@ function etiquetas(pe,hdc,pm){
     if(Math.abs(lx-x)<25)out.push({k:"ln",x:Math.round(lx),y:Math.round(ty),h:Math.max(0,Math.round(y-ty)),c:col});
     out.push({k:"pt",x:Math.round(x),y:Math.round(y),c:col,sel:q.sel||q.tap});
     etqHit.push({n:q.n,la:q.la,lo:q.lo,t:q.t,dk:q.dk,x:lx,y:y,ty:ty,w:w});
-    out.push({k:"et",x:Math.round(lx),y:Math.round(ty),c:col,sel:q.sel||q.tap,html:esc(q.n)+'<small> '+(q.dk<10?q.dk.toFixed(1):Math.round(q.dk))+' km</small>'});
+    out.push({k:"et",x:Math.round(lx),y:Math.round(ty),c:col,sel:q.sel||q.tap,html:esc(nom)+'<small> '+(q.dk<10?q.dk.toFixed(1):Math.round(q.dk))+' km</small>'});
   }
   // Picos de montaña visibles (los más altos primero)
   if(verPicos&&PK.length&&pan){
@@ -1702,7 +1859,7 @@ function etiquetas(pe,hdc,pm){
         // El pico elegido puede quedar tras el panel o fuera de abajo: su nombre se ve igual
         py=Math.max(topMin+22,Math.min(H-96,py));
       }
-      var txt='▲ '+m.n,sub=' '+Math.round(m.e).toLocaleString("es-ES")+' m · '+(m.dk<10?m.dk.toFixed(1):Math.round(m.dk))+' km',pw=Math.round(8*(txt.length+sub.length)*0.95+24);
+      var txt='▲ '+rotular(m.n,esSel?26:20),sub=' '+Math.round(m.e).toLocaleString("es-ES")+' m · '+(m.dk<10?m.dk.toFixed(1):Math.round(m.dk))+' km',pw=Math.round(8*(txt.length+sub.length)*0.95+24);
       var lpx=Math.max(pw/2+6,Math.min(W-pw/2-6,px));
       var PL=hueco(lpx,pw,py-10);
       if(PL<0){if(!esSel)continue;PL=0}
@@ -1828,7 +1985,7 @@ $("calhor").onclick=function(){
 var hzAuto=true,hzSil=usarRelieve,hzOff=0,hzH=0,hzT=0,hzConf=0,hzPrev=null,hzDet=null;
 // La corrección vale entera cerca del rumbo donde se midió y se desvanece al girar más de 30° (a 90° ya no cuenta)
 function hzPara(h){if(!hzAuto||!hzOff)return 0;var d=dif(h,hzH);return d<=30?hzOff:d>=90?0:hzOff*(90-d)/60}
-function rumboC(){return (hd+offPara(hd)+hzPara(hd)+720)%360}
+function rumboC(){return (hd+offPara(hd)+hzPara(hd)+declinacion()+720)%360}
 function horizonteAuto(){
   if(!hzAuto||!pos||!pan||panEnCurso||modoCoche||document.hidden||!document.body.classList.contains("on"))return;
   if($("cal").style.display==="block"||zoom>1.05||pit<-25||pit>15)return;
@@ -2152,7 +2309,7 @@ function pedirUbicacionParaBuscar(){
   if(typeof navigator.geolocation==="undefined"||!navigator.geolocation.getCurrentPosition)return;
   try{
     navigator.geolocation.getCurrentPosition(function(p){
-      pos=p.coords;ultimaPos=pos;posT=Date.now();guardarPosUbic(pos);
+      pos=p.coords;ultimaPos=pos;posT=Date.now();guardarPosUbic(pos);migrarDecl();
       if($("buscar").style.display==="flex"){
         llenarBuscarLista($("buscarTexto").value);
         avisar("📍 Búsqueda filtrada a "+BUSCAR_KM+" km a tu alrededor.",3500);
@@ -2850,7 +3007,7 @@ async function iniciar2(){
     if(p0.aproximada)aproximada=true;
   }
   (function(p){
-    pos=p.coords;ultimaPos=pos;posT=Date.now();guardarPosUbic(pos);posAprox=aproximada;$("go").style.display="none";$("msg").textContent="Ubicación obtenida.";
+    pos=p.coords;ultimaPos=pos;posT=Date.now();guardarPosUbic(pos);migrarDecl();posAprox=aproximada;$("go").style.display="none";$("msg").textContent="Ubicación obtenida.";
     // Al iniciar la localización, la corrección con el horizonte y el afinar sola
     // arrancan siempre desde cero (ya no dependen de ajustes opcionales).
     hzAuto=true;hzOff=0;hzPrev=null;
@@ -2864,7 +3021,7 @@ async function iniciar2(){
     }
     // Sigue tu posición y recarga los pueblos al alejarte 30 km de la última descarga
     watchId=navigator.geolocation.watchPosition(function(q){
-      pos=q.coords;ultimaPos=pos;posT=Date.now();guardarPosUbic(pos);actualizarMarcha(q.coords);calAndar(q.coords);
+      pos=q.coords;ultimaPos=pos;posT=Date.now();guardarPosUbic(pos);migrarDecl();actualizarMarcha(q.coords);calAndar(q.coords);
       if(!ultimo||dst(pos.latitude,pos.longitude,ultimo.la,ultimo.lo)>30)masPueblos();
       if(verPicos)cargarPicos();
     },function(e){

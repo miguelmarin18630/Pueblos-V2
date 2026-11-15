@@ -173,7 +173,7 @@
 </script>
 
 <header class="barra no-print">
-  <div class="marca">📘 Guía completa<small>¿Qué pueblo es? · versión 41</small></div>
+  <div class="marca">📘 Guía completa<small>¿Qué pueblo es? · versión 43</small></div>
   <a class="btn primario" href="guia-pueblos.pdf" download="Guia-Que-Pueblo-Es.pdf">⬇ PDF</a>
   <button class="btn cerrar" type="button" id="cerrarGuia" aria-label="Cerrar la guía">✕</button>
 </header>
@@ -194,10 +194,10 @@
       <ul>
         <li>Cómo empezar y qué permisos hacen falta.</li>
         <li>Qué significa cada símbolo, color y botón de la pantalla.</li>
-        <li>Cómo se calcula el rumbo y cómo calibrar la brújula con cuatro métodos.</li>
+        <li>Cómo se calcula el rumbo, la declinación WMM2025 y cómo calibrar la brújula con cuatro métodos (más el ajuste del campo de visión).</li>
         <li>Qué hacer cuando no aparece un pueblo, el nombre no coincide o falla el GPS.</li>
       </ul>
-      <p class="pie-print">Guía completa · versión 41 · noviembre 2026 · pueblos.marinweb.org</p>
+      <p class="pie-print">Guía completa · versión 43 · noviembre 2026 · pueblos.marinweb.org</p>
     </div>
     <svg class="arte" viewBox="0 0 320 220" aria-hidden="true">
       <defs>
@@ -381,9 +381,9 @@
       <tr><th>Chip</th><th>Verde</th><th>Ámbar</th><th>Rojo</th><th>Gris</th></tr>
       <tr><td><b>GPS</b></td><td>GPS ✓ (precisión ≤ 30 m)</td><td>GPS ⚠ ±X m (30–100 m)</td><td>GPS ✕ ±X m (&gt; 100 m)</td><td>GPS … (esperando)</td></tr>
       <tr><td><b>Brújula</b></td><td>Brújula ✓ (y ±X° si el móvil lo informa)</td><td>Brújula ⚠ ±X° (poco precisa)</td><td>Brújula ✕ sin datos / no fiable / haz el 8</td><td>Brújula … (esperando)</td></tr>
-      <tr><td><b>Calibración</b></td><td>Calibrada ✓ (hay corrección guardada)</td><td>Sin calibrar (hace falta calibrar)</td><td>—</td><td>Calibración … (Android sin dato de precisión)</td></tr>
+      <tr><td><b>Calibración</b></td><td>Calibrada ✓ (hay corrección guardada) o Calibración ✓ (el móvil declara buena precisión)</td><td>Sin calibrar (hay brújula, pero no hay corrección guardada)</td><td>—</td><td>Calibración … (todavía no llegan datos de la brújula)</td></tr>
     </table>
-    <div class="aviso"><b>Importante en Android:</b> Chrome no informa de la precisión de la brújula. Por eso el chip puede quedarse en <b>«Calibración …»</b> aunque todo funcione. En cuanto guardas una calibración con un lugar, andando o con el horizonte, pasa a <b>«Calibrada ✓»</b>.</div>
+    <div class="aviso"><b>Importante en Android:</b> Chrome no informa de la precisión de la brújula. Antes el chip se quedaba en «Calibración …» para siempre; ahora, en cuanto hay datos de brújula, muestra <b>«Sin calibrar»</b> en ámbar. En cuanto guardas una calibración con un lugar, andando o con el horizonte, pasa a <b>«Calibrada ✓»</b>.</div>
   </section>
 
   <section id="etiquetas">
@@ -398,6 +398,7 @@
     <h3>Cómo se leen</h3>
     <ul>
       <li><b>Etiqueta normal:</b> fondo negro, borde del color del tipo y el nombre con la distancia (ej. <i>Pueblo 12 km</i>). En los picos: <i>▲ Pico 1.509 m · 36 km</i>.</li>
+      <li><b>Nombres muy largos:</b> en la etiqueta se cortan por palabra completa y terminan en «…» para que no ocupen toda la pantalla. El nombre entero sigue apareciendo en el panel grande y al tocar la etiqueta.</li>
       <li><b>Etiqueta seleccionada:</b> va <b>rellena</b> del color del tipo, con texto oscuro y algo más grande. Es el lugar que está bajo la mira. Siempre se dibuja, aunque haya muchas.</li>
       <li><b>Punto:</b> el círculo del color marca la posición real del lugar. La etiqueta puede subir o bajar para no taparse; si el punto queda cerca, se dibuja una <b>línea</b> que los une.</li>
       <li><b>Si una etiqueta no cabe:</b> la app la mueve, la apila o la omite. La seleccionada tiene prioridad. Las etiquetas nunca se colocan debajo del panel, del botón ▲ ni de la leyenda.</li>
@@ -502,9 +503,9 @@
     <h3>1. Dónde estás</h3>
     <p>La app pide la posición al GPS. Con ella calcula la distancia y la dirección (rumbo) a cada pueblo o pico de la base de datos. La precisión del GPS se muestra en el chip; cuanto mejor sea, más finas son las distancias.</p>
     <h3>2. Hacia dónde apuntas</h3>
-    <p>La brújula del móvil da el rumbo. La app lo filtra para quitar temblor (filtro One-Euro), descarta saltos aislados por interferencias y permite correcciones por dirección. Ese rumbo es el que decide qué etiqueta cae en la mira.</p>
+    <p>La brújula del móvil da el rumbo respecto al <b>norte magnético</b>. La app lo filtra para quitar temblor (filtro One-Euro), descarta saltos aislados por interferencias y permite correcciones por dirección. Después suma la <b>declinación magnética</b> del lugar, calculada sin conexión con el modelo <b>WMM2025</b> de la NOAA (en España, entre +0,4° y +1,1° según el año). Así el rumbo final es respecto al <b>norte geográfico</b>, que es el que usan los mapas y las coordenadas de los pueblos.</p>
     <h3>3. Qué se ve</h3>
-    <p>La cámara tiene un campo de visión (FOV). La app proyecta cada lugar en la pantalla con la fórmula de la lente: la dirección horizontal se convierte en píxeles y la elevación (altura del lugar menos la tuya, más la curvatura de la Tierra) se convierte en altura en pantalla. El zoom y el estabilizador se tienen en cuenta.</p>
+    <p>La cámara tiene un campo de visión (FOV). La app proyecta cada lugar en la pantalla con la fórmula de la lente: la dirección horizontal se convierte en píxeles y la elevación (altura del lugar menos la tuya, más la curvatura de la Tierra) se convierte en altura en pantalla. El zoom y el estabilizador se tienen en cuenta. El FOV por defecto es <b>69,4°</b>, pero puedes ajustarlo si tu cámara recorta la imagen de otra forma (ver el método 5 de calibración).</p>
     <h3>4. Qué montañas tapan qué</h3>
     <p>Con el relieve (Open-Meteo o una copia guardada en el móvil) la app construye un panorama en abanico de ±45° y hasta 40/80 km. Para cada dirección calcula el ángulo máximo del terreno y compara: si un pueblo queda por debajo de una montaña, no se dibuja. Si apagas Relieve, se muestran todos por dirección.</p>
     <h3>5. Qué etiqueta se elige</h3>
@@ -518,6 +519,7 @@
   <section id="calibracion">
     <h2><span class="num">13</span>Calibración de la brújula</h2>
     <p>La brújula del móvil puede desviarse 10°, 20° o más por el metal, un coche, una funda magnética, una pared o el propio sensor. La calibración no “arregla” el móvil: guarda una <b>corrección dentro de la app</b> para que las etiquetas caigan donde deben.</p>
+    <p>La <b>declinación magnética</b> ya no hay que calibrarla: la app la calcula sola con el modelo WMM2025 según tu posición. La calibración guarda solo la desviación del sensor; el menú de calibración te muestra cuánta declinación se está aplicando.</p>
     <div class="nota"><b>La calibración es de la app, no del sistema.</b> No cambia Google Maps ni otras apps. Solo afecta a ¿Qué pueblo es? en este móvil y en este navegador/perfil. Para ayudar al sensor físico de verdad, haz el 8 en el aire; eso sí lo aprovechan todas las apps.</div>
 
     <h3>Cuándo calibrar</h3>
@@ -587,6 +589,19 @@
       </div>
     </details>
 
+    <details open>
+      <summary>Método 5 · Ajustar el campo de visión</summary>
+      <div class="cuerpo">
+        <ol class="pasos">
+          <li>Elige <b>Campo de visión</b>.</li>
+          <li>Pon la mira sobre un pueblo conocido que se vea hacia un lado de la pantalla.</li>
+          <li>Mueve el deslizador hasta que su etiqueta caiga justo encima del pueblo.</li>
+          <li>El valor se guarda solo. <b>69,4° (por defecto)</b> vuelve al valor normal.</li>
+        </ol>
+        <p>Lo habitual en una cámara trasera es <b>65–75°</b>. Este ajuste solo cambia dónde se dibujan las etiquetas, no el rumbo ni la calibración. Si las etiquetas se quedan cortas hacia los bordes, baja el valor; si se pasan, súbelo.</p>
+      </div>
+    </details>
+
     <h3>Qué se guarda exactamente</h3>
     <p>La app guarda una <b>corrección global</b> y un mapa de <b>8 sectores</b> (cada 45°):</p>
     <ul>
@@ -595,6 +610,7 @@
       <li><b>Con un lugar</b> y <b>Andando</b> son absolutos: recalculan la corrección de esa dirección.</li>
       <li><b>Con el horizonte</b> es relativo: afina la corrección que ya había.</li>
       <li><b>El GPS en movimiento</b> (cuando vas en coche) mezcla poco a poco (15% por lectura) y afina sola.</li>
+      <li><b>La declinación magnética</b> no se guarda como calibración: se calcula en cada momento con el WMM2025 y se suma al rumbo. Al actualizar desde una versión anterior, la corrección guardada se ajusta una vez para no contar dos veces la declinación.</li>
     </ul>
     <p>El contador <b>«2 de 8 direcciones»</b> indica sectores guardados, no número de calibraciones. Si calibras dos veces hacia el mismo lado, sigue siendo 1 sector.</p>
 
@@ -667,7 +683,7 @@
       <tr><th>Problema</th><th>Qué probar</th></tr>
       <tr><td>No sale ninguna etiqueta</td><td>Móvil vertical y apuntando al horizonte; espera GPS ✓; comprueba que no estás en modo Picos sin picos o con un filtro que los oculte; acerca el alcance; espera al relieve.</td></tr>
       <tr><td>El nombre no coincide con lo que veo</td><td>Calibra (lugar que veas, andando u horizonte). Evita metal. Comprueba el chip de calibración.</td></tr>
-      <tr><td>El chip dice «Calibración …»</td><td>En Android es normal si no hay precisión. Guarda una calibración con un lugar; entonces pasa a «Calibrada ✓».</td></tr>
+      <tr><td>El chip dice «Sin calibrar»</td><td>Hay brújula pero no corrección guardada. Calibra con un lugar que veas o andando; entonces pasa a «Calibrada ✓». Si dice «Calibración …», aún no han llegado datos de la brújula.</td></tr>
       <tr><td>«Brújula ✕ sin datos»</td><td>Revisa el permiso de movimiento/brújula; usa Chrome o Safari actualizados; en iPhone, abre en Safari, no dentro de otra app.</td></tr>
       <tr><td>«GPS ✕» o «GPS ⚠»</td><td>Activa la ubicación del móvil; sal al exterior; espera; usa «Usar la última ubicación» o elige tu pueblo en la lista.</td></tr>
       <tr><td>La cámara se ve negra</td><td>Permiso de cámara; cierra otras apps que la usen; vuelve a entrar; en la app instalada, revisa los permisos de Android.</td></tr>
@@ -713,18 +729,19 @@
 
   <section id="creditos">
     <h2><span class="num">21</span>Créditos y licencias</h2>
-    <p><b>¿Qué pueblo es?</b> · Guía de uso · versión 41 · noviembre 2026.</p>
+    <p><b>¿Qué pueblo es?</b> · Guía de uso · versión 43 · noviembre 2026.</p>
     <p>Autor: Miguel Marín.</p>
     <ul>
       <li>Datos de pueblos y picos: © colaboradores de <b>OpenStreetMap</b>, bajo <b>ODbL 1.0</b>.</li>
       <li>Elevación y apoyo al relieve: <b>Open-Meteo</b>, bajo <b>CC BY 4.0</b>.</li>
       <li>El perfil de relieve lo calcula la app.</li>
+      <li>Declinación magnética: <b>World Magnetic Model 2025 (WMM2025)</b> de la NOAA/NCEI y el British Geological Survey, de uso público.</li>
       <li>Esta guía es un documento de uso de la app; las licencias de los datos son las de sus fuentes.</li>
     </ul>
     <p class="fuente">Si algo no cuadra o falta un pueblo, la app incluye «Actualizar desde OpenStreetMap» y «Añadir un lugar a mano».</p>
   </section>
 
-  <p class="pie">¿Qué pueblo es? · Guía completa · v41 · Esta guía también está disponible dentro de la app, en el panel inferior: <b>📘 Guía completa</b>.</p>
+  <p class="pie">¿Qué pueblo es? · Guía completa · v43 · Esta guía también está disponible dentro de la app, en la pantalla principal: <b>📘 Guía completa e instrucciones</b>. El PDF se descarga desde el botón <b>⬇ PDF</b> de la barra superior de esta guía.</p>
 </main>
 
 <a class="volver no-print" href="#indice" aria-label="Volver al índice">↑</a>

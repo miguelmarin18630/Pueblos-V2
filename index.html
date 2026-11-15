@@ -40,11 +40,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="¿Qué pueblo?">
 
-<link rel="stylesheet" href="styles/base.css?v=41">
-<link rel="stylesheet" href="styles/portada.css?v=41">
-<link rel="stylesheet" href="styles/layout.css?v=41">
-<link rel="stylesheet" href="styles/camera.css?v=41">
-<link rel="stylesheet" href="styles/ayuda.css?v=41">
+<link rel="stylesheet" href="styles/base.css?v=43">
+<link rel="stylesheet" href="styles/portada.css?v=43">
+<link rel="stylesheet" href="styles/layout.css?v=43">
+<link rel="stylesheet" href="styles/camera.css?v=43">
+<link rel="stylesheet" href="styles/ayuda.css?v=43">
 
 <!-- La base de pueblos se necesita siempre: que empiece a descargarse ya -->
 <link rel="preload" href="data/pueblos.js" as="script">
@@ -82,13 +82,17 @@
                 <span class="go1">Iniciar identificación</span>
                 <span class="go2">Activa GPS y brújula mientras la usas</span>
             </button>
+            <button id="vconsejos" type="button" class="btn-secondary">
+                <span class="ic" aria-hidden="true">📘</span>
+                <span class="bs">Guía completa e instrucciones</span>
+            </button>
             <button id="a2hsBtn" type="button" class="btn-secondary" hidden>
                 <span class="ic" aria-hidden="true">📲</span>
                 <span class="bs">Añadir a la pantalla de inicio</span>
             </button>
         </div>
 
-        <small id="autor">Miguel Marín · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> (ODbL) · Elevación: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>)</small>
+        <small id="autor">Miguel Marín · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> (ODbL) · Elevación: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>) · <a href="data/LICENCIA-DATOS.md" target="_blank" rel="noopener">licencia de los datos</a></small>
         <small id="versionWeb" style="display:block;margin-top:4px;opacity:.6">web v??</small>
     </section>
 
@@ -118,7 +122,6 @@
     <div id="info"></div>
 
     <section id="extras">
-        <p id="cnt" class="cnt"></p>
         <div class="pasos">
             <div title="Activa GPS y brújula"><b aria-hidden="true">1</b><span>Activa</span></div>
             <div title="Apunta al horizonte"><b aria-hidden="true">2</b><span>Apunta</span></div>
@@ -126,30 +129,23 @@
             <div title="Busca el pueblo o pico con el botón «Buscar»"><b aria-hidden="true">4</b><span>Busca</span></div>
         </div>
 
-        <button id="probar" type="button">🔎 Probar relieve</button>
+        <details id="faltan">
+            <summary id="faltaT">➕ ¿Falta algún pueblo o pico?</summary>
+            <div class="cuerpo">
+                <p>Si ves uno que no aparece, puedes traerlo de OpenStreetMap o añadirlo a mano. Se guarda solo en este móvil. Para buscar te pido la ubicación (solo para saber qué hay cerca de ti).</p>
+                <button id="osmact" type="button">🔄 Actualizar desde OpenStreetMap</button>
+                <div id="osmres" role="status" aria-live="polite"></div>
+                <button id="anadirb" type="button">➕ Añadir un lugar a mano</button>
+            </div>
+        </details>
+
+        <div class="fila-portada">
+            <button id="probar" type="button">🔎 Probar relieve</button>
+            <button id="cerrar" type="button">Salir de la app</button>
+        </div>
         <div id="probres" role="status" aria-live="polite"></div>
 
-        <section id="faltan" aria-labelledby="faltaT">
-            <h3 id="faltaT">¿Falta algún pueblo o pico?</h3>
-            <p>Si ves uno que no aparece, puedes traerlo de OpenStreetMap o añadirlo a mano. Se guarda solo en este móvil. Para buscar te pido la ubicación (solo para saber qué hay cerca de ti).</p>
-            <button id="osmact" type="button">🔄 Actualizar desde OpenStreetMap</button>
-            <div id="osmres" role="status" aria-live="polite"></div>
-            <button id="anadirb" type="button">➕ Añadir un lugar a mano</button>
-        </section>
-
-        <button id="vconsejos" type="button">📘 Guía completa y consejos</button>
-        <button id="descargarGuia" type="button">⬇️ Descargar guía (PDF)</button>
-        <button id="cerrar" type="button">Salir de la app</button>
-
-        <p class="creditos">
-            Datos de pueblos y picos: © colaboradores de
-            <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>,
-            disponibles bajo <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL 1.0</a>
-            (<a href="data/LICENCIA-DATOS.md" target="_blank" rel="noopener">licencia de los datos</a>).
-            Elevación: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>
-            (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>);
-            el perfil de relieve lo calcula la app.
-        </p>
+        <p id="cnt" class="cnt"></p>
     </section>
 
     <div id="zoom" role="group" aria-label="Zoom y enfoque de la cámara">
@@ -196,6 +192,7 @@
     <div id="calmenu">
         <h3 id="calT">Calibrar la brújula</h3>
         <p>Elige cómo quieres calibrar. Al pulsar una opción te explico los pasos.</p>
+        <p class="nota" id="caldecl"></p>
         <button class="cm" id="cm1" type="button">
             <span class="ic" aria-hidden="true">🎯</span>
             <span>Con un lugar que veo<small>Recomendado: pones la mira sobre un pueblo conocido.</small></span>
@@ -211,6 +208,10 @@
         <button class="cm" id="cm4" type="button">
             <span class="ic" aria-hidden="true">🏔</span>
             <span>Con el horizonte<small>Compara las montañas de la cámara con el relieve.</small></span>
+        </button>
+        <button class="cm" id="cm5" type="button">
+            <span class="ic" aria-hidden="true">📐</span>
+            <span>Campo de visión<small>Ajusta dónde caen las etiquetas sobre la cámara.</small></span>
         </button>
         <div class="fila2">
             <button id="calreset" type="button">Quitar calibración</button>
@@ -262,6 +263,19 @@
         <div class="cs"><b>1</b>Apunta a un horizonte despejado con montañas, con el zoom en ×1 y el móvil recto</div>
         <div class="cs"><b>2</b>Pulsa «Alinear ahora»</div>
         <button id="calhor" type="button">📷 Alinear ahora</button>
+    </div>
+
+    <div class="cv" id="calv5">
+        <button class="cback" type="button">← Otras opciones</button>
+        <h3>📐 Campo de visión</h3>
+        <div class="cs"><b>1</b><span>Pon la mira sobre un pueblo conocido que se vea hacia un lado de la pantalla.</span></div>
+        <div class="cs"><b>2</b><span>Mueve el deslizador hasta que su etiqueta caiga justo encima del pueblo.</span></div>
+        <div class="fovl"><span>Campo de visión</span><b id="fovv">69,4°</b></div>
+        <input type="range" id="fovr" min="45" max="95" step="0.1" value="69.4" aria-label="Campo de visión en grados">
+        <p class="nota">Lo normal en una cámara trasera es 65–75°. Solo cambia dónde se dibujan las etiquetas, no el rumbo.</p>
+        <div class="fila2">
+            <button id="fovdef" type="button">69,4° (por defecto)</button>
+        </div>
     </div>
 
     <div id="calst" role="status" aria-live="polite"></div>
@@ -471,7 +485,7 @@ setTimeout(__comprobarMotor, 9000);
 
 <!-- Datos: la base de pueblos (3,8 MB) se descarga una vez y queda guardada en el móvil.
      El motor (app.js) la pide por su cuenta y no bloquea la pantalla. -->
-<script defer src="scripts/app.js?v=41"></script>
+<script defer src="scripts/app.js?v=43"></script>
 
 <!-- ================= Diálogo de búsqueda: buscar pueblo o pico por nombre ================= -->
 <div id="buscar" role="dialog" aria-modal="true" aria-labelledby="buscarT" style="display:none;">

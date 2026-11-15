@@ -296,6 +296,29 @@ else mal('no se protegen los saltos del sensor');
 if (/stabX=Math\.max\(-mx,Math\.min\(mx/.test(app) && /stabY=Math\.max\(-my,Math\.min\(my/.test(app)) ok('el desplazamiento se limita al sobreencuadre (sin bordes negros)');
 else mal('el desplazamiento no se limita');
 
+// ---------- declinación magnética, campo de visión y nombres largos ----------
+console.log('\ndeclinación magnética y campo de visión');
+if (/var WMM_G=\[/.test(app) && /function wmmDecl\(/.test(app)) ok('modelo WMM2025 incluido (coeficientes y cálculo)');
+else mal('falta el modelo WMM2025');
+if (/function declinacion\(/.test(app)) ok('función declinacion()');
+else mal('falta declinacion()');
+if (/function rumboC\(\)\{return \(hd\+offPara\(hd\)\+hzPara\(hd\)\+declinacion\(\)/.test(app)) ok('el rumbo aplica la declinación magnética');
+else mal('rumboC() no aplica la declinación');
+if (/o=envolver\(b-hd-declinacion\(\)\)/.test(app) && /off=envolver\(b-media-declinacion\(\)\)/.test(app)) ok('la calibración descuenta la declinación (sin contarla dos veces)');
+else mal('la calibración no descuenta la declinación');
+if (/localStorage\.getItem\("decl2025"\)/.test(app) && /migrarDecl\(\)/.test(app)) ok('migración única de las calibraciones antiguas');
+else mal('falta la migración de calibraciones antiguas');
+if (/function fijarFov\(/.test(app) && /localStorage\.getItem\("fov"\)/.test(app)) ok('el campo de visión se guarda en el móvil');
+else mal('el campo de visión no se guarda');
+if (/id="cm5"/.test(html) && /id="calv5"/.test(html) && /id="fovr"/.test(html)) ok('ajuste del campo de visión en «Calibrar»');
+else mal('falta el ajuste del campo de visión en la calibración');
+if (/id="caldecl"/.test(html) && /Declinación magnética \(WMM2025\)/.test(app)) ok('la calibración muestra la declinación aplicada');
+else mal('no se muestra la declinación en la calibración');
+if (/function rotular\(/.test(app) && /rotular\(m\.n/.test(app) && /rotular\(q\.n/.test(app)) ok('los nombres largos se acortan en las etiquetas');
+else mal('los nombres largos no se acortan');
+if (/oriN===0\?\["n","Calibración …"\]:imprecisa\|\|prec===null\?\["av","Sin calibrar"\]/.test(app)) ok('el chip pasa de «Calibración …» a «Sin calibrar» cuando hay brújula');
+else mal('el chip de calibración se queda en «Calibración …»');
+
 // Cache-bust coherente: todos los ?v=N deben ser el mismo número
 const vers = [...new Set([
   ...[...html.matchAll(/\?v=(\d+)/g)].map((m) => m[1]),
@@ -316,8 +339,14 @@ if (existe('docs/guia.html')) {
 } else mal('falta docs/guia.html');
 if (existe('docs/guia-pueblos.pdf')) ok('PDF de la guía incluido');
 else mal('falta docs/guia-pueblos.pdf');
-if (/id="ayudaMarco"/.test(html) && /id="descargarGuia"/.test(html) && /id="ayudaPdf"/.test(html)) ok('guía interactiva y botón de descarga en la app');
-else mal('faltan la guía interactiva o sus botones de descarga');
+if (/id="ayudaMarco"/.test(html) && /id="ayudaPdf"/.test(html)) ok('guía interactiva con descarga de PDF en la app');
+else mal('faltan la guía interactiva o su botón de descarga');
+if (/id="descargarGuia"/.test(html)) mal('el botón de PDF sigue en la pantalla principal');
+else ok('el PDF solo se descarga desde la guía completa');
+if (/id="vconsejos"[^>]*class="[^"]*btn-secondary/.test(html)) ok('la guía es la primera opción secundaria de la portada');
+else mal('la guía no está como primera opción de la portada');
+if (/<details id="faltan"/.test(html)) ok('«¿Falta algún pueblo o pico?» plegado para ahorrar espacio');
+else mal('«¿Falta algún pueblo o pico?» no está plegado');
 
 // ---------- resultado ----------
 console.log('');

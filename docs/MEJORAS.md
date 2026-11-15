@@ -142,14 +142,24 @@ Primera carga total: **~1,23 MB gzip** (antes ~1,46 MB).
 
 ## 4. Pendiente / posibles mejoras futuras
 
-- Aplicar la **declinación magnética** (1–3° en España). Hoy el rumbo es respecto al norte
-  magnético; el desfase se aprende en parte con la calibración por GPS, pero solo cuando
-  se circula a más de 18 km/h.
+Resuelto en la **v43**:
+
+- **Declinación magnética**: se aplica el modelo **WMM2025** de la NOAA sin conexión
+  (`tests/declinacion.js` lo compara con valores de referencia). Las calibraciones
+  guardadas por versiones anteriores se migran una vez para no contarla dos veces.
+- **Campo de visión**: ajustable en **Calibrar → Campo de visión** (45–95°, guardado en
+  el móvil). El valor por defecto sigue siendo 69,4°.
+- **Pruebas de visibilidad con relieve**: `tests/vista.js` construye un panorama
+  sintético y comprueba crestas que tapan o dejan ver un pueblo, y el caso sin altura.
+- **Nombres largos de pico**: se cortan por palabra completa en la etiqueta; el nombre
+  entero sigue en el panel y en el toque.
+- **Chip de calibración en Android**: ya no se queda en «Calibración …»; pasa a
+  «Sin calibrar» en ámbar en cuanto hay datos de brújula.
+
+Sigue pendiente:
+
 - Empaquetar los datos en binario + `DecompressionStream` (el motor ya soporta
   `#datosRelieve`); bajaría el HTML a unas decenas de KB.
 - Codificar los pueblos por delta de coordenadas en rejilla (más ganancia que minificar).
-- Tests automáticos de la visibilidad con relieve (hoy se prueba la app real en Chrome).
-- Calibrar el **campo de visión real** de la cámara (hoy se supone 69,4°) para que las
-  etiquetas caigan exactamente sobre el pueblo y el toque sea más fino.
 - Relieve más fino cerca (1° en vez de 2,5–7,5°).
 

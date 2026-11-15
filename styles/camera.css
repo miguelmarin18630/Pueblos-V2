@@ -1060,11 +1060,11 @@ body.on #fdw.v {
 /* ================= Pantalla de inicio (Hero) ================= */
 #hero {
     text-align: center;
-    padding: 18px 4px 8px;
+    padding: 10px 4px 4px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 9px;
 }
 
 .hero-badge {
@@ -1091,8 +1091,8 @@ body.on #fdw.v {
 }
 
 #hero p {
-    font-size: 15px;
-    line-height: 1.4;
+    font-size: 14.5px;
+    line-height: 1.35;
     color: rgba(255,255,255,.9);
     margin: 0;
     max-width: 34ch;
@@ -1101,16 +1101,16 @@ body.on #fdw.v {
 .hero-actions {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     width: 100%;
     max-width: 380px;
-    margin: 6px 0 0;
+    margin: 2px 0 0;
 }
 
 .btn-primary, .btn-secondary {
     width: 100%;
-    min-height: 56px;
-    padding: 14px 18px;
+    min-height: 52px;
+    padding: 12px 18px;
     border: none;
     border-radius: 14px;
     font-family: inherit;
@@ -1170,9 +1170,9 @@ body.on #fdw.v {
 }
 
 #autor {
-    font-size: 12px;
+    font-size: 11.5px;
     color: rgba(255,255,255,.6);
-    margin-top: 16px;
+    margin-top: 10px;
 }
 
 /* Ocultar el SVG logo original del hero si existe */

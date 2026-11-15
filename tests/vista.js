@@ -126,6 +126,68 @@ function montarPico(panVis) {
   pm === null ? ok('si una montaña tapa el pico, no se muestra') : mal('mostró un pico tapado por el relieve');
 }
 
+// ---------- visibilidad con un relieve sintético ----------
+const DS = [0.3, 0.6, 1, 1.5, 2, 2.5, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 23, 26, 29, 32, 35, 40, 48, 56, 64, 72, 80];
+const fragPanVis2 = extraer('function panVis(p){', '\n}');
+const fragPanIdx2 = extraer('function panIdx(az){', '\n}');
+
+function montarRelieve(horizonteRad, conAltura) {
+  const az = [], M = [];
+  for (let a = -45; a <= 45; a += 2.5) {
+    az.push(a);
+    M.push(new Array(DS.length).fill(horizonteRad));
+  }
+  const pan = { la: LA, lo: LO, c: 0, az, M, S: M.map((f) => f[f.length - 1]), H0: 600, alc: 40, cel: 'x', paso: 1 };
+  const elevC = conAltura ? { PUEBLO: 500 } : {};
+  const pedidos = [];
+  const ctx = {
+    R, usarRelieve: true, panBloq: 0, pan, brg, dst, envolver, DS, elevC,
+    ek: () => 'PUEBLO', pedirElev: (p) => pedidos.push(p), Date: { now: () => 0 },
+    panIdx: null,
+  };
+  const fn = new Function('ctx', 'with(ctx){' + fragPanIdx2 + '\n' + fragPanVis2 + '\nreturn {panVis,panIdx};}');
+  const api = fn(ctx);
+  return { ...api, pedidos };
+}
+
+const enNorte = { n: 'PUEBLO', la: LA + 10 / 111, lo: LO };
+{
+  const v = montarRelieve(0.03, true);
+  v.panVis(enNorte) === false
+    ? ok('una cresta de 1,7° tapa un pueblo que queda 0,6° por debajo')
+    : mal('el relieve no ocultó un pueblo que está por debajo de la cresta');
+}
+{
+  const v = montarRelieve(-0.05, true);
+  v.panVis(enNorte) === true
+    ? ok('con el horizonte despejado el mismo pueblo sí se ve')
+    : mal('el pueblo no se ve aunque el horizonte está despejado');
+}
+{
+  const v = montarRelieve(0, false);
+  v.panVis(enNorte) === undefined && v.pedidos.length === 1
+    ? ok('sin altura del pueblo devuelve «sin datos» y la pide')
+    : mal('sin altura no se pide la elevación (resultado ' + v.panVis(enNorte) + ')');
+}
+{
+  const v = montarRelieve(0, true);
+  const lejos = { n: 'PUEBLO', la: LA + 100 / 111, lo: LO };
+  v.panVis(lejos) === null
+    ? ok('un pueblo fuera del alcance del panorama devuelve «sin panorama»')
+    : mal('un pueblo a 100 km no se descarta del panorama');
+}
+
+// ---------- nombres largos en las etiquetas ----------
+const rotular = new Function(extraer('function rotular(', '\n}') + '\nreturn rotular;')();
+{
+  rotular('Gójar', 20) === 'Gójar' ? ok('un nombre corto no se toca') : mal('se acortó un nombre corto');
+  const largo = rotular('Cerro del Calar del Marchante', 20);
+  largo.length <= 21 && /…$/.test(largo) && /^Cerro del Calar/.test(largo)
+    ? ok('un pico largo se corta por palabra: «' + largo + '»')
+    : mal('no se acortó bien el nombre largo: «' + largo + '»');
+  rotular('  ', 20) === '' ? ok('un nombre vacío no rompe la etiqueta') : mal('nombre vacío raro');
+}
+
 console.log('');
 if (fallos.length) {
   console.log('RESULTADO: ' + fallos.length + ' fallo(s)');
