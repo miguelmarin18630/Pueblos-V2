@@ -1833,7 +1833,8 @@ function etiquetas(pe,hdc,pm){
     var q=c[i],v=(q.sel||q.tap)?true:panVis(q);
     if(v===null)v=q.dk<=10;
     if(v!==true)continue;
-    var x=W/2+f*Math.tan(q.d*R);
+    var relRumbo = ((brg(pos.latitude, pos.longitude, q.la, q.lo) - hdc + 540) % 360 - 180);
+var x = W/2 + f * Math.tan(q.d * R * (relRumbo > 0 ? 1 : -1));
     // Ancho estimado de la etiqueta (nombre + distancia) y centro limitado al borde:
     // así ninguna etiqueta se corta por la izquierda ni por la derecha.
     var nom=rotular(q.n,(q.sel||q.tap)?26:20);
