@@ -173,7 +173,7 @@
 </script>
 
 <header class="barra no-print">
-  <div class="marca">📘 Guía completa<small>¿Qué pueblo es? · versión 43</small></div>
+  <div class="marca">📘 Guía completa<small>¿Qué pueblo es? · versión 44</small></div>
   <a class="btn primario" href="guia-pueblos.pdf" download="Guia-Que-Pueblo-Es.pdf">⬇ PDF</a>
   <button class="btn cerrar" type="button" id="cerrarGuia" aria-label="Cerrar la guía">✕</button>
 </header>
@@ -197,7 +197,7 @@
         <li>Cómo se calcula el rumbo, la declinación WMM2025 y cómo calibrar la brújula con cuatro métodos (más el ajuste del campo de visión).</li>
         <li>Qué hacer cuando no aparece un pueblo, el nombre no coincide o falla el GPS.</li>
       </ul>
-      <p class="pie-print">Guía completa · versión 43 · noviembre 2026 · pueblos.marinweb.org</p>
+      <p class="pie-print">Guía completa · versión 44 · noviembre 2026 · pueblos.marinweb.org</p>
     </div>
     <svg class="arte" viewBox="0 0 320 220" aria-hidden="true">
       <defs>
@@ -381,7 +381,7 @@
       <tr><th>Chip</th><th>Verde</th><th>Ámbar</th><th>Rojo</th><th>Gris</th></tr>
       <tr><td><b>GPS</b></td><td>GPS ✓ (precisión ≤ 30 m)</td><td>GPS ⚠ ±X m (30–100 m)</td><td>GPS ✕ ±X m (&gt; 100 m)</td><td>GPS … (esperando)</td></tr>
       <tr><td><b>Brújula</b></td><td>Brújula ✓ (y ±X° si el móvil lo informa)</td><td>Brújula ⚠ ±X° (poco precisa)</td><td>Brújula ✕ sin datos / no fiable / haz el 8</td><td>Brújula … (esperando)</td></tr>
-      <tr><td><b>Calibración</b></td><td>Calibrada ✓ (hay corrección guardada) o Calibración ✓ (el móvil declara buena precisión)</td><td>Sin calibrar (hay brújula, pero no hay corrección guardada)</td><td>—</td><td>Calibración … (todavía no llegan datos de la brújula)</td></tr>
+      <tr><td><b>Calibración</b></td><td>Calibrada ✓ (corrección normal) o <b>Calibrada +X°</b> en ámbar (corrección muy grande: compruébala o quítala)</td><td>Sin calibrar (hay brújula, pero no hay corrección guardada)</td><td>—</td><td>Calibración … (todavía no llegan datos de la brújula)</td></tr>
     </table>
     <div class="aviso"><b>Importante en Android:</b> Chrome no informa de la precisión de la brújula. Antes el chip se quedaba en «Calibración …» para siempre; ahora, en cuanto hay datos de brújula, muestra <b>«Sin calibrar»</b> en ámbar. En cuanto guardas una calibración con un lugar, andando o con el horizonte, pasa a <b>«Calibrada ✓»</b>.</div>
   </section>
@@ -548,6 +548,7 @@
           <li>Si quieres más precisión, marca <b>Usar dos lugares</b>, elige un segundo lugar en otra dirección (al menos 30° de diferencia), alinéalo y pulsa otra vez. Promedia los dos.</li>
         </ol>
         <p class="fuente">Puedes hacer zoom para ver mejor el pueblo; el cálculo usa el GPS y la brújula, no la cámara.</p>
+        <div class="aviso"><b>La lista va ordenada por lo que tienes delante:</b> el primero es el lugar que cae en la mira. Si eliges uno y la corrección sale muy grande (más de 18°, por ejemplo «+31°»), la app te lo avisa y pide confirmación antes de guardarla: casi siempre significa que ese lugar no es el que estabas viendo. Si te equivocas, <b>Quitar calibración</b> lo deja como estaba.</div>
       </div>
     </details>
 
@@ -729,7 +730,7 @@
 
   <section id="creditos">
     <h2><span class="num">21</span>Créditos y licencias</h2>
-    <p><b>¿Qué pueblo es?</b> · Guía de uso · versión 43 · noviembre 2026.</p>
+    <p><b>¿Qué pueblo es?</b> · Guía de uso · versión 44 · noviembre 2026.</p>
     <p>Autor: Miguel Marín.</p>
     <ul>
       <li>Datos de pueblos y picos: © colaboradores de <b>OpenStreetMap</b>, bajo <b>ODbL 1.0</b>.</li>
@@ -741,7 +742,7 @@
     <p class="fuente">Si algo no cuadra o falta un pueblo, la app incluye «Actualizar desde OpenStreetMap» y «Añadir un lugar a mano».</p>
   </section>
 
-  <p class="pie">¿Qué pueblo es? · Guía completa · v43 · Esta guía también está disponible dentro de la app, en la pantalla principal: <b>📘 Guía completa e instrucciones</b>. El PDF se descarga desde el botón <b>⬇ PDF</b> de la barra superior de esta guía.</p>
+  <p class="pie">¿Qué pueblo es? · Guía completa · v44 · Esta guía también está disponible dentro de la app, en la pantalla principal: <b>📘 Guía completa e instrucciones</b>. El PDF se descarga desde el botón <b>⬇ PDF</b> de la barra superior de esta guía.</p>
 </main>
 
 <a class="volver no-print" href="#indice" aria-label="Volver al índice">↑</a>

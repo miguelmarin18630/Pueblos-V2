@@ -281,7 +281,8 @@ function actualizarEstado(){
   // Verde si la brújula está bien (calibrada, o precisa sin necesidad de calibrar); ámbar «Sin calibrar»
   // si hay datos de brújula pero falta calibrar; gris solo mientras aún no llega ningún dato.
   var calOk=!!(off||Object.keys(tab).length||ocho8),imprecisa=prec!==null&&(prec<0||prec>20);
-  c=calOk?["ok","Calibrada ✓"]:oriN===0?["n","Calibración …"]:imprecisa||prec===null?["av","Sin calibrar"]:["ok","Calibración ✓"];
+  var corr=calOk?offPara(hd):0;
+  c=calOk?(Math.abs(corr)>18?["av","Calibrada "+fmtOff(corr)]:["ok","Calibrada ✓"]):oriN===0?["n","Calibración …"]:imprecisa||prec===null?["av","Sin calibrar"]:["ok","Calibración ✓"];
   var k=g.join()+b.join()+c.join();
   if(k===estC)return;
   estC=k;
@@ -310,6 +311,7 @@ function pintarYa(){
   var nT=Object.keys(tab).length;
   if(!off&&!nT&&!ocho8&&oriN>10)av.push("Brújula sin calibrar: si el rumbo va desviado, usa «Calibrar».");
   if(off||nT)av.push("Calibrada: "+fmtOff(offPara(hd))+(nT?" ("+nT+" de 8 direcciones)":"")+" · declinación "+fmtDec(declinacion()));
+  if((off||nT)&&Math.abs(offPara(hd))>18)av.push("Corrección guardada muy grande ("+fmtOff(offPara(hd))+"): si el rumbo no cuadra, usa «Quitar calibración».");
   if(!modoCoche&&Date.now()-autoT<5000)av.push("Brújula afinada con el GPS ("+fmtOff(offPara(hd))+").");
   if(modoCoche)av.push("🚗 Modo coche: que lo use el acompañante."+(Date.now()-autoT<5000?" Brújula corregida con el GPS ("+fmtOff(offPara(hd))+").":""));
   if(hzAuto&&Date.now()-hzT<8000)av.push("📷 Rumbo corregido con el horizonte ("+fmtOff(hzPara(hd))+", confianza "+Math.round(hzConf*100)+"%).");
@@ -843,14 +845,22 @@ $("conAldeas").onclick=function(){
   fijarPicos(false);
   verAldeas=true;actAldeasBtn();pintar();
 };
+function llenarCal(){
+  if(!pos)return;
+  // Ordenada por cercanía a la mira. Se mide con el rumbo bruto (sin la corrección
+  // guardada): si la calibración está mal, la lista no repite el mismo error.
+  var hc=hd+declinacion();
+  calList=P.filter(function(p){return p[3]!=="hamlet"&&p[3]!=="isolated_dwelling"}).map(function(p){return{n:p[0],la:p[1],lo:p[2],k:dst(pos.latitude,pos.longitude,p[1],p[2])}}).filter(function(p){return p.k>0.5&&p.k<25}).sort(function(a,b){return (Math.round(dif(brg(pos.latitude,pos.longitude,a.la,a.lo),hc)/2)-Math.round(dif(brg(pos.latitude,pos.longitude,b.la,b.lo),hc)/2))||(a.k-b.k)}).slice(0,120);
+  $("calsel").innerHTML=calList.map(function(p,i){return '<option value="'+i+'">'+esc(p.n)+' · '+p.k.toFixed(0)+' km</option>'}).join("");
+  calPend=null;
+}
 $("calbtn").onclick=function(){
   if(!pos)return;
   // Hasta 25 km: sirve para calibrar con un pueblo o montaña que se vea a lo lejos
   // (Atarfe, por ejemplo). En zonas muy densas se listan los 120 más cercanos.
-  // La lista va ordenada por distancia y el lugar elegido se busca por nombre.
-  calList=P.filter(function(p){return p[3]!=="hamlet"&&p[3]!=="isolated_dwelling"}).map(function(p){return{n:p[0],la:p[1],lo:p[2],k:dst(pos.latitude,pos.longitude,p[1],p[2])}}).filter(function(p){return p.k>0.5&&p.k<25}).sort(function(a,b){return a.k-b.k}).slice(0,120);
-  $("calsel").innerHTML=calList.map(function(p,i){return '<option value="'+i+'">'+esc(p.n)+' · '+p.k.toFixed(0)+' km</option>'}).join("");
-  calAnd=null;cal2={b:null,o:null};$("calst").textContent="";
+  // La lista va ordenada por cercanía a la mira: el primero es el que está delante.
+  llenarCal();
+  calAnd=null;cal2={b:null,o:null};calPend=null;$("calst").textContent="";
   calVista(0);
   var cd=declinacion();
   $("caldecl").textContent="Declinación magnética (WMM2025): "+fmtDec(cd)+". Se aplica sola al rumbo.";
@@ -871,16 +881,17 @@ if(window.ResizeObserver)new ResizeObserver(ajustarMira).observe($("cal"));
 window.addEventListener("resize",ajustarMira);
 function calVista(v){
   ["calmenu","calv1","calv2","calv3","calv4","calv5"].forEach(function(id,i){$(id).style.display=(i===v)?"block":"none"});
+  if(v===1)llenarCal();
   if(v===5){$("fovr").value=String(Math.round(FOVL*10)/10);$("fovv").textContent=fmtFov(FOVL)}
   $("cal").className=v===0?"menu":"";
   ajustarMira();
   ochoActivo=(v===3);
-  calAnd=null;cal2={b:null,o:null};$("calst").textContent="";
+  calAnd=null;cal2={b:null,o:null};calPend=null;$("calst").textContent="";
   if(v===3)actOcho();
 }
 [1,2,3,4,5].forEach(function(n){$("cm"+n).onclick=function(){calVista(n)}});
 [].forEach.call(document.querySelectorAll("#cal .cback"),function(b){b.onclick=function(){calVista(0)}});
-var calAnd=null,cal2={b:null,o:null};
+var calAnd=null,cal2={b:null,o:null},calPend=null;
 calVista(0);
 $("fovr").oninput=function(){fijarFov(parseFloat(this.value))};
 $("fovdef").onclick=function(){fijarFov(FOVDEF)};
@@ -1022,12 +1033,19 @@ function migrarDecl(){
     localStorage.setItem("decl2025","1");
   }catch(e){}
 }
-function finCal(txt){hzOff=0;hzPrev=null;guardarOff();$("calst").textContent=txt;pintar()}
+function finCal(txt){hzOff=0;hzPrev=null;calPend=null;guardarOff();$("calst").textContent=txt+(Math.abs(off)>18?" Aviso: corrección grande; si el rumbo no cuadra, quita la calibración y repite apuntando a un pueblo conocido.":"");pintar()}
 $("calok").onclick=function(){
   var t=calList[+$("calsel").value];if(!t||!pos)return;
   calAnd=null;
   var b=brg(pos.latitude,pos.longitude,t.la,t.lo),o=envolver(b-hd-declinacion());
-  if(!$("cal2").checked){off=o;ponerTab(hd,o);cal2={b:null,o:null};finCal("✓ Calibrado ("+fmtOff(o)+")");return}
+  if(!$("cal2").checked){
+    // Una corrección enorme casi siempre significa que el lugar elegido no es el que se ve
+    if(Math.abs(o)>18&&!(calPend&&calPend.i===+$("calsel").value&&dif(calPend.o,o)<5)){
+      calPend={i:+$("calsel").value,o:o};
+      $("calst").textContent="Esa corrección es muy grande ("+fmtOff(o)+"). Comprueba que «"+t.n+"» es justo el lugar que tienes en la mira. Si estás seguro, vuelve a pulsar «Está en la mira».";
+      return;
+    }
+    calPend=null;off=o;ponerTab(hd,o);cal2={b:null,o:null};finCal("✓ Calibrado ("+fmtOff(o)+")");return}
   if(cal2.o===null){
     cal2={b:b,o:o,h:hd};
     $("calst").textContent="Lugar 1 guardado. Elige OTRO lugar en una dirección distinta (al menos 30° de diferencia) y pulsa de nuevo.";

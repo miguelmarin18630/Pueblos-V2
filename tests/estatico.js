@@ -279,6 +279,30 @@ else mal('el tope de la lista es demasiado bajo');
 if (/\$\("calsel"\)\.innerHTML=calList\.map/.test(app)) ok('la lista se rellena en #calsel');
 else mal('la lista de calibración no se rellena');
 
+// ---------- calibración: aviso de corrección grande ----------
+console.log('\ncalibración: avisos y lista ordenada');
+if (/function llenarCal\(/.test(app) && /calList=P\.filter/.test(app)) ok('la lista se genera en llenarCal()');
+else mal('falta llenarCal()');
+if (/if\(v===1\)llenarCal\(\)/.test(app)) ok('la lista se refresca al abrir «Con un lugar que veo»');
+else mal('la lista no se refresca al abrir el método 1');
+if (/var hc=hd\+declinacion\(\)/.test(app) && /Math\.round\(dif\(brg\(pos\.latitude,pos\.longitude,a\.la,a\.lo\),hc\)\/2\)/.test(app)) ok('la lista se ordena por cercanía a la mira con el rumbo bruto');
+else mal('la lista no se ordena por cercanía a la mira');
+if (/Math\.abs\(o\)>18/.test(app) && /calPend/.test(app)) ok('pide confirmación si la corrección pasa de 18°');
+else mal('no se avisa de una corrección enorme');
+if (/Math\.abs\(corr\)>18\?\["av","Calibrada "\+fmtOff\(corr\)\]/.test(app)) ok('el chip avisa en ámbar de una calibración sospechosa');
+else mal('el chip no distingue una calibración sospechosa');
+if (/Corrección guardada muy grande/.test(app)) ok('la nota explica cómo quitar una calibración enorme');
+else mal('la nota no avisa de la corrección enorme');
+
+console.log('\nfila del rumbo');
+const css = leer('styles/camera.css');
+if (/body\.on #fila1\s*\{[^}]*flex-wrap: wrap/.test(css)) ok('la fila del rumbo puede pasar a dos líneas');
+else mal('la fila del rumbo no puede pasar a dos líneas');
+if (/body\.on #rumbo\s*\{[^}]*min-width: max-content/.test(css)) ok('el rumbo nunca se recorta');
+else mal('el rumbo se sigue recortando');
+if (/body\.on #buscar2,\s*body\.on #anadircam,\s*body\.on #salir\s*\{[^}]*font-size: 12px/.test(css)) ok('los botones de la fila se aprietan en pantallas estrechas');
+else mal('los botones de la fila no se aprietan');
+
 // ---------- estabilizador de cámara ----------
 console.log('\nestabilizador de cámara');
 if (/function stabEscala\(\)/.test(app) && /function aplicarTransformCam\(\)/.test(app)) ok('estabilizador con sobreencuadre');
