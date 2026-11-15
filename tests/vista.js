@@ -170,6 +170,15 @@ const enNorte = { n: 'PUEBLO', la: LA + 10 / 111, lo: LO };
     : mal('sin altura no se pide la elevación (resultado ' + v.panVis(enNorte) + ')');
 }
 {
+  const v = montarRelieve(0, false);
+  const picoConAltura = { n: 'PICO', la: LA + 10 / 111, lo: LO, e: 1600 };
+  const antes = v.pedidos.length;
+  const r = v.panVis(picoConAltura);
+  r === true && v.pedidos.length === antes
+    ? ok('un pico usa su propia altura: se ve sin pedirla a Open-Meteo')
+    : mal('el pico depende de pedir la altura (resultado ' + r + ', pedidos ' + v.pedidos.length + ')');
+}
+{
   const v = montarRelieve(0, true);
   const lejos = { n: 'PUEBLO', la: LA + 100 / 111, lo: LO };
   v.panVis(lejos) === null

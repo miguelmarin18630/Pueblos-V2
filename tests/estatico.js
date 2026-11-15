@@ -320,6 +320,15 @@ else mal('las etiquetas pueden saltar de altura al girar');
 if (/if\(v===null\|\|v===undefined\)v=\(pan\?true:q\.dk<=10\)/.test(app)) ok('una etiqueta no desaparece cuando el panorama aún no sabe si se ve');
 else mal('la etiqueta desaparece al girar por falta de dato del panorama');
 
+// ---------- picos: no dependen de pedir su altura ----------
+console.log('\npicos');
+if (/var e=\(typeof p\.e==="number"\)\?p\.e:elevC\[ek\(p\)\]/.test(app)) ok('el pico usa la altura que ya trae el dato (no la pide a Open-Meteo)');
+else mal('el pico vuelve a depender de la altura pedida a Open-Meteo');
+if (/if\(vv===null\|\|vv===undefined\)vv=\(pan\?true:m\.dk<=10\)/.test(app)) ok('un pico no desaparece mientras el panorama no sabe si se ve');
+else mal('el pico desaparece sin dato del panorama');
+if (/vv=panVis\(k\);if\(vv===null\|\|vv===undefined\)vv=\(pan\?true:dk<=10\)/.test(app)) ok('la mira también mantiene el pico sin dato del panorama');
+else mal('la mira descarta el pico sin dato del panorama');
+
 // ---------- estabilizador de cámara ----------
 console.log('\nestabilizador de cámara');
 if (/function stabEscala\(\)/.test(app) && /function aplicarTransformCam\(\)/.test(app)) ok('estabilizador con sobreencuadre');

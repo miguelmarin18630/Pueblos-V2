@@ -1494,7 +1494,7 @@ function panVis(p){
   if(!pan)return undefined;
   var az=brg(pan.la,pan.lo,p.la,p.lo),dk=dst(pan.la,pan.lo,p.la,p.lo),f=panIdx(az);
   if(dk>pan.alc||dk<0.4||f<0||f>pan.az.length-1)return null;
-  var e=elevC[ek(p)];
+  var e=(typeof p.e==="number")?p.e:elevC[ek(p)];
   if(e===undefined){pedirElev(p);return undefined}
   if(e===null)return null;
   var i=Math.floor(f),j2=Math.min(i+1,pan.az.length-1),t=f-i,j=-1,k;
@@ -1766,7 +1766,7 @@ function picoMira(pe,hdc){
     if(dd>tol)continue;
     dk=dst(pe.latitude,pe.longitude,k.la,k.lo);
     if(dk<0.5||dk>alcance)continue;
-    vv=panVis(k);if(vv===null)vv=dk<=10;
+    vv=panVis(k);if(vv===null||vv===undefined)vv=(pan?true:dk<=10);
     if(vv!==true)continue;
     dv=0;
     if(h0!==null){
@@ -1881,7 +1881,8 @@ function etiquetas(pe,hdc,pm){
     var np=0;
     for(i=0;i<cp.length&&np<12;i++){
       var m=cp[i],vv=panVis(m),esSel=esPm(m,pm)||esPm(m,tapPico);
-      if(vv===null)vv=m.dk<=10;
+      // Sin dato del panorama (altura pendiente o punto fuera de él al girar) el pico se mantiene
+      if(vv===null||vv===undefined)vv=(pan?true:m.dk<=10);
       if(vv!==true)continue;
       var px=W/2+f*Math.tan(m.d*R),py=H/2-f*Math.tan(elev(m,m.e,m.dk)-pitF*R);
       if(py<topMin+14||py>H-100){
