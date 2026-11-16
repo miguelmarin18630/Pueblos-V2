@@ -1,4 +1,4 @@
-# Informe: comportamiento de las etiquetas y correcciones (v39)
+# Informe: comportamiento de las etiquetas y correcciones (v39 y v49)
 
 Fecha: 14 nov 2026 · App: ¿Qué pueblo es? · Web/PWA `pueblos.marinweb.org`
 Dispositivo observado: Samsung SM-A536B (Galaxy A53 5G), app instalada en Chrome.
@@ -154,3 +154,58 @@ Antes, la etiqueta seleccionada y la siguiente se tocaban:
 
 - Revisar por separado por qué la calibración se queda en «Calibración…» en interiores.
 - Valorar acortar nombres de pico muy largos (o partir altura/distancia en dos líneas) para que no ocupen casi todo el ancho.
+
+---
+
+## 9. Revisión v49: la reserva vertical no cubría la etiqueta
+
+Fecha: 16 nov 2026 · Web v49 · Samsung SM-A536B (`RZCW20RKTCR`), Chrome del móvil por CDP.
+
+### 9.1. Cómo se ha medido
+
+- Se engancha la pestaña del móvil con `adb forward tcp:9333 localabstract:chrome_devtools_remote`.
+- La app va dentro de un IIFE, así que no se tocan sus variables: se leen las etiquetas reales del DOM (`#etq`), con su texto y su rectángulo.
+- Para que la prueba sea repetible, se interceptan los eventos de orientación antes de cargar la página y se les da rumbo y cabeceo conocidos; la ubicación se fija con `Emulation.setGeolocationOverride`.
+- Se barren **24 rumbos × 15°** en el Puerto de Navacerrada y en Fuente Dé (Picos de Europa), más un barrido de inclinación (de 10° a −70°). Viewport real: 384 × 718 px CSS.
+
+### 9.2. Qué se ha visto
+
+Lo que funciona bien (24 rumbos, 115–142 etiquetas por recorrido):
+
+| Comprobación | Resultado |
+|---|---|
+| Etiquetas fuera de pantalla | **0** |
+| Etiquetas debajo del panel o del botón ▲ | **0** |
+| Desbordamiento horizontal | **0** |
+| Nombres largos | se cortan con «…» («Cabeza de Hierro…», «Risco de los…») |
+| Leyenda lateral | muestra «pico» solo cuando hay picos |
+| Máximo de etiquetas en un rumbo | 10 (el motor corta en 12) |
+| Errores de consola | 0 |
+
+El defecto: **dos etiquetas seguidas se tocan por el borde**. En el barrido de Navacerrada aparecieron **19 solapes** y en Fuente Dé **26**, todos de **1–2 px verticales** y con mucha anchura compartida: los bordes verdes quedan pegados y parecen una sola pastilla.
+
+Causa medida: la etiqueta real mide **33 px** de alto (15 px de letra + 8 px de relleno + 4 px de borde), pero `hueco()` reservaba solo **31 px** para decidir si cabe. Dos picos con una separación vertical de 31–32 px se daban por buenos y sus bordes se solapaban. El ancho no influye: en 115 etiquetas medidas, el ancho reservado nunca fue menor que el real (iba 25–30 px por encima).
+
+### 9.3. Corrección
+
+En `scripts/app.js`, `hueco()`: la reserva pasa de `c:y2-31` a `c:y2-34` (33 px reales + 1 px de aire). El escalón sigue en 36 px.
+
+| Reserva | Navacerrada | Fuente Dé | Madrid |
+|---|---|---|---|
+| 31 px (antes) | 138 etiquetas · **27 solapes** | 139 · **36** | 110 · **4** |
+| **34 px (ahora)** | 115 · **0** | 128 · **0** | 105 · **0** |
+| 36 px (probado y descartado) | 111 · 0 | 128 · 0 | 75 · 0 |
+
+Cifras de una simulación que ejecuta el `etiquetas()` real de `app.js` con los 42.920 picos del mapa, 24 rumbos y el mismo viewport. Se descartó 36 porque en zonas con muchos pueblos cuesta un 30% de etiquetas sin ganar nada frente a 34.
+
+Comprobado además en el móvil con la reserva de 36 px: 24 rumbos, **0 solapes** (antes 19). Con 34 px la comprobación en el móvil quedó pendiente porque el proveedor de relieve (Open-Meteo) agotó la cuota del día a fuerza de repetir los barridos.
+
+### 9.4. Lo que queda
+
+- Repetir el barrido en el móvil con la reserva de 34 px cuando vuelva la cuota de relieve.
+- Caso raro visto una vez, a −15° de inclinación: dos picos separados 11 px en vertical, con el panel tapando el espacio de arriba, dejan la etiqueta elegida forzada al nivel 0 y se solapan 22 px. La regla «el pico de la mira siempre se dibuja» hace que se prefiera el solape a esconderlo; habría que decidir si se permite apilar hacia abajo en ese caso.
+
+### 9.5. Pruebas
+
+`tests/estatico.js` comprueba ahora que la reserva vertical es de 33 px o más y que el CSS de la etiqueta sigue midiendo 33 px (letra 15, borde 2). Las cinco pruebas sin navegador pasan en v49.
+

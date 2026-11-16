@@ -1844,7 +1844,9 @@ function etiquetas(pe,hdc,pm){
     for(j=0;j<6;j++)if(j!==pref)orden.push(j);
     for(j=0;j<orden.length;j++){
       L=orden[j];
-      var y2=yb-L*36,r={a:x-w/2-3,b:x+w/2+3,c:y2-31,d:y2};
+      // La etiqueta mide 33 px de alto (15 px de letra, 4 px de relleno y 2 px de borde):
+      // se reservan 34 para que dos etiquetas nunca se toquen y no se pierdan más de las necesarias.
+      var y2=yb-L*36,r={a:x-w/2-3,b:x+w/2+3,c:y2-34,d:y2};
       if(r.c<topMin)continue;
       if(!used.some(function(o){return r.a<o.b&&r.b>o.a&&r.c<o.d&&r.d>o.c})){used.push(r);if(id!=null)nivel[id]=L;return L}
     }

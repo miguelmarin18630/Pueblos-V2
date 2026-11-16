@@ -319,6 +319,13 @@ if (/etqNivel\[id\]/.test(app) && /nivel\[id\]=L/.test(app)) ok('cada etiqueta r
 else mal('las etiquetas pueden saltar de altura al girar');
 if (/if\(v===null\|\|v===undefined\)v=\(pan\?true:q\.dk<=10\)/.test(app)) ok('una etiqueta no desaparece cuando el panorama aún no sabe si se ve');
 else mal('la etiqueta desaparece al girar por falta de dato del panorama');
+// La etiqueta mide 33 px en el móvil real (15 px de letra + 8 de relleno + 4 de borde):
+// la reserva debe cubrirlos o los bordes de dos etiquetas se tocan (medido en v48).
+if (/c:y2-(\d+),d:y2/.test(app) && Number(app.match(/c:y2-(\d+),d:y2/)[1]) >= 33) ok('la reserva vertical cubre el alto real de la etiqueta (33 px)');
+else mal('la reserva vertical no cubre los 33 px de la etiqueta y los bordes se tocarán');
+const bloqueEt = /\.et \{[^}]*\}/.exec(css);
+if (bloqueEt && /font-size: 15px/.test(bloqueEt[0]) && /border-width: 2px/.test(bloqueEt[0])) ok('el alto de la etiqueta sigue siendo 33 px (letra 15, borde 2)');
+else mal('el CSS de la etiqueta cambió: revisa la reserva vertical');
 
 // ---------- picos: no dependen de pedir su altura ----------
 console.log('\npicos');
