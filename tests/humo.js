@@ -66,16 +66,19 @@ const mal = (m) => { console.log('  FALLO ' + m); fallos.push(m); };
     await page.evaluate(() => { try { localStorage.setItem('permisosVistos', '1'); } catch (e) {} });
     await page.reload({ waitUntil: 'networkidle2', timeout: 120000 });
 
-    let datos = '';
+    // La portada muestra "Base de datos: 86.359 localidades…" cuando la base está lista
+    // (app.js → actualizarConteos). Se espera a ese texto con al menos 80.000 localidades.
     try {
       await page.waitForFunction(
-        () => /Base incluida/.test(document.getElementById('info').textContent),
+        () => /Base de datos: [\d.]+ localidades/.test((document.getElementById('cnt') || {}).textContent || ''),
         { timeout: 120000 }
       );
-      datos = await page.evaluate(() => document.getElementById('info').textContent);
-      ok(datos);
+      const cnt = await page.evaluate(() => document.getElementById('cnt').textContent);
+      const n = parseInt(cnt.match(/Base de datos: ([\d.]+) localidades/)[1].replace(/\./g, ''), 10);
+      if (n >= 80000) ok(cnt);
+      else mal('la base tiene solo ' + n + ' localidades (se esperan más de 80.000)');
     } catch (e) {
-      mal('no aparece "Base incluida" (¿falló la carga de data/pueblos.js?)');
+      mal('no aparece el contador de la base de datos (#cnt); ¿falló la carga de data/pueblos.js?');
     }
 
     const est = await page.evaluate(() => ({

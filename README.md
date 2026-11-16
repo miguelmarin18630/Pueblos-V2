@@ -188,11 +188,14 @@ Open-Meteo es gratuito para uso no comercial. Límites por IP: 600 peticiones/mi
 
 ## Pruebas
 
-Tres niveles. Los dos primeros no necesitan instalar nada:
+Cinco pruebas que no necesitan instalar nada, solo Node.js:
 
 ```powershell
 node tests/estatico.js
 node tests/rumbo.js
+node tests/vista.js
+node tests/declinacion.js
+node tests/calibracion.js
 ```
 
 `estatico.js` comprueba el manifiesto, que todas las referencias locales existan, que no
@@ -204,7 +207,16 @@ reales y que los datos conserven el formato y el número de entradas.
 interferencia, huecos de eventos, cruce del norte, tolerancias y el caso de una cumbre
 cercana muy alta frente a otra lejana en la mira.
 
-Los dos se ejecutan en cada push (`.github/workflows/validar.yml`).
+`vista.js` construye un panorama sintético y comprueba qué crestas tapan o dejan ver un
+pueblo, además de los radios aparentes de las etiquetas y el corte de nombres largos.
+
+`declinacion.js` compara el modelo WMM2025 de la app con valores de referencia.
+
+`calibracion.js` extrae `calAndar()` y `sinBrujula()` de `scripts/app.js` y camina con un
+GPS y una brújula simulados: recupera un desvío conocido, ignora las muestras con el móvil
+inclinado y detecta los equipos sin datos de brújula.
+
+La prueba de humo sí necesita un navegador:
 
 ```powershell
 npm install puppeteer-core

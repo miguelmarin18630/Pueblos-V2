@@ -1034,8 +1034,11 @@ function migrarDecl(){
   }catch(e){}
 }
 function finCal(txt){hzOff=0;hzPrev=null;calPend=null;guardarOff();$("calst").textContent=txt+(Math.abs(off)>18?" Aviso: corrección grande; si el rumbo no cuadra, quita la calibración y repite apuntando a un pueblo conocido.":"");pintar()}
+// Sin datos de orientación (navegador sin brújula) el rumbo es 0 y cualquier corrección sería falsa
+function sinBrujula(){return oriN===0}
 $("calok").onclick=function(){
   var t=calList[+$("calsel").value];if(!t||!pos)return;
+  if(sinBrujula()){$("calst").textContent="No llegan datos de la brújula, así que no puedo calibrar en este dispositivo.";return}
   calAnd=null;
   var b=brg(pos.latitude,pos.longitude,t.la,t.lo),o=envolver(b-hd-declinacion());
   if(!$("cal2").checked){
@@ -1063,6 +1066,7 @@ $("calok").onclick=function(){
 // Método andando o en coche: compara la brújula con la dirección real del recorrido (GPS)
 $("calgps").onclick=function(){
   if(!pos)return;
+  if(sinBrujula()){$("calst").textContent="No llegan datos de la brújula, así que no puedo calibrar en este dispositivo.";return}
   cal2={b:null,o:null};
   calAnd={la:pos.latitude,lo:pos.longitude,s:[]};
   $("calst").textContent="Avanza en línea recta con el móvil en vertical apuntando hacia delante…";
@@ -1070,9 +1074,13 @@ $("calgps").onclick=function(){
 function calAndar(c){
   if(!calAnd)return;
   var dm=dst(calAnd.la,calAnd.lo,c.latitude,c.longitude)*1000;
-  calAnd.s.push(hd);
+  // Solo cuentan las muestras con el móvil casi vertical (|cabeceo| < 30°), igual que la autocalibración:
+  // con el móvil inclinado el rumbo que dan los sensores no es fiable y sesgaría la corrección.
+  if(Math.abs(pit)<30)calAnd.s.push(hd);
   var need=Math.max(30,2.5*(c.accuracy||10));
-  if(dm<need||calAnd.s.length<2){$("calst").textContent="Camina recto… "+Math.round(dm)+" de "+Math.round(need)+" m";return}
+  if(dm<need||calAnd.s.length<2){
+    var aviso=Math.abs(pit)>=30?" Pon el móvil en vertical.":"";
+    $("calst").textContent="Camina recto… "+Math.round(dm)+" de "+Math.round(need)+" m."+aviso;return}
   var sx=0,sy=0,mal=0;
   calAnd.s.forEach(function(a){sx+=Math.sin(a*R);sy+=Math.cos(a*R)});
   var media=(Math.atan2(sx,sy)/R+360)%360;
