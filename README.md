@@ -10,7 +10,7 @@ instalar como aplicación (PWA) en Android e iPhone.
 
 ## Aplicación Android (APK)
 
-**[Descargar Pueblos-V2-1.6.4.apk](https://github.com/miguelmarin18630/Pueblos-V2/releases/download/v1.6.4/Pueblos-V2-1.6.4.apk)**
+**[Descargar Pueblos-V2-1.6.5.apk](https://github.com/miguelmarin18630/Pueblos-V2/releases/download/v1.6.5/Pueblos-V2-1.6.5.apk)**
 (2,08 MB · Android 7.0 o superior)
 
 El APK lleva la web dentro de un **WebView propio** (como la app antigua) y abre
@@ -19,7 +19,10 @@ El APK lleva la web dentro de un **WebView propio** (como la app antigua) y abre
 el permiso de la app, que se pide solo al abrirla. Para instalar, descarga el archivo en el
 móvil y permite la instalación desde esa fuente cuando Android lo pregunte.
 
-- Paquete: `io.github.laotra18630cmd.pueblos` · versión 1.6.4 (código 11)
+La web se carga **en vivo** desde el sitio, así que las mejoras de la web llegan solas,
+sin reinstalar el APK; solo hay que actualizar el APK cuando cambia la parte nativa.
+
+- Paquete: `io.github.laotra18630cmd.pueblos` · versión 1.6.5 (código 12)
 - Los permisos se piden al pulsar **«Iniciar identificación»** o **«Buscar en OpenStreetMap»**, no al abrir la app; al terminar se dejan de usar y se avisa.
 - Al actualizar la app se **limpia la caché del WebView** y la web borra sus copias
   derivadas (base parseada, picos, relieve), conservando los pueblos añadidos, los
