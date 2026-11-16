@@ -4,11 +4,11 @@
    Dos cachés:
    - CACHE_CODIGO: html, js, css. Se borra en cada versión, pero se sirve "red primero",
      así que una versión nueva llega siempre aunque el móvil tenga una copia vieja.
-   - CACHE_DATOS: los archivos pesados (pueblos.js, picos.js) y los iconos. NO se borra
-     nunca: al cambiar de versión no hay que volver a bajar los 5 MB de datos.
+   - CACHE_DATOS: los archivos pesados (pueblos.js, picos.js, relieve.bin) y los iconos. NO se borra
+     nunca: al cambiar de versión no hay que volver a bajar los 8,9 MB de datos.
 
    Si cambias archivos del motor, sube VERSION (y el ?v=... del index.html). */
-const VERSION = 'v49';
+const VERSION = 'v50';
 const CACHE_CODIGO = 'que-pueblo-cod-' + VERSION;
 const CACHE_DATOS = 'que-pueblo-datos';   // permanente
 
@@ -16,19 +16,20 @@ const CODIGO = [
     './',
     './index.html',
     './manifest.json',
-    './styles/base.css?v=49',
-    './styles/portada.css?v=49',
-    './styles/layout.css?v=49',
-    './styles/camera.css?v=49',
-    './styles/ayuda.css?v=49',
+    './styles/base.css?v=50',
+    './styles/portada.css?v=50',
+    './styles/layout.css?v=50',
+    './styles/camera.css?v=50',
+    './styles/ayuda.css?v=50',
     './docs/guia.html',
     './docs/guia-pueblos.pdf',
-    './scripts/app.js?v=49'
+    './scripts/app.js?v=50'
 ];
 
 const DATOS = [
     './data/pueblos.js',
     './data/picos.js',
+    './data/relieve.bin',
     './icons/icon-180.png',
     './icons/icon-192.png',
     './icons/icon-512.png',
@@ -81,7 +82,7 @@ function guardarDatos() {
             const ya = await cache.match(url);
             if (ya) continue;
             try {
-                const res = await fetch(url, { cache: 'reload' });
+                const res = await fetch(url);
                 if (res && res.ok) await cache.put(url, res);
             } catch (e) { /* sin conexión: se descargará luego */ }
         }

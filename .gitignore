@@ -21,3 +21,7 @@ android/
 node_modules/
 package-lock.json
 package.json
+
+# Teselas de Copernicus para regenerar data/relieve.bin (~450 MB):
+# solo se sube el archivo final, no las teselas
+tools/teselas_dem/

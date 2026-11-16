@@ -156,10 +156,18 @@ Resuelto en la **v43**:
 - **Chip de calibración en Android**: ya no se queda en «Calibración …»; pasa a
   «Sin calibrar» en ámbar en cuanto hay datos de brújula.
 
+Resuelto en la **v50**:
+
+- **Relieve empaquetado en un archivo** (`data/relieve.bin`, 3,63 MB): malla de todo
+  el país a 0,005° (~500 m), generada con `tools/generar-relieve.py` a partir del
+  Copernicus DEM GLO-90 y comprimida con `DecompressionStream`. Se descarga en
+  segundo plano, no bloquea el primer dibujo y sustituye a las consultas a
+  Open-Meteo (que quedan solo como apoyo si el archivo no está). Con el archivo, el
+  panorama usa los 144 rayos cada 2,5° sin depender del cupo de Open-Meteo.
+
 Sigue pendiente:
 
-- Empaquetar los datos en binario + `DecompressionStream` (el motor ya soporta
-  `#datosRelieve`); bajaría el HTML a unas decenas de KB.
 - Codificar los pueblos por delta de coordenadas en rejilla (más ganancia que minificar).
-- Relieve más fino cerca (1° en vez de 2,5–7,5°).
+- Relieve más fino cerca: bajar de un rayo cada 2,5° a uno cada 1° en los primeros
+  kilómetros, ahora que las alturas salen del archivo y no de la red.
 

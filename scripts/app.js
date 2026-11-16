@@ -104,30 +104,64 @@ async function viaOM(lats,lons){
 }
 // Nota: OpenTopoData se quito como respaldo porque su API no envia cabeceras CORS
 // y el navegador bloquea la peticion. Open-Meteo es el unico proveedor remoto.
-// ---- Relieve incluido en la página (opcional) ----
-// Si existe el bloque «datosRelieve» (lo genera generar_relieve.py), las altitudes se leen de ahí y no se descarga nada.
-// Formato: zlib( [4 bytes: largo de cabecera][cabecera JSON][bytes bajos][bytes altos] ), alturas en int16 con diferencias por filas.
-var DEMLOC=null,demLocalP=null;
-function cargarRelieveLocal(){
-  var el=document.getElementById("datosRelieve");
-  if(!el||!el.textContent.trim()||typeof DecompressionStream==="undefined")return null;
-  return (async function(){
-    try{
-      var b=atob(el.textContent.trim()),u=new Uint8Array(b.length),i;
-      for(i=0;i<b.length;i++)u[i]=b.charCodeAt(i);
-      el.textContent="";
-      var r=await new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream("deflate"))).arrayBuffer();
-      var hl=new DataView(r).getUint32(0,true),hdr=JSON.parse(new TextDecoder().decode(new Uint8Array(r,4,hl)));
-      var base=4+hl,total=0;hdr.b.forEach(function(k){total+=k.r*k.c});
-      var lo=new Uint8Array(r,base,total),hi=new Uint8Array(r,base+total,total),off=0,bl=[];
-      hdr.b.forEach(function(k){
-        var d=new Int16Array(k.r*k.c),y,x,p,o;
-        for(y=0;y<k.r;y++){p=0;o=off+y*k.c;for(x=0;x<k.c;x++){p=(p+((hi[o+x]<<8)|lo[o+x]))<<16>>16;d[y*k.c+x]=p}}
-        off+=k.r*k.c;bl.push({n:k.n,w:k.w,r:k.r,c:k.c,d:d});
-      });
-      DEMLOC={s:hdr.s,b:bl};
-    }catch(e){DEMLOC=null}
-  })();
+// ---- Relieve incluido en un archivo (data/relieve.bin) ----
+// Todo el terreno de España, Baleares y Canarias a 0,005° (~500 m), en un archivo
+// que se descarga una vez y se queda en el móvil (caché del service worker).
+// Formato: zlib( [4 bytes: largo de cabecera][cabecera JSON][bytes bajos][bytes altos] ),
+// alturas en int16 con diferencias por filas. Lo genera tools/generar-relieve.py.
+var DEMLOC=null,demLocalP=null,relievePedido=false,panGen=0;
+function cargarRelieve(){
+  if(demLocalP||relievePedido)return demLocalP;
+  if(typeof DecompressionStream==="undefined")return null; // navegador viejo: se sigue con Open-Meteo
+  relievePedido=true;
+  demLocalP=fetch("data/relieve.bin",{cache:recargarDatos?"reload":"default"}).then(function(r){
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    return r.arrayBuffer();
+  }).then(async function(buf){
+    var r=await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream("deflate"))).arrayBuffer();
+    var hl=new DataView(r).getUint32(0,true),hdr=JSON.parse(new TextDecoder().decode(new Uint8Array(r,4,hl)));
+    var base=4+hl,total=0;hdr.b.forEach(function(k){total+=k.r*k.c});
+    var lo=new Uint8Array(r,base,total),hi=new Uint8Array(r,base+total,total),off=0,bl=[];
+    hdr.b.forEach(function(k){
+      var d=new Int16Array(k.r*k.c),y,x,p,o;
+      for(y=0;y<k.r;y++){p=0;o=off+y*k.c;for(x=0;x<k.c;x++){p=(p+((hi[o+x]<<8)|lo[o+x]))<<16>>16;d[y*k.c+x]=p}}
+      off+=k.r*k.c;bl.push({n:k.n,w:k.w,r:k.r,c:k.c,d:d});
+    });
+    DEMLOC={s:hdr.s,b:bl};
+    relieveListo();
+  }).catch(function(){
+    demLocalP=null;relievePedido=false; // sin archivo: se sigue con Open-Meteo
+  });
+  return demLocalP;
+}
+// Al llegar el archivo se tira lo calculado con la red y se rehace el panorama con
+// el relieve del móvil: es instantáneo y ya no depende del cupo de Open-Meteo.
+function relieveListo(){
+  try{
+    bloqRel=0;panBloq=0;sinRelK={};pan=null;panEnCurso=false;panGen++;
+    limpiarDemRed();
+    if(pos&&document.body.classList.contains("on")){pintar();construirPano()}
+  }catch(e){}
+}
+// Las celdas de relieve descargadas de Open-Meteo (hasta 72 MB) ya no se leen en
+// España: se borran una sola vez para recuperar ese espacio.
+function limpiarDemRed(){
+  try{
+    if(localStorage.getItem("relieveArchivo"))return;
+    localStorage.setItem("relieveArchivo","1");
+  }catch(e){return}
+  setTimeout(function(){
+    (async function(){
+      try{
+        var d=await idb();
+        await new Promise(function(res){
+          var t=d.transaction("kv","readwrite"),st=t.objectStore("kv"),c=st.openCursor();
+          c.onsuccess=function(){var cur=c.result;if(cur){if(/^dem3:|^demIdx3$/.test(String(cur.key)))st.delete(cur.key);cur.continue()}};
+          t.oncomplete=res;t.onerror=res;t.onabort=res;
+        });
+      }catch(e){}
+    })();
+  },8000);
 }
 // Altura en (la,lo) por interpolación entre las 4 celdas más cercanas; null si el punto queda fuera del relieve incluido
 function elevLocal(la,lo){
@@ -142,10 +176,10 @@ function elevLocal(la,lo){
   }
   return null;
 }
-demLocalP=cargarRelieveLocal();
+// Se pide en segundo plano al arrancar, sin competir con la base de pueblos
+setTimeout(function(){try{cargarRelieve()}catch(e){}},1200);
 // Todos los pedidos van a Open-Meteo; omLibres() reparte el cupo por minuto.
 async function altitudes(lats,lons){
-  if(demLocalP)await demLocalP;
   if(DEMLOC){
     var hl=[],okl=true;
     for(var il=0;il<lats.length;il++){var vl=elevLocal(parseFloat(lats[il]),parseFloat(lons[il]));if(vl===null){okl=false;break}hl.push(vl)}
@@ -1449,9 +1483,10 @@ async function demGuardarReal(c,obj){
 async function construirPano(){
   if(!usarRelieve||panEnCurso||Date.now()<panBloq||!pos)return;
   panEnCurso=true;panProg="0%";
+  var gen=++panGen;
   var q=0.005,la=Math.round(pos.latitude/q)*q,lo=Math.round(pos.longitude/q)*q,cel=Math.round(pos.latitude/q)+","+Math.round(pos.longitude/q);
   var k0=Math.round(rumboC()/2.5)-18,ks=[],dem=await demGet(cel),falta=[],i,j;
-  var nj=nJ(alcance),libre=Math.max(0,omLibres()-RESERVA_ELEV);
+  var nj=nJ(alcance),libre=DEMLOC?1e9:Math.max(0,omLibres()-RESERVA_ELEV);
   function rayos(paso){var a=[];for(var n=0;n<37;n+=paso)a.push(((k0+n)%144+144)%144);return a}
   function faltan(paso){
     var a=[];if(dem.o===undefined)a.push("o");
@@ -1466,9 +1501,11 @@ async function construirPano(){
     if(fpp.length<=libre){pasoPan=pp;falta=fpp;ks=rayos(pp);break}
   }
   if(!pasoPan){
-    panEnCurso=false;panProg="";
-    reintentarPano(20000);
-    $("msg").textContent="Cuota de relieve agotada; lo reintentaré automáticamente.";
+    if(gen===panGen){
+      panEnCurso=false;panProg="";
+      reintentarPano(20000);
+      $("msg").textContent="Cuota de relieve agotada; lo reintentaré automáticamente.";
+    }
     return;
   }
   function pt(id){var s=id.split("|"),az=s[0]*2.5,d=DS[+s[1]];return[la+d*Math.cos(az*R)/111.32,lo+d*Math.sin(az*R)/(111.32*Math.cos(la*R))]}
@@ -1483,6 +1520,7 @@ async function construirPano(){
     pintar();
   }
   if(hecho>0&&fuente!=="relieve incluido")demGuardar(cel,dem); // guarda también lo descargado si el proceso se corta
+  if(gen!==panGen)return; // llegó el archivo (u otro panorama): este cálculo ya no vale
   panEnCurso=false;
   if(!ok||!pos){reintentarPano(30000);return}
   var gps=pos.altitude,H0=(typeof gps==="number"&&gps>dem.o+150)?gps:dem.o+2,azs=[],M=[],S=[];
@@ -3234,8 +3272,14 @@ mostrarVersion();
 // ---- App instalable: guarda la página para abrirla sin conexión ----
 if("serviceWorker" in navigator&&location.protocol!=="file:"&&!window.AndroidApp)window.addEventListener("load",function(){
   navigator.serviceWorker.register("sw.js").then(function(reg){
-    // Se pide al service worker que guarde los datos pesados en el móvil
-    try{if(reg&&reg.active)reg.active.postMessage("guardar-datos")}catch(e){}
+    // Se pide al service worker que guarde los datos pesados en el móvil.
+    // En la primera visita el SW aún se está instalando: se repite en cuanto activa,
+    // así el relieve (3,6 MB) también queda guardado para usarlo sin conexión.
+    function pedirGuardar(){try{if(reg.active)reg.active.postMessage("guardar-datos")}catch(e){}}
+    pedirGuardar();
+    if(reg.installing)reg.installing.addEventListener("statechange",function(){if(this.state==="activated")pedirGuardar()});
+    else if(reg.waiting)reg.waiting.addEventListener("statechange",function(){if(this.state==="activated")pedirGuardar()});
+    navigator.serviceWorker.ready.then(pedirGuardar).catch(function(){});
   }).catch(function(){});
 });
 })();

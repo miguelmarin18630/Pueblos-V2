@@ -173,7 +173,7 @@
 </script>
 
 <header class="barra no-print">
-  <div class="marca">📘 Guía completa<small>¿Qué pueblo es? · versión 49</small></div>
+  <div class="marca">📘 Guía completa<small>¿Qué pueblo es? · versión 50</small></div>
   <a class="btn primario" href="guia-pueblos.pdf" download="Guia-Que-Pueblo-Es.pdf">⬇ PDF</a>
   <button class="btn cerrar" type="button" id="cerrarGuia" aria-label="Cerrar la guía">✕</button>
 </header>
@@ -197,7 +197,7 @@
         <li>Cómo se calcula el rumbo, la declinación WMM2025 y cómo calibrar la brújula con cuatro métodos (más el ajuste del campo de visión).</li>
         <li>Qué hacer cuando no aparece un pueblo, el nombre no coincide o falla el GPS.</li>
       </ul>
-      <p class="pie-print">Guía completa · versión 49 · noviembre 2026 · pueblos.marinweb.org</p>
+      <p class="pie-print">Guía completa · versión 50 · noviembre 2026 · pueblos.marinweb.org</p>
     </div>
     <svg class="arte" viewBox="0 0 320 220" aria-hidden="true">
       <defs>
@@ -265,7 +265,7 @@
     <div class="tarjeta">
       <b>En una frase:</b> GPS para saber dónde estás, brújula para saber hacia dónde apuntas, cámara para verlo y un modelo de relieve para saber qué montañas tapan qué.
     </div>
-    <p class="fuente">Los datos de pueblos y picos vienen de OpenStreetMap. La elevación y el relieve se apoyan en Open-Meteo. La app no necesita cuenta y no guarda ni envía la imagen de la cámara.</p>
+    <p class="fuente">Los datos de pueblos y picos vienen de OpenStreetMap. El relieve viene incluido en la app (Copernicus DEM, celdas de ~500 m) y Open-Meteo se usa solo como apoyo puntual. La app no necesita cuenta y no guarda ni envía la imagen de la cámara.</p>
   </section>
 
   <section id="permisos">
@@ -507,7 +507,7 @@
     <h3>3. Qué se ve</h3>
     <p>La cámara tiene un campo de visión (FOV). La app proyecta cada lugar en la pantalla con la fórmula de la lente: la dirección horizontal se convierte en píxeles y la elevación (altura del lugar menos la tuya, más la curvatura de la Tierra) se convierte en altura en pantalla. El zoom y el estabilizador se tienen en cuenta. El FOV por defecto es <b>69,4°</b>, pero puedes ajustarlo si tu cámara recorta la imagen de otra forma (ver el método 5 de calibración).</p>
     <h3>4. Qué montañas tapan qué</h3>
-    <p>Con el relieve (Open-Meteo o una copia guardada en el móvil) la app construye un panorama en abanico de ±45° y hasta 40/80 km. Para cada dirección calcula el ángulo máximo del terreno y compara: si un pueblo queda por debajo de una montaña, no se dibuja. Si apagas Relieve, se muestran todos por dirección.</p>
+    <p>Con el relieve incluido en la app (Copernicus DEM, celdas de ~500 m) la app construye un panorama en abanico de ±45° y hasta 40/80 km. Para cada dirección calcula el ángulo máximo del terreno y compara: si un pueblo queda por debajo de una montaña, no se dibuja. Si el archivo de relieve aún no está disponible, pide las altitudes a Open-Meteo. Si apagas Relieve, se muestran todos por dirección.</p>
     <h3>5. Qué etiqueta se elige</h3>
     <p>El lugar bajo la mira es el más cercano en dirección y, a igualdad, el más cercano en distancia. En los picos se tiene en cuenta la altura y el encuadre vertical. Para que no parpadee, el pico elegido se mantiene 2,5 s si otro no le gana por más de 0,8°.</p>
     <h3>6. Dónde se colocan las etiquetas</h3>
@@ -703,7 +703,7 @@
       <li><b>La cámara no sale del móvil.</b> La imagen se procesa en el dispositivo para dibujar las etiquetas; no se sube ni se guarda.</li>
       <li><b>La ubicación</b> se usa solo mientras la app está abierta, para buscar lugares y relieve. No se envía a un servidor propio.</li>
       <li><b>Los datos</b> (base de pueblos/picos, relieve consultado, calibración y lugares añadidos) se guardan en el almacenamiento local del móvil. Puedes borrarlos desde la app o desde los ajustes del navegador.</li>
-      <li><b>Terceros:</b> los datos de pueblos y picos son de OpenStreetMap (ODbL); la elevación se consulta a Open-Meteo (CC BY 4.0); la web se sirve desde GitHub Pages.</li>
+      <li><b>Terceros:</b> los datos de pueblos y picos son de OpenStreetMap (ODbL); el relieve incluido deriva del Copernicus DEM (© DLR/Airbus DS, ESA); Open-Meteo (CC BY 4.0) se usa como apoyo puntual; la web se sirve desde GitHub Pages.</li>
       <li><b>Sin cuentas, sin anuncios y sin seguimiento</b> publicitario.</li>
       <li>Puedes revocar cámara, ubicación o movimiento en los ajustes del móvil/navegador; la app avisará y ofrecerá alternativas.</li>
     </ul>
@@ -731,19 +731,20 @@
 
   <section id="creditos">
     <h2><span class="num">21</span>Créditos y licencias</h2>
-    <p><b>¿Qué pueblo es?</b> · Guía de uso · versión 49 · noviembre 2026.</p>
+    <p><b>¿Qué pueblo es?</b> · Guía de uso · versión 50 · noviembre 2026.</p>
     <p>Autor: Miguel Marín.</p>
     <ul>
       <li>Datos de pueblos y picos: © colaboradores de <b>OpenStreetMap</b>, bajo <b>ODbL 1.0</b>.</li>
-      <li>Elevación y apoyo al relieve: <b>Open-Meteo</b>, bajo <b>CC BY 4.0</b>.</li>
-      <li>El perfil de relieve lo calcula la app.</li>
+      <li>Relieve incluido: <b>Copernicus DEM GLO-90</b> (© DLR e.V. y © Airbus Defence and Space GmbH, facilitado por Copernicus/ESA), reducido a celdas de ~500 m.</li>
+      <li>Elevación de apoyo (cuando falta el archivo): <b>Open-Meteo</b>, bajo <b>CC BY 4.0</b>.</li>
+      <li>El perfil de relieve y la silueta los calcula la app.</li>
       <li>Declinación magnética: <b>World Magnetic Model 2025 (WMM2025)</b> de la NOAA/NCEI y el British Geological Survey, de uso público.</li>
       <li>Esta guía es un documento de uso de la app; las licencias de los datos son las de sus fuentes.</li>
     </ul>
     <p class="fuente">Si algo no cuadra o falta un pueblo, la app incluye «Actualizar desde OpenStreetMap» y «Añadir un lugar a mano».</p>
   </section>
 
-  <p class="pie">¿Qué pueblo es? · Guía completa · v49 · Esta guía también está disponible dentro de la app, en la pantalla principal: <b>📘 Guía completa e instrucciones</b>. El PDF se descarga desde el botón <b>⬇ PDF</b> de la barra superior de esta guía.</p>
+  <p class="pie">¿Qué pueblo es? · Guía completa · v50 · Esta guía también está disponible dentro de la app, en la pantalla principal: <b>📘 Guía completa e instrucciones</b>. El PDF se descarga desde el botón <b>⬇ PDF</b> de la barra superior de esta guía.</p>
 </main>
 
 <a class="volver no-print" href="#indice" aria-label="Volver al índice">↑</a>
