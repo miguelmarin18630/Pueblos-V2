@@ -414,6 +414,13 @@ else mal('la guía no está como primera opción de la portada');
 if (/<details id="faltan"/.test(html)) ok('«¿Falta algún pueblo o pico?» plegado para ahorrar espacio');
 else mal('«¿Falta algún pueblo o pico?» no está plegado');
 
+// ---------- línea del horizonte de la cámara ----------
+console.log('\nhorizonte');
+const dib = (app.match(/function dibujarSilueta\([\s\S]*?\n\}/) || [''])[0];
+if (/hzDet\.ok&&/.test(dib) && !/255,255,255,\.35/.test(dib)) {
+  ok('la línea de la cámara solo se dibuja cuando es fiable (amarilla)');
+} else mal('se sigue dibujando la línea gris del horizonte sin validar');
+
 // ---------- resultado ----------
 console.log('');
 if (fallos.length) {
