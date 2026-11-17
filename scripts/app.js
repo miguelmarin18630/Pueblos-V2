@@ -524,16 +524,30 @@ async function estadoPermisoCamara(){
     return (p&&p.state)||"";
   }catch(e){return ""}
 }
+function entornoCamara(){
+  try{
+    if(window.AndroidApp)return "app";
+    if(navigator.standalone)return "instalada";
+    if(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)return "instalada";
+    if(window.matchMedia&&matchMedia("(display-mode: minimal-ui)").matches)return "instalada";
+    var ua=navigator.userAgent||"";
+    // Navegadores dentro de otra app: no dejan cambiar permisos ni suelen tener barra
+    if(/FBAN|FBAV|FB_IAB|Instagram|Line\/|Snapchat|; wv\)/i.test(ua))return "dentro";
+  }catch(e){}
+  return "navegador";
+}
 function mensajeCamara(e,estado){
   var n=e&&e.name?e.name:"";
   if(n==="NotAllowedError"||n==="SecurityError"){
-    // Los permisos ya se pidieron al iniciar. Se explica el camino exacto para
-    // concederlos: en la app Android es en Ajustes de la app; en el navegador,
-    // en el candado de la barra de direcciones (el navegador no vuelve a preguntar).
-    if(window.AndroidApp)return "Cámara sin permiso en la app. Abre Ajustes > Aplicaciones > ¿Qué pueblo es? > Permisos y permite la cámara; al volver se enciende sola.";
-    if(estado==="denied")return "Chrome tiene la cámara bloqueada para esta web. Toca el candado 🔒 de la barra de direcciones > Permisos > Cámara > Permitir; al volver se enciende sola.";
+    // Los permisos ya se pidieron al iniciar. Se explica el camino exacto según
+    // cómo esté abierta la web, porque sin barra de direcciones no hay candado.
+    var donde=entornoCamara();
+    if(donde==="app")return "Cámara sin permiso en la app. Abre Ajustes > Aplicaciones > ¿Qué pueblo es? > Permisos y permite la cámara; al volver se enciende sola.";
+    if(donde==="instalada")return "La web instalada no tiene barra de direcciones. Abre Chrome, entra en pueblos.marinweb.org, toca el candado 🔒 > Permisos > Cámara > Permitir y vuelve aquí; se enciende sola.";
+    if(donde==="dentro")return "Estás dentro de otra app, que no deja cambiar los permisos. Abre su menú ⋮ y elige «Abrir en Chrome»; allí permite la cámara y vuelve.";
     if(estado==="granted")return "Chrome ya tiene permiso, pero Android no deja usar la cámara a Chrome. Abre Ajustes > Aplicaciones > Chrome > Permisos > Cámara y permite; al volver se enciende sola.";
-    return "La cámara no se ha abierto. Toca el candado 🔒 de la barra de direcciones, permite la cámara y vuelve aquí; se enciende sola.";
+    if(estado==="denied")return "La cámara está bloqueada para esta web. Si no ves la barra de direcciones, desliza la página hacia abajo para mostrarla y toca el candado 🔒 > Permisos > Cámara > Permitir. También vale el menú ⋮ > Configuración > Configuración de sitios > Cámara.";
+    return "La cámara no se ha abierto. Si no ves la barra de direcciones, desliza la página hacia abajo para mostrarla, toca el candado 🔒 y permite la cámara; se enciende sola al volver.";
   }
   if(n==="NotFoundError"||n==="OverconstrainedError")return "No se encuentra ninguna cámara en este dispositivo.";
   if(n==="NotReadableError"||n==="AbortError")return "La cámara la está usando otra aplicación. Ciérrala e inténtalo de nuevo.";

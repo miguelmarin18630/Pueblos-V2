@@ -321,6 +321,12 @@ if (/permissions\.query\(\{name:"camera"\}\)/.test(app) && /estado==="denied"/.t
 else mal('el aviso no distingue el bloqueo de Chrome del de Android');
 if (/Ajustes > Aplicaciones > Chrome > Permisos > Cámara/.test(app)) ok('explica el camino si Android bloquea la cámara a Chrome');
 else mal('no explica qué hacer si Android bloquea la cámara a Chrome');
+if (/display-mode: standalone/.test(app) && /La web instalada no tiene barra de direcciones/.test(app)) ok('sin barra de direcciones, la web instalada manda a Chrome');
+else mal('la web instalada sigue hablando del candado');
+if (/Abrir en Chrome/.test(app) && /FBAN\|FBAV/.test(app)) ok('dentro de otra app propone abrir en Chrome');
+else mal('no distingue cuando se abre dentro de otra app');
+if (/desliza la página hacia abajo/.test(app)) ok('en el navegador explica cómo mostrar la barra o llegar a los ajustes de sitios');
+else mal('no explica qué hacer si la barra de direcciones está oculta');
 if (/visibilitychange[\s\S]{0,500}?if\(!stream\)camara\(true\)/.test(app)) ok('al volver de los ajustes la cámara se reintenta sola');
 else mal('al volver de los ajustes la cámara no se reintenta');
 
