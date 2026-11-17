@@ -327,6 +327,8 @@ if (/Abrir en Chrome/.test(app) && /FBAN\|FBAV/.test(app)) ok('dentro de otra ap
 else mal('no distingue cuando se abre dentro de otra app');
 if (/desliza la página hacia abajo/.test(app)) ok('en el navegador explica cómo mostrar la barra o llegar a los ajustes de sitios');
 else mal('no explica qué hacer si la barra de direcciones está oculta');
+if (/esIOS&&typeof DeviceOrientationEvent/.test(app) && /iPhone\|iPad\|iPod/.test(app)) ok('la petición de brújula de iPhone no se usa en Android');
+else mal('se sigue pidiendo el permiso de brújula de iPhone en Android');
 if (/visibilitychange[\s\S]{0,500}?if\(!stream\)camara\(true\)/.test(app)) ok('al volver de los ajustes la cámara se reintenta sola');
 else mal('al volver de los ajustes la cámara no se reintenta');
 

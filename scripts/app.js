@@ -3106,8 +3106,15 @@ if(window.AndroidApp){
 }
 async function iniciar2(){
   $("msg").textContent="Comprobando permisos…";
+  // La petición de permiso de brújula es exclusiva de iOS/Safari. Chrome para
+  // Android ya trae esa función y puede devolver "denied" si se llama fuera de
+  // un gesto, así que solo se usa en iPhone/iPad (v58).
+  var esIOS=false;
   try{
-    if(typeof DeviceOrientationEvent!=="undefined"&&typeof DeviceOrientationEvent.requestPermission==="function"){
+    esIOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+  }catch(e){}
+  try{
+    if(esIOS&&typeof DeviceOrientationEvent!=="undefined"&&typeof DeviceOrientationEvent.requestPermission==="function"){
       var s=await DeviceOrientationEvent.requestPermission();
       if(s!=="granted"){$("msg").textContent="El iPhone ha denegado el acceso a la brújula (estado: "+s+"). Abre esta página en Safari, no dentro de otra app.";return}
     }
