@@ -142,6 +142,7 @@ function relieveListo(){
     limpiarDemRed();
     if(pos&&document.body.classList.contains("on")){pintar();construirPano()}
   }catch(e){}
+  try{if($("buscar").style.display==="flex"){visBusc={};buscarClave=null;llenarBuscarLista($("buscarTexto").value)}}catch(e){}
 }
 // Las celdas de relieve descargadas de Open-Meteo (hasta 72 MB) ya no se leen en
 // España: se borran una sola vez para recuperar ese espacio.
@@ -1813,6 +1814,8 @@ $("relb").onclick=function(){
   this.title=usarRelieve?"Relieve activado: se ocultan los lugares tapados por montañas":"Relieve desactivado: se muestran todos los lugares por dirección";
   avisar(usarRelieve?"🏔 Relieve activado: compruebo si las montañas tapan los pueblos y dibujo su silueta.":"🏔 Relieve desactivado: muestro los pueblos sin comprobar las montañas.",4500);
   panBloq=0;pintar();
+  // Si la ventana de búsqueda está abierta, su lista se actualiza al momento
+  try{if($("buscar").style.display==="flex")llenarBuscarLista($("buscarTexto").value)}catch(e){}
 };
 // Enciende o apaga «Picos» desde cualquier sitio: su botón, los filtros de pueblo
 // o la búsqueda. El botón, el cuerpo (clase «picos») y los otros dos filtros quedan
@@ -2430,11 +2433,12 @@ function abrirBuscar(){
   var intro=$("buscarIntro");
   if(intro)intro.textContent=buscarModoUbic
     ? "Busca el pueblo donde estás y tócalo: se usará su centro como ubicación aproximada para entrar sin GPS."
-    : "Escribe parte del nombre y elige uno de la lista. Solo se muestran los lugares a menos de 80 km de ti (para eso te pido la ubicación). La flecha te dirá hacia dónde está.";
+    : "Escribe parte del nombre y elige uno de la lista. Solo se muestran los lugares a menos de 80 km de ti (para eso te pido la ubicación). Con «Relieve» activado no salen los que una montaña tapa desde donde estás. La flecha te dirá hacia dónde está.";
   $("buscarT").textContent=buscarModoUbic?"Elige tu pueblo":"Buscar pueblo o pico";
   $("buscarEstado").textContent = buscarModoUbic
     ? "Escribe el nombre de tu pueblo y tócalo en la lista."
     : "Cargando la base de pueblos y picos…";
+  try{cargarRelieve()}catch(e){}
   llenarBuscarLista("");
   setTimeout(function(){try{$("buscarTexto").focus()}catch(e){}},50);
   // La base de pueblos puede tardar unos segundos la primera vez: se espera y se rellena sola
@@ -2563,6 +2567,39 @@ function picosBaseCerca(la,lo,km){
 // Rellena la lista de resultados: solo lugares a menos de BUSCAR_KM de la ubicación.
 // Con el filtro por nombre se acota mucho la lista y la búsqueda va rápida.
 var buscarClave=null;
+// ¿Se ve el lugar p desde la ubicación P0? Misma comprobación que la cámara (relieve + curvatura
+// de la Tierra), pero en todas las direcciones y con el relieve incluido en el móvil, así que
+// es instantánea. Solo devuelve false cuando una montaña lo tapa claramente: si no hay datos
+// de relieve para ese trayecto, el lugar se queda en la lista.
+var visBusc={};
+function buscarVisible(P0,p){
+  if(!usarRelieve||!P0||!(p.k>0.4))return true;
+  if(!DEMLOC){
+    // Sin el archivo de relieve solo se usa lo ya comprobado por la cámara (nunca se piden datos a la red)
+    var cv=pos?cacheV[clave(p)]:undefined;
+    return cv!==false;
+  }
+  var kc=P0.latitude.toFixed(4)+","+P0.longitude.toFixed(4)+">"+p.la.toFixed(4)+","+p.lo.toFixed(4)+(typeof p.e==="number"?"^"+Math.round(p.e):"");
+  if(visBusc[kc]!==undefined)return visBusc[kc];
+  if(Object.keys(visBusc).length>20000)visBusc={};
+  var D=p.k*1000,n=Math.max(6,Math.min(60,Math.ceil(p.k/1.5))),h=[],i,f,v,r=true;
+  for(i=0;i<=n;i++){
+    f=i/n;
+    v=elevLocal(P0.latitude+(p.la-P0.latitude)*f,P0.longitude+(p.lo-P0.longitude)*f);
+    if(v===null){visBusc[kc]=true;return true} // fuera del relieve incluido: no se sabe, se mantiene
+    h.push(v);
+  }
+  var gps=(pos&&P0===pos)?pos.altitude:null;
+  var H0=(typeof gps==="number"&&gps>h[0]+150)?gps:h[0]+2;
+  var H1=Math.max(h[n],(typeof p.e==="number"&&p.e>0)?p.e:0)+10,RT=7300000;
+  for(i=1;i<n;i++){
+    var d=D*i/n,bulto=d*(D-d)/(2*RT);
+    // 0,004 rad de margen, igual que la cámara: el relieve guarda la altura máxima de cada celda de ~500 m
+    if(h[i]+bulto>H0+(H1-H0)*d/D+0.004*d){r=false;break}
+  }
+  visBusc[kc]=r;
+  return r;
+}
 function llenarBuscarLista(filtro){
   var sel=$("buscarLista");
   if(!sel)return;
@@ -2574,7 +2611,7 @@ function llenarBuscarLista(filtro){
   var P0=buscarModoUbic?null:(pos||ultimaPos);
   // Si nada ha cambiado no se repinta. Al tocar un resultado el teclado manda
   // «compositionend» y el repintado se llevaba por delante el toque.
-  var clave=[f,tipos,buscarModoUbic?"ubic":"",P0?P0.latitude.toFixed(4)+","+P0.longitude.toFixed(4):"",baseLista()?"1":"0",PKALL?PKALL.length:0].join("|");
+  var clave=[f,tipos,buscarModoUbic?"ubic":"",P0?P0.latitude.toFixed(4)+","+P0.longitude.toFixed(4):"",baseLista()?"1":"0",PKALL?PKALL.length:0,(usarRelieve&&!buscarModoUbic)?(DEMLOC?"R2":"R1"):"R0"].join("|");
   if(clave===buscarClave)return;
   buscarClave=clave;
   // En modo ubicación, sin nombre no hay nada que enseñar: no se recorre toda la
@@ -2635,8 +2672,18 @@ function llenarBuscarLista(filtro){
   if(buscarModoUbic)lista.sort(function(a,b){return String(a.n).localeCompare(String(b.n),"es")});
   else lista.sort(function(a,b){return a.k-b.k});
   // En el móvil, miles de botones congelan la lista: se muestran solo los más cercanos
-  var totalRes=lista.length,MAXRES=buscarModoUbic?200:40;
-  if(lista.length>MAXRES)lista=lista.slice(0,MAXRES);
+  var totalRes=lista.length,MAXRES=buscarModoUbic?200:40,ocultos=0,hayMas=false;
+  if(P0&&usarRelieve&&!buscarModoUbic){
+    // Relieve activado: fuera de la lista los lugares que una montaña tapa desde aquí
+    // (se recorren de más cerca a más lejos hasta llenar la lista)
+    var visibles=[];
+    for(var iv=0;iv<lista.length;iv++){
+      if(!buscarVisible(P0,lista[iv])){ocultos++;continue}
+      if(visibles.length>=MAXRES){hayMas=true;break}
+      visibles.push(lista[iv]);
+    }
+    lista=visibles;totalRes=hayMas?lista.length+1:lista.length;
+  }else if(lista.length>MAXRES)lista=lista.slice(0,MAXRES);
   var mostrados=0;
   lista.forEach(function(p){
     // Lista en vivo: cada coincidencia es un botón (los <select> nativos no se
@@ -2661,7 +2708,10 @@ function llenarBuscarLista(filtro){
   if(est){
     if(buscarModoUbic)est.textContent=f?(mostrados+" resultado"+(mostrados!==1?"s":"")+" · toca el tuyo para entrar"):"Escribe el nombre de tu pueblo y tócalo en la lista.";
     else if(!baseLista())est.textContent="Cargando la base de pueblos… (la primera vez tarda unos segundos)";
-    else if(P0)est.textContent=(totalRes>mostrados?"Los "+mostrados+" más cercanos de "+totalRes+" · escribe para afinar":mostrados+" resultado"+(mostrados!==1?"s":""))+" (a menos de "+BUSCAR_KM+" km)";
+    else if(P0){
+      var relTxt=usarRelieve?(ocultos?" · "+ocultos+" tapado"+(ocultos!==1?"s":"")+" por montañas, no se muestran"+(DEMLOC?"":" (aún sin el relieve completo)"):(DEMLOC?" · relieve comprobado":" · cargando el relieve…")):"";
+      est.textContent=(hayMas?"Los "+mostrados+" más cercanos que se ven · escribe para afinar":(!usarRelieve&&totalRes>mostrados)?"Los "+mostrados+" más cercanos de "+totalRes+" · escribe para afinar":mostrados+" resultado"+(mostrados!==1?"s":""))+" (a menos de "+BUSCAR_KM+" km)"+relTxt;
+    }
     else est.textContent=(totalRes>mostrados?"Los "+mostrados+" primeros de "+totalRes+" · escribe para afinar":mostrados+" resultado"+(mostrados!==1?"s":""))+" (sin ubicación: no se filtra por distancia)";
   }
 }

@@ -347,6 +347,15 @@ else mal('no se marca el modo búsqueda');
 if (/#invPanel\.alcanzado/.test(css)) ok('la tarjeta se pone verde cuando el destino está en la mira');
 else mal('la tarjeta no avisa cuando el destino está en la mira');
 
+// ---------- búsqueda y relieve ----------
+console.log('\nbúsqueda y relieve');
+if (/function buscarVisible\(/.test(app)) ok('hay comprobación de visibilidad por relieve en la búsqueda');
+else mal('falta la comprobación de visibilidad por relieve');
+if (/if\(!buscarVisible\(P0,lista\[iv\]\)\)\{ocultos\+\+;continue\}/.test(app)) ok('la lista de búsqueda filtra los lugares tapados por montañas');
+else mal('la lista de búsqueda no filtra los lugares tapados');
+if (/relTxt=usarRelieve/.test(app) && /tapado/.test(app)) ok('el estado de la búsqueda avisa de los tapados y del relieve');
+else mal('no avisa de los lugares tapados');
+
 // ---------- etiquetas ancladas al punto del pueblo ----------
 console.log('\netiquetas ancladas');
 if (/out\.push\(\{k:"ln",x:Math\.round\(lx\),y:Math\.round\(ty\),h:[\s\S]{0,90}dx:Math\.round\(a?x-lx\)/.test(app)) ok('la línea de unión se dibuja siempre, también al arrimar la etiqueta al borde');
