@@ -313,10 +313,16 @@ if (/body\.on\.apaisado #giro/.test(css) && /screen\.orientation/.test(app) && /
 else mal('el aviso no usa la orientación real del aparato');
 if (/id="camReintentar"/.test(html) && /\$\("camReintentar"\)\.onclick/.test(app)) ok('hay botón para reintentar la cámara');
 else mal('falta el botón para reintentar la cámara');
-if (/Reintentar cámara/.test(app) && /candado/.test(app)) ok('el error de cámara explica cómo permitirla y reintentar');
+if (/candado/.test(app) && /se enciende sola/.test(app)) ok('el error de cámara explica cómo permitirla y que se reintenta sola');
 else mal('el error de cámara no explica cómo permitirla');
 if (/camErr="";camBusy=false;[\s\S]{0,200}?try\{pintar\(\)\}/.test(app)) ok('al encenderse la cámara se repinta y desaparece el aviso');
 else mal('al encenderse la cámara el aviso y el botón se quedan en pantalla');
+if (/permissions\.query\(\{name:"camera"\}\)/.test(app) && /estado==="denied"/.test(app) && /estado==="granted"/.test(app)) ok('el aviso distingue si bloquea Chrome o si bloquea Android');
+else mal('el aviso no distingue el bloqueo de Chrome del de Android');
+if (/Ajustes > Aplicaciones > Chrome > Permisos > Cámara/.test(app)) ok('explica el camino si Android bloquea la cámara a Chrome');
+else mal('no explica qué hacer si Android bloquea la cámara a Chrome');
+if (/visibilitychange[\s\S]{0,500}?if\(!stream\)camara\(true\)/.test(app)) ok('al volver de los ajustes la cámara se reintenta sola');
+else mal('al volver de los ajustes la cámara no se reintenta');
 
 // ---------- etiquetas ancladas al punto del pueblo ----------
 console.log('\netiquetas ancladas');
