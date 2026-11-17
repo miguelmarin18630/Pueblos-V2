@@ -315,6 +315,8 @@ if (/id="camReintentar"/.test(html) && /\$\("camReintentar"\)\.onclick/.test(app
 else mal('falta el botón para reintentar la cámara');
 if (/Reintentar cámara/.test(app) && /candado/.test(app)) ok('el error de cámara explica cómo permitirla y reintentar');
 else mal('el error de cámara no explica cómo permitirla');
+if (/camErr="";camBusy=false;[\s\S]{0,200}?try\{pintar\(\)\}/.test(app)) ok('al encenderse la cámara se repinta y desaparece el aviso');
+else mal('al encenderse la cámara el aviso y el botón se quedan en pantalla');
 
 // ---------- etiquetas ancladas al punto del pueblo ----------
 console.log('\netiquetas ancladas');

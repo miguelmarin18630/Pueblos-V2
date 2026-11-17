@@ -549,6 +549,8 @@ async function camara(keep){
     zMax=capZoom?capZoom.max:6;
     aplicarZoom(keep?zoom:1);
     iniciarFoco();camErr="";camBusy=false;
+    // Al reintentar, hay que repintar para que el aviso y el botón desaparezcan
+    try{pintar()}catch(e2){}
   }catch(e){
     if(ses!==camSes)return;
     camBusy=false;camErr=mensajeCamara(e);
