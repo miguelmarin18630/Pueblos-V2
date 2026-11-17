@@ -485,13 +485,50 @@ body.on #anadircam {
     color: #fff;
 }
 
-/* En pantallas estrechas la fila del rumbo debe caber entera: los botones se
-   aprietan un poco y el chip del rumbo nunca se recorta (ver #fila1). */
+/* La fila del rumbo debe caber entera en una sola línea: los botones van
+   compactos de ancho (la altura táctil sigue en 30 px) y el chip del rumbo
+   nunca se recorta (ver #fila1). */
+body.on #fila1 {
+    gap: 4px;
+}
+
 body.on #buscar2,
 body.on #anadircam,
 body.on #salir {
     font-size: 12px;
-    padding: 2px 7px;
+    gap: 3px;
+    padding: 2px 4px;
+}
+
+/* Los iconos también se aprietan: son decorativos y el texto ya se entiende */
+body.on #fila1 button > span[aria-hidden="true"] {
+    font-size: 11px;
+    line-height: 1;
+}
+
+/* Móviles muy estrechos: un punto menos para que los cuatro elementos sigan
+   en la misma línea (iPhone SE y similares, 320-340 px). */
+@media (max-width: 340px) {
+    body.on #fila1 {
+        gap: 3px;
+    }
+
+    body.on #buscar2,
+    body.on #anadircam,
+    body.on #salir {
+        font-size: 11px;
+        gap: 2px;
+        padding: 2px 3px;
+    }
+
+    body.on #fila1 button > span[aria-hidden="true"] {
+        font-size: 10px;
+    }
+
+    body.on #rumbo {
+        font-size: 12px;
+        padding: 2px 5px;
+    }
 }
 
 /* Interruptores: color + estado siempre visible */

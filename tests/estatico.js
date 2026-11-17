@@ -300,8 +300,10 @@ if (/body\.on #fila1\s*\{[^}]*flex-wrap: wrap/.test(css)) ok('la fila del rumbo 
 else mal('la fila del rumbo no puede pasar a dos líneas');
 if (/body\.on #rumbo\s*\{[^}]*min-width: max-content/.test(css)) ok('el rumbo nunca se recorta');
 else mal('el rumbo se sigue recortando');
-if (/body\.on #buscar2,\s*body\.on #anadircam,\s*body\.on #salir\s*\{[^}]*font-size: 12px/.test(css)) ok('los botones de la fila se aprietan en pantallas estrechas');
-else mal('los botones de la fila no se aprietan');
+if (/body\.on #buscar2,\s*body\.on #anadircam,\s*body\.on #salir\s*\{[^}]*font-size: 12px[^}]*padding: 2px 4px/.test(css)) ok('los botones de la fila se aprietan para caber en una línea');
+else mal('los botones de la fila no se aprietan lo suficiente');
+if (/@media \(max-width: 340px\) \{[\s\S]{0,600}?body\.on #buscar2/.test(css)) ok('en móviles muy estrechos los botones se aprietan un poco más');
+else mal('falta el ajuste para móviles muy estrechos');
 
 // ---------- etiquetas ancladas al punto del pueblo ----------
 console.log('\netiquetas ancladas');
