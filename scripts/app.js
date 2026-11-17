@@ -610,6 +610,13 @@ function parseLineas(txt,all){
 
 // ---- Modo inverso: buscar pueblo/pico con flechas direccionales ----
 var invActivo=false, invDest=null, invTmr=null, invPendiente=false;
+// Muestra u oculta la pantalla de la flecha. Mientras está visible se marca el
+// cuerpo con «buscando»: la tarjeta del destino se coloca bajo la fila de estado
+// y ocupa el sitio del mensaje largo, que si no quedaría cortado debajo (v56).
+function mostrarInvFlecha(v){
+  $("invFlecha").style.display=v?"flex":"none";
+  try{document.body.classList.toggle("buscando",!!v)}catch(e){}
+}
 // Activa el modo flecha con un destino {n, la, lo, t}
 function activarInv(dest){
   if(!dest)return;
@@ -629,7 +636,7 @@ function activarInv(dest){
   invPendiente=false;
   invDest=dest;
   $("buscar").style.display="none";
-  $("invFlecha").style.display="flex";
+  mostrarInvFlecha(true);
   $("invFlecha").classList.remove("alcanzado");
   invActivo=true;
   // Si está muy lejos, se avisa: la app solo muestra lugares hasta 80 km
@@ -639,8 +646,10 @@ function activarInv(dest){
 }
 function desactivarInv(){
   invActivo=false;invDest=null;invPendiente=false;
-  $("invFlecha").style.display="none";
+  mostrarInvFlecha(false);
   $("invFlecha").classList.remove("alcanzado");
+  $("invPanel").classList.remove("alcanzado");
+  if(invTmr){cancelAnimationFrame(invTmr);invTmr=null}
 }
 function pintarInv(){
   if(!invActivo||!invDest||!pos)return;
@@ -657,6 +666,9 @@ function pintarInv(){
   var alcanzado=Math.abs(difAng)<=alcance;
   var fx=$("invFlecha");
   if(fx)fx.classList.toggle("alcanzado",alcanzado);
+  // La tarjeta está en el panel superior, fuera de #invFlecha: su estado va aparte
+  var pn=$("invPanel");
+  if(pn)pn.classList.toggle("alcanzado",alcanzado);
   // Verde cuando está alineado; verde suave cuando ya lo tienes delante
   if(girador){
     if(alcanzado)girador.style.filter="drop-shadow(0 0 16px #22c55e)";
@@ -3141,7 +3153,7 @@ async function iniciar2(){
     // Si el usuario pidió una búsqueda direccional antes de tener GPS, se activa ahora
     if(invPendiente&&invDest){
       invPendiente=false;
-      $("invFlecha").style.display="flex";
+      mostrarInvFlecha(true);
       invActivo=true;
       pintarInv();
     }

@@ -35,7 +35,7 @@ sin reinstalar el APK; solo hay que actualizar el APK cuando cambia la parte nat
 - Usa la última ubicación conocida del móvil al arrancar y, si no hay GPS, permite
   **elegir el pueblo en la lista** y entrar con él.
 - Se compila con Bubblewrap a partir del manifest de la PWA. El proyecto Android
-  (keystore incluido) está en `C:\apppueblos\03_PROYECTO_ANDROID\Pueblos-Android`.
+  (keystore incluido) está en `C:\Proyectos\Pueblos\03_PROYECTO_ANDROID\Pueblos-Android`.
 - La firma sigue siendo la misma que en las versiones anteriores, así que se instala
   encima sin desinstalar.
 

@@ -324,6 +324,21 @@ else mal('no explica qué hacer si Android bloquea la cámara a Chrome');
 if (/visibilitychange[\s\S]{0,500}?if\(!stream\)camara\(true\)/.test(app)) ok('al volver de los ajustes la cámara se reintenta sola');
 else mal('al volver de los ajustes la cámara no se reintenta');
 
+// ---------- tarjeta de la búsqueda ----------
+console.log('\ntarjeta de búsqueda');
+if (/id="estado"[\s\S]{0,500}?id="invPanel"[\s\S]{0,800}?id="mejor"/.test(html)) ok('la tarjeta del destino va en el panel, debajo del estado');
+else mal('la tarjeta del destino está fuera del panel y puede tapar los chips');
+if (/body\.buscando #invPanel\s*\{[^}]*display: flex/.test(css)) ok('la tarjeta se muestra solo mientras se busca');
+else mal('la tarjeta no se muestra solo al buscar');
+if (!/#invPanel\s*\{[^}]*position:\s*absolute/.test(css)) ok('la tarjeta ya no flota encima de la pantalla');
+else mal('la tarjeta sigue flotando encima');
+if (/body\.buscando #msg\s*\{[^}]*display:\s*none/.test(css)) ok('el mensaje largo deja su sitio a la tarjeta mientras se busca');
+else mal('el mensaje largo no deja sitio a la tarjeta');
+if (/mostrarInvFlecha\(true\)/.test(app) && /classList\.toggle\("buscando"/.test(app)) ok('al buscar se marca el cuerpo y se desmarca al salir');
+else mal('no se marca el modo búsqueda');
+if (/#invPanel\.alcanzado/.test(css)) ok('la tarjeta se pone verde cuando el destino está en la mira');
+else mal('la tarjeta no avisa cuando el destino está en la mira');
+
 // ---------- etiquetas ancladas al punto del pueblo ----------
 console.log('\netiquetas ancladas');
 if (/out\.push\(\{k:"ln",x:Math\.round\(lx\),y:Math\.round\(ty\),h:[\s\S]{0,90}dx:Math\.round\(a?x-lx\)/.test(app)) ok('la línea de unión se dibuja siempre, también al arrimar la etiqueta al borde');

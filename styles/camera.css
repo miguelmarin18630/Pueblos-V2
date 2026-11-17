@@ -855,31 +855,35 @@ body.on #fdw.v {
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
-/* Panel con el nombre y la distancia: arriba, sin tapar la flecha */
+/* Tarjeta del destino: va en el flujo del panel superior, debajo del estado.
+   Así no tapa el rumbo, el GPS ni la calibración en ninguna pantalla. */
 #invPanel {
-    position: absolute;
-    top: calc(env(safe-area-inset-top, 0px) + 14px);
-    left: 50%;
-    transform: translateX(-50%);
+    display: none;
+    margin: 5px auto 0;
     width: max-content;
-    max-width: 88vw;
-    display: flex;
+    max-width: 92vw;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    padding: 12px 18px;
-    border-radius: 18px;
-    background: rgba(8, 10, 28, .88);
-    border: 1px solid rgba(255, 255, 255, .28);
-    box-shadow: 0 8px 26px rgba(0, 0, 0, .55);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
+    gap: 3px;
+    padding: 8px 16px;
+    border-radius: 16px;
+    background: rgba(8, 10, 28, .9);
+    border: 1px solid rgba(255, 255, 255, .35);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .45);
     text-align: center;
-    pointer-events: auto;
+}
+
+body.buscando #invPanel {
+    display: flex;
+}
+
+/* Mientras se busca, el mensaje largo deja su sitio a la tarjeta del destino */
+body.buscando #msg {
+    display: none;
 }
 
 #invNombre {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 800;
     line-height: 1.25;
     color: #ffe259;
@@ -898,16 +902,16 @@ body.on #fdw.v {
 }
 
 #invSalir {
-    margin-top: 4px;
-    min-height: 38px;
-    padding: 6px 16px;
+    margin-top: 2px;
+    min-height: 34px;
+    padding: 4px 14px;
     width: auto;
     border: 1px solid rgba(255, 255, 255, .6);
     border-radius: 999px;
     background: rgba(255, 255, 255, .16);
     color: #fff;
     font-family: inherit;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
     box-shadow: none;
     cursor: pointer;
@@ -957,14 +961,14 @@ body.on #fdw.v {
     display: none;
 }
 
-#invFlecha.alcanzado #invNombre {
-    color: #fff;
-    animation: invParpadeo 1s ease-in-out infinite;
-}
-
-#invFlecha.alcanzado #invPanel {
+#invPanel.alcanzado {
     background: rgba(21, 128, 61, .92);
     border-color: #86efac;
+}
+
+#invPanel.alcanzado #invNombre {
+    color: #fff;
+    animation: invParpadeo 1s ease-in-out infinite;
 }
 
 @keyframes invParpadeo {
@@ -973,7 +977,7 @@ body.on #fdw.v {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    #invFlecha.alcanzado #invNombre { animation: none; }
+    #invPanel.alcanzado #invNombre { animation: none; }
 }
 
 /* ================= Diálogo de búsqueda ================= */

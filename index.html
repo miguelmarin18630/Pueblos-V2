@@ -40,11 +40,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="¿Qué pueblo?">
 
-<link rel="stylesheet" href="styles/base.css?v=55">
-<link rel="stylesheet" href="styles/portada.css?v=55">
-<link rel="stylesheet" href="styles/layout.css?v=55">
-<link rel="stylesheet" href="styles/camera.css?v=55">
-<link rel="stylesheet" href="styles/ayuda.css?v=55">
+<link rel="stylesheet" href="styles/base.css?v=56">
+<link rel="stylesheet" href="styles/portada.css?v=56">
+<link rel="stylesheet" href="styles/layout.css?v=56">
+<link rel="stylesheet" href="styles/camera.css?v=56">
+<link rel="stylesheet" href="styles/ayuda.css?v=56">
 
 <!-- La base de pueblos se necesita siempre: que empiece a descargarse ya -->
 </head>
@@ -112,6 +112,14 @@
         <span id="eGps" class="ch n">GPS …</span>
         <span id="eBrj" class="ch n">Brújula …</span>
         <span id="eCal" class="ch n">Sin calibrar</span>
+    </div>
+
+    <!-- Tarjeta del destino de la búsqueda: va en el flujo del panel, debajo del
+         estado, para no tapar nunca el rumbo, el GPS ni la calibración -->
+    <div id="invPanel" role="status" aria-live="polite">
+        <div id="invNombre">Selecciona un destino</div>
+        <div id="invDist">— km</div>
+        <button id="invSalir" type="button">✕ Salir de la búsqueda</button>
     </div>
 
     <div id="mejor" aria-live="polite" aria-atomic="true"></div>
@@ -485,7 +493,7 @@ setTimeout(__comprobarMotor, 9000);
 
 <!-- Datos: la base de pueblos (3,8 MB) se descarga una vez y queda guardada en el móvil.
      El motor (app.js) la pide por su cuenta y no bloquea la pantalla. -->
-<script defer src="scripts/app.js?v=55"></script>
+<script defer src="scripts/app.js?v=56"></script>
 
 <!-- ================= Diálogo de búsqueda: buscar pueblo o pico por nombre ================= -->
 <div id="buscar" role="dialog" aria-modal="true" aria-labelledby="buscarT" style="display:none;">
@@ -523,11 +531,6 @@ setTimeout(__comprobarMotor, 9000);
 
 <!-- Pantalla de flecha direccional (modo inverso) -->
 <div id="invFlecha" role="status" aria-live="polite" style="display:none;">
-    <div id="invPanel">
-        <div id="invNombre">Selecciona un destino</div>
-        <div id="invDist">— km</div>
-        <button id="invSalir" type="button">✕ Salir de la búsqueda</button>
-    </div>
     <div id="invFlechaGirador">
         <div class="inv-punta"></div>
         <div class="inv-punta inv-punta-2"></div>
