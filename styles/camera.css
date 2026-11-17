@@ -280,7 +280,8 @@ body.on #brj {
 }
 
 /* Reintentar la cámara: aparece solo cuando la cámara ha fallado */
-#camReintentar {
+#camReintentar,
+#camAbrirChrome {
     display: block;
     width: max-content;
     max-width: 100%;
@@ -295,8 +296,18 @@ body.on #brj {
     box-sizing: border-box;
 }
 
-#camReintentar[hidden] {
+#camReintentar[hidden],
+#camAbrirChrome[hidden] {
     display: none;
+}
+
+#camAbrirChrome {
+    background: #1d4ed8;
+    border-color: #93c5fd;
+}
+
+#camAbrirChrome:active {
+    background: #1e40af;
 }
 
 #camReintentar:active {
@@ -337,6 +348,7 @@ body.on main.plegado #lista,
 body.on main.plegado #msg,
 body.on main.plegado #brj,
 body.on main.plegado #camReintentar,
+body.on main.plegado #camAbrirChrome,
 body.on main.plegado #rumbo {
     display: none;
 }

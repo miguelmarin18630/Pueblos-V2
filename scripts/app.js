@@ -357,6 +357,8 @@ function pintarYa(){
   $("brj").textContent=av.join(" ");
   var camReB=$("camReintentar");
   if(camReB)camReB.hidden=!camErr;
+  var camAbB=$("camAbrirChrome");
+  if(camAbB)camAbB.hidden=!(camErr&&entornoCamara()==="instalada");
   var r=[],vis=null,pend=false,i,fuera=(pit<-40||pit>(verPicos?55:30));
   if(!fuera&&!verPicos){
     // Prefiltro rápido por recuadro (la base local puede tener decenas de miles de localidades y esto corre 10 veces/s)
@@ -537,6 +539,27 @@ function entornoCamara(){
   }catch(e){}
   return "navegador";
 }
+// Fabricante del móvil (solo para afinar el aviso de la cámara; no cambia nada más)
+function fabricante(){
+  try{
+    var ua=navigator.userAgent||"";
+    if(/Xiaomi|Redmi|POCO|MIUI|HyperOS/i.test(ua))return "xiaomi";
+    if(/Huawei|HONOR|HarmonyOS/i.test(ua))return "huawei";
+    if(/Samsung|SM-[A-Z]/i.test(ua))return "samsung";
+    if(/OPPO|Realme|ColorOS/i.test(ua))return "oppo";
+    if(/vivo|OriginOS/i.test(ua))return "vivo";
+  }catch(e){}
+  return "generico";
+}
+function pistaFabricante(){
+  var f=fabricante();
+  if(f==="xiaomi")return " En Xiaomi, revisa también Ajustes > Privacidad > Cámara y la app Seguridad.";
+  if(f==="huawei")return " En Huawei, revisa Ajustes > Aplicaciones > Chrome > Permisos y el gestor de aplicaciones.";
+  if(f==="samsung")return " En Samsung, revisa Ajustes > Aplicaciones > Chrome > Permisos.";
+  if(f==="oppo")return " En Oppo/Realme, revisa Ajustes > Privacidad > Gestor de permisos.";
+  if(f==="vivo")return " En Vivo, revisa Ajustes > Privacidad > Permisos de aplicaciones.";
+  return "";
+}
 function mensajeCamara(e,estado){
   var n=e&&e.name?e.name:"";
   if(n==="NotAllowedError"||n==="SecurityError"){
@@ -544,11 +567,11 @@ function mensajeCamara(e,estado){
     // cómo esté abierta la web, porque sin barra de direcciones no hay candado.
     var donde=entornoCamara();
     if(donde==="app")return "Cámara sin permiso en la app. Abre Ajustes > Aplicaciones > ¿Qué pueblo es? > Permisos y permite la cámara; al volver se enciende sola.";
-    if(donde==="instalada")return "La web instalada no tiene barra de direcciones. Abre Chrome, entra en pueblos.marinweb.org, toca el candado 🔒 > Permisos > Cámara > Permitir y vuelve aquí; se enciende sola.";
+    if(donde==="instalada")return "La web instalada no tiene barra de direcciones. Abre Chrome, entra en pueblos.marinweb.org, toca el candado 🔒 > Permisos > Cámara > Permitir y vuelve aquí; se enciende sola."+pistaFabricante();
     if(donde==="dentro")return "Estás dentro de otra app, que no deja cambiar los permisos. Abre su menú ⋮ y elige «Abrir en Chrome»; allí permite la cámara y vuelve.";
-    if(estado==="granted")return "Chrome ya tiene permiso, pero Android no deja usar la cámara a Chrome. Abre Ajustes > Aplicaciones > Chrome > Permisos > Cámara y permite; al volver se enciende sola.";
-    if(estado==="denied")return "La cámara está bloqueada para esta web. Si no ves la barra de direcciones, desliza la página hacia abajo para mostrarla y toca el candado 🔒 > Permisos > Cámara > Permitir. También vale el menú ⋮ > Configuración > Configuración de sitios > Cámara.";
-    return "La cámara no se ha abierto. Si no ves la barra de direcciones, desliza la página hacia abajo para mostrarla, toca el candado 🔒 y permite la cámara; se enciende sola al volver.";
+    if(estado==="granted")return "Chrome ya tiene permiso, pero Android no deja usar la cámara a Chrome. Abre Ajustes > Aplicaciones > Chrome > Permisos > Cámara y permite; al volver se enciende sola."+pistaFabricante();
+    if(estado==="denied")return "La cámara está bloqueada para esta web. Si no ves la barra de direcciones, desliza la página hacia abajo para mostrarla y toca el candado 🔒 > Permisos > Cámara > Permitir. También vale el menú ⋮ > Configuración > Configuración de sitios > Cámara."+pistaFabricante();
+    return "La cámara no se ha abierto. Si no ves la barra de direcciones, desliza la página hacia abajo para mostrarla, toca el candado 🔒 y permite la cámara; se enciende sola al volver."+pistaFabricante();
   }
   if(n==="NotFoundError"||n==="OverconstrainedError")return "No se encuentra ninguna cámara en este dispositivo.";
   if(n==="NotReadableError"||n==="AbortError")return "La cámara la está usando otra aplicación. Ciérrala e inténtalo de nuevo.";
@@ -593,6 +616,10 @@ $("camReintentar").onclick=function(){
     try{AndroidApp.pedirPermisos();return}catch(e){}
   }
   camara();
+};
+// En la web instalada (sin barra) se abre Chrome con la misma dirección
+$("camAbrirChrome").onclick=function(){
+  try{location.href="intent://pueblos.marinweb.org/#Intent;scheme=https;package=com.android.chrome;end"}catch(e){}
 };
 
 // ---- Base de datos local por provincias (IndexedDB) ----

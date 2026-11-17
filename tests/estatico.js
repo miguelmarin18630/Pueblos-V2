@@ -327,6 +327,10 @@ if (/Abrir en Chrome/.test(app) && /FBAN\|FBAV/.test(app)) ok('dentro de otra ap
 else mal('no distingue cuando se abre dentro de otra app');
 if (/desliza la página hacia abajo/.test(app)) ok('en el navegador explica cómo mostrar la barra o llegar a los ajustes de sitios');
 else mal('no explica qué hacer si la barra de direcciones está oculta');
+if (/id="camAbrirChrome"/.test(html) && /camAbrirChrome"\)\.onclick/.test(app)) ok('hay botón «Abrir en Chrome» para la web instalada');
+else mal('falta el botón «Abrir en Chrome»');
+if (/intent:\/\/pueblos\.marinweb\.org/.test(app)) ok('el botón abre Chrome con la misma dirección');
+else mal('el botón no abre Chrome');
 if (/esIOS&&typeof DeviceOrientationEvent/.test(app) && /iPhone\|iPad\|iPod/.test(app)) ok('la petición de brújula de iPhone no se usa en Android');
 else mal('se sigue pidiendo el permiso de brújula de iPhone en Android');
 if (/visibilitychange[\s\S]{0,500}?if\(!stream\)camara\(true\)/.test(app)) ok('al volver de los ajustes la cámara se reintenta sola');
