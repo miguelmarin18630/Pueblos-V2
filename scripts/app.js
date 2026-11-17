@@ -354,6 +354,8 @@ function pintarYa(){
   else if(oriN===0&&oriT0&&Date.now()-oriT0>4000)av.unshift("⚠ No llegan datos de la brújula. Comprueba que el móvil tiene brújula y que el navegador tiene permiso.");
   if(camErr)av.unshift("📷 "+camErr);
   $("brj").textContent=av.join(" ");
+  var camReB=$("camReintentar");
+  if(camReB)camReB.hidden=!camErr;
   var r=[],vis=null,pend=false,i,fuera=(pit<-40||pit>(verPicos?55:30));
   if(!fuera&&!verPicos){
     // Prefiltro rápido por recuadro (la base local puede tener decenas de miles de localidades y esto corre 10 veces/s)
@@ -516,9 +518,12 @@ var camBusy=false,camErr="",camSes=0;
 function mensajeCamara(e){
   var n=e&&e.name?e.name:"";
   if(n==="NotAllowedError"||n==="SecurityError"){
-    // Los permisos ya se pidieron al iniciar: si la cámara falla aquí es del
-    // WebView o del dispositivo, y volver a pedirlos entraría en bucle.
-    return "Cámara sin permiso. Vuelve a pulsar «Iniciar identificación» y acepta la cámara cuando el móvil la pida.";
+    // Los permisos ya se pidieron al iniciar. Se explica el camino exacto para
+    // concederlos: en la app Android es en Ajustes de la app; en el navegador,
+    // en el candado de la barra de direcciones (el navegador no vuelve a preguntar).
+    return window.AndroidApp
+      ? "Cámara sin permiso en la app. Abre Ajustes > Aplicaciones > ¿Qué pueblo es? > Permisos y permite la cámara; luego pulsa «Reintentar cámara»."
+      : "La cámara está bloqueada para esta web. Toca el candado 🔒 (o el icono de la izquierda) de la barra de direcciones, permite la cámara y pulsa «Reintentar cámara».";
   }
   if(n==="NotFoundError"||n==="OverconstrainedError")return "No se encuentra ninguna cámara en este dispositivo.";
   if(n==="NotReadableError"||n==="AbortError")return "La cámara la está usando otra aplicación. Ciérrala e inténtalo de nuevo.";
@@ -550,6 +555,16 @@ async function camara(keep){
     try{pintar()}catch(e2){}
   }
 }
+// Reintentar la cámara sin salir de la vista: sirve si el móvil la tenía ocupada
+// un momento (pasa en algunos Xiaomi) o si acabas de conceder el permiso.
+$("camReintentar").onclick=function(){
+  if(window.AndroidApp&&AndroidApp.pedirPermisos){
+    // En la app Android, primero se piden los permisos: si están bloqueados,
+    // el diálogo nativo lleva a los ajustes y al volver se reintenta solo.
+    try{AndroidApp.pedirPermisos();return}catch(e){}
+  }
+  camara();
+};
 
 // ---- Base de datos local por provincias (IndexedDB) ----
 var watchId=null,stream=null;
@@ -3243,6 +3258,25 @@ $("a2hsBtn").onclick=function(){
   a2hsPedir();
 };
 a2hsBoton();
+// ---- Aviso de «pon el móvil en vertical» ----
+// Se decide por la orientación real del aparato (screen.orientation), no por el
+// tamaño de la ventana: al abrir el teclado la ventana se queda más ancha que
+// alta y el aviso se ponía encima del buscador e impedía escribir (v53).
+function apaisado(){
+  try{
+    var o=screen.orientation;
+    if(o&&typeof o.angle==="number")return Math.abs(o.angle%180)===90;
+    if(o&&o.type)return o.type.indexOf("landscape")===0;
+  }catch(e){}
+  return innerWidth>innerHeight;
+}
+function marcarGiro(){
+  try{document.body.classList.toggle("apaisado",apaisado())}catch(e){}
+}
+window.addEventListener("resize",marcarGiro);
+window.addEventListener("orientationchange",marcarGiro);
+try{if(screen.orientation&&screen.orientation.addEventListener)screen.orientation.addEventListener("change",marcarGiro)}catch(e){}
+marcarGiro();
 // Muestra el número de versión en la portada para saber qué web se está usando
 function mostrarVersion(){
   var v="??";try{

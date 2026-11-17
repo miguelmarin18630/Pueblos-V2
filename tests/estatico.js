@@ -305,6 +305,17 @@ else mal('los botones de la fila no se aprietan lo suficiente');
 if (/@media \(max-width: 340px\) \{[\s\S]{0,600}?body\.on #buscar2/.test(css)) ok('en móviles muy estrechos los botones se aprietan un poco más');
 else mal('falta el ajuste para móviles muy estrechos');
 
+// ---------- aviso de «pon el móvil en vertical» y cámara ----------
+console.log('\norientación y cámara');
+if (!/@media \(orientation: landscape\)/.test(css)) ok('el aviso ya no depende del tamaño de la ventana (el teclado lo activaba)');
+else mal('el aviso sigue dependiendo del tamaño de la ventana: el teclado tapará el buscador');
+if (/body\.on\.apaisado #giro/.test(css) && /screen\.orientation/.test(app) && /classList\.toggle\("apaisado"/.test(app)) ok('el aviso usa la orientación real del aparato');
+else mal('el aviso no usa la orientación real del aparato');
+if (/id="camReintentar"/.test(html) && /\$\("camReintentar"\)\.onclick/.test(app)) ok('hay botón para reintentar la cámara');
+else mal('falta el botón para reintentar la cámara');
+if (/Reintentar cámara/.test(app) && /candado/.test(app)) ok('el error de cámara explica cómo permitirla y reintentar');
+else mal('el error de cámara no explica cómo permitirla');
+
 // ---------- etiquetas ancladas al punto del pueblo ----------
 console.log('\netiquetas ancladas');
 if (/out\.push\(\{k:"ln",x:Math\.round\(lx\),y:Math\.round\(ty\),h:[\s\S]{0,90}dx:Math\.round\(a?x-lx\)/.test(app)) ok('la línea de unión se dibuja siempre, también al arrimar la etiqueta al borde');

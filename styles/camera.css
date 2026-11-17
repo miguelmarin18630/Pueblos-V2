@@ -279,6 +279,30 @@ body.on #brj {
     line-height: 1.25;
 }
 
+/* Reintentar la cámara: aparece solo cuando la cámara ha fallado */
+#camReintentar {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    margin: 4px auto 0;
+    padding: 3px 12px;
+    border: 2px solid #fecaca;
+    border-radius: 999px;
+    background: #7f1d1d;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    box-sizing: border-box;
+}
+
+#camReintentar[hidden] {
+    display: none;
+}
+
+#camReintentar:active {
+    background: #991b1b;
+}
+
 body.on #info {
     display: none;
 }
@@ -312,6 +336,7 @@ body.on main.plegado #estado,
 body.on main.plegado #lista,
 body.on main.plegado #msg,
 body.on main.plegado #brj,
+body.on main.plegado #camReintentar,
 body.on main.plegado #rumbo {
     display: none;
 }
@@ -764,8 +789,8 @@ body.on #fdw.v {
     display: none;
 }
 
-@media (orientation: landscape) and (pointer: coarse) {
-    body.on #giro {
+@media (pointer: coarse) {
+    body.on.apaisado #giro {
         display: flex;
         position: fixed;
         inset: 0;
@@ -782,7 +807,7 @@ body.on #fdw.v {
         font-weight: 700;
         text-align: center;
     }
-    body.on #giro small {
+    body.on.apaisado #giro small {
         font-size: 14px;
         font-weight: 500;
         opacity: .9;
