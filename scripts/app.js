@@ -1846,7 +1846,7 @@ $("relb").onclick=function(){
   try{if($("buscar").style.display==="flex")llenarBuscarLista($("buscarTexto").value)}catch(e){}
 };
 // Captura la vista actual: frame de la cámara + nombres de los pueblos visibles,
-// y la ofrece para descargar como PNG.
+// y la guarda como PNG sin pedir carpeta ni nombre.
 $("capturar").onclick=function(){
   if(!document.body.classList.contains("on")){avisar("No hay cámara activa para capturar.",3000);return}
   capturarVista();
@@ -1894,39 +1894,45 @@ function capturarVista(){
     ctx.restore();
   });
   // Guarda la imagen en el móvil para que la galería la muestre
-  var nom="pueblos-"+new Date().toISOString().slice(0,16).replace(/[:]/g,"-")+".png";
+  var nom="pueblos-"+new Date().toISOString().slice(0,19).replace(/[:]/g,"-")+".png";
   c.toBlob(function(blob){guardarEnGaleria(blob,nom)},"image/png");
 }
 
-/* Guarda una imagen en el almacenamiento del móvil para que aparezca en la
-   galería. Intenta el selector de archivos del sistema (para elegir una carpeta
-   como Descargas o DCIM) y, si no está disponible, descarga en Descargas, que
-   la galería indexa también. */
+/* Guarda la imagen sin pedir carpeta ni nombre:
+   1. En la app Android usa el puente nativo AndroidApp.guardarImagen, que la
+      escribe en Pictures/Screenshots: aparece al instante en la galería.
+   2. En el navegador/PWA no se puede escribir en la galería desde una web, así
+      que se descarga directamente en Descargas (sin diálogos ni selectores). */
 async function guardarEnGaleria(blob,nom){
-  // 1. File System Access API: elegir carpeta del móvil (Chrome y navegadores
-  //    compatibles). El archivo queda en el almacenamiento del dispositivo.
-  if(window.showSaveFilePicker){
+  if(window.AndroidApp && typeof AndroidApp.guardarImagen==="function"){
     try{
-      var handle=await showSaveFilePicker({
-        suggestedName:nom,
-        types:[{description:"Imagen PNG",accept:{"image/png":[".png"]}}]
-      });
-      var writable=await handle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-      avisar("📷 Guardado en el móvil: "+nom,3500);
-      return;
+      var base64=await blobABase64(blob);
+      if(AndroidApp.guardarImagen(base64,nom)==="1"){
+        avisar("📷 Guardada en la galería: "+nom,3500);
+        return;
+      }
     }catch(e){
-      // El usuario canceló o el navegador no lo permite: se sigue con la descarga
+      // Si el puente falla se sigue con la descarga normal
     }
   }
-  // 2. Descarga directa: queda en la carpeta Descargas del móvil, que la galería indexa
   var url=URL.createObjectURL(blob);
   var a=document.createElement("a");
   a.download=nom;a.href=url;
   document.body.appendChild(a);a.click();document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  avisar("📷 Captura guardada: "+nom,3500);
+  setTimeout(function(){URL.revokeObjectURL(url)},2000);
+  avisar("📷 Captura guardada en Descargas: "+nom,3500);
+}
+
+function blobABase64(blob){
+  return new Promise(function(res,rej){
+    var fr=new FileReader();
+    fr.onload=function(){
+      var s=String(fr.result||"");
+      res(s.slice(s.indexOf(",")+1));
+    };
+    fr.onerror=rej;
+    fr.readAsDataURL(blob);
+  });
 }
 // Enciende o apaga «Picos» desde cualquier sitio: su botón, los filtros de pueblo
 // o la búsqueda. El botón, el cuerpo (clase «picos») y los otros dos filtros quedan
