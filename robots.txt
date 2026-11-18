@@ -1,4 +1,2 @@
 User-agent: *
-Allow: /
-
-Sitemap: https://pueblos.marinweb.org/sitemap.xml
+Disallow: /
