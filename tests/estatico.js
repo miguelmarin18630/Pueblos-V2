@@ -357,6 +357,12 @@ if (/function buscarVisible\(/.test(app)) ok('hay comprobación de visibilidad p
 else mal('falta la comprobación de visibilidad por relieve');
 if (/if\(!buscarVisible\(P0,lista\[iv\]\)\)\{ocultos\+\+;continue\}/.test(app)) ok('la lista de búsqueda filtra los lugares tapados por montañas');
 else mal('la lista de búsqueda no filtra los lugares tapados');
+if (/function rayoHorizonte\(/.test(app) && /var az=k\*2\.5/.test(app)) ok('la búsqueda usa el mismo horizonte por rayos de 2,5° que la cámara');
+else mal('la búsqueda no usa el horizonte de rayos de la cámara');
+if (/function horizonteH0\(/.test(app) && /gps>g\+150/.test(app)) ok('la altura del observador es la misma que en la vista');
+else mal('la altura del observador no coincide con la vista');
+if (/A=rayoHorizonte\(i,P0\)/.test(app) && /occ=A\[j\]\*\(1-t\)\+B\[j\]\*t/.test(app)) ok('la lista compara cada pueblo con el horizonte, como la cámara');
+else mal('la lista no compara con el horizonte de la cámara');
 if (/relTxt=usarRelieve/.test(app) && /tapado/.test(app)) ok('el estado de la búsqueda avisa de los tapados y del relieve');
 else mal('no avisa de los lugares tapados');
 

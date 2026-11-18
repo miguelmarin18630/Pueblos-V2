@@ -139,6 +139,7 @@ function cargarRelieve(){
 function relieveListo(){
   try{
     bloqRel=0;panBloq=0;sinRelK={};pan=null;panEnCurso=false;panGen++;
+    horRayos={};horClave=""; // el horizonte de la búsqueda se rehace con el relieve nuevo
     limpiarDemRed();
     if(pos&&document.body.classList.contains("on")){pintar();construirPano()}
   }catch(e){}
@@ -2599,6 +2600,35 @@ var buscarClave=null;
 // es instantánea. Solo devuelve false cuando una montaña lo tapa claramente: si no hay datos
 // de relieve para ese trayecto, el lugar se queda en la lista.
 var visBusc={};
+// Horizonte por rayos de 2,5°, la misma cuenta que el panorama que dibuja la cámara, pero
+// calculado bajo demanda para cualquier dirección. Así la lista oculta justo lo que tapa la
+// vista: antes se muestreaba cada 1,5 km y se colaban los pueblos tras una cresta cercana.
+var horRayos={},horClave="";
+function horizonteH0(P0){
+  var g=elevLocal(P0.latitude,P0.longitude);
+  if(g===null)return null;
+  var gps=(pos&&P0===pos)?pos.altitude:null;
+  // Solo se usa la altitud del GPS si claramente estoy muy por encima del suelo (avión, cumbre)
+  return (typeof gps==="number"&&gps>g+150)?gps:g+2;
+}
+function rayoHorizonte(k,P0){
+  var hc=P0.latitude.toFixed(4)+","+P0.longitude.toFixed(4)+"|"+BUSCAR_KM;
+  if(hc!==horClave){horRayos={};horClave=hc}
+  if(horRayos[k])return horRayos[k];
+  var H0=horizonteH0(P0);
+  if(H0===null)return null;
+  var az=k*2.5,n=nJ(BUSCAR_KM),fila=[],m=-9,i,d,v,ang;
+  for(i=0;i<n;i++){
+    d=DS[i];
+    v=elevLocal(P0.latitude+d*Math.cos(az*R)/111.32,P0.longitude+d*Math.sin(az*R)/(111.32*Math.cos(P0.latitude*R)));
+    if(v===null)return null; // fuera del relieve incluido: no se sabe
+    ang=Math.atan2(v-H0-Math.pow(d*1000,2)/14.6e6,d*1000);
+    if(ang>m)m=ang;
+    fila.push(m);
+  }
+  horRayos[k]=fila;
+  return fila;
+}
 function buscarVisible(P0,p){
   if(!usarRelieve||!P0||!(p.k>0.4))return true;
   if(!DEMLOC){
@@ -2609,21 +2639,18 @@ function buscarVisible(P0,p){
   var kc=P0.latitude.toFixed(4)+","+P0.longitude.toFixed(4)+">"+p.la.toFixed(4)+","+p.lo.toFixed(4)+(typeof p.e==="number"?"^"+Math.round(p.e):"");
   if(visBusc[kc]!==undefined)return visBusc[kc];
   if(Object.keys(visBusc).length>20000)visBusc={};
-  var D=p.k*1000,n=Math.max(6,Math.min(60,Math.ceil(p.k/1.5))),h=[],i,f,v,r=true;
-  for(i=0;i<=n;i++){
-    f=i/n;
-    v=elevLocal(P0.latitude+(p.la-P0.latitude)*f,P0.longitude+(p.lo-P0.longitude)*f);
-    if(v===null){visBusc[kc]=true;return true} // fuera del relieve incluido: no se sabe, se mantiene
-    h.push(v);
-  }
-  var gps=(pos&&P0===pos)?pos.altitude:null;
-  var H0=(typeof gps==="number"&&gps>h[0]+150)?gps:h[0]+2;
-  var H1=Math.max(h[n],(typeof p.e==="number"&&p.e>0)?p.e:0)+10,RT=7300000;
-  for(i=1;i<n;i++){
-    var d=D*i/n,bulto=d*(D-d)/(2*RT);
-    // 0,004 rad de margen, igual que la cámara: el relieve guarda la altura máxima de cada celda de ~500 m
-    if(h[i]+bulto>H0+(H1-H0)*d/D+0.004*d){r=false;break}
-  }
+  var j=nJ(p.k)-1;
+  if(j<0){visBusc[kc]=true;return true}
+  if(j>=DS.length)j=DS.length-1;
+  // Se interpola entre los dos rayos de 2,5° que rodean la dirección del pueblo, igual que panVis
+  var f=brg(P0.latitude,P0.longitude,p.la,p.lo)/2.5,i=Math.floor(f)%144,i2=(i+1)%144,t=f-Math.floor(f);
+  var A=rayoHorizonte(i,P0),B=rayoHorizonte(i2,P0),H0=horizonteH0(P0);
+  if(!A||!B||H0===null){visBusc[kc]=true;return true}
+  var e=(typeof p.e==="number"&&p.e>0)?p.e:elevLocal(p.la,p.lo);
+  if(e===null){visBusc[kc]=true;return true}
+  var D=p.k*1000,occ=A[j]*(1-t)+B[j]*t;
+  // 0,004 rad de margen, el mismo que la cámara: el relieve guarda la altura máxima de cada celda de ~500 m
+  var r=Math.atan2(e+10-H0-D*D/14.6e6,D)>=occ-0.004;
   visBusc[kc]=r;
   return r;
 }
