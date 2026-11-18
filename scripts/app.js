@@ -1893,11 +1893,39 @@ function capturarVista(){
     ctx.fillText(txt,r.width/2,r.height/2-1);
     ctx.restore();
   });
-  // Descarga la imagen
+  // Guarda la imagen en el móvil para que la galería la muestre
   var nom="pueblos-"+new Date().toISOString().slice(0,16).replace(/[:]/g,"-")+".png";
+  c.toBlob(function(blob){guardarEnGaleria(blob,nom)},"image/png");
+}
+
+/* Guarda una imagen en el almacenamiento del móvil para que aparezca en la
+   galería. Intenta el selector de archivos del sistema (para elegir una carpeta
+   como Descargas o DCIM) y, si no está disponible, descarga en Descargas, que
+   la galería indexa también. */
+async function guardarEnGaleria(blob,nom){
+  // 1. File System Access API: elegir carpeta del móvil (Chrome y navegadores
+  //    compatibles). El archivo queda en el almacenamiento del dispositivo.
+  if(window.showSaveFilePicker){
+    try{
+      var handle=await showSaveFilePicker({
+        suggestedName:nom,
+        types:[{description:"Imagen PNG",accept:{"image/png":[".png"]}}]
+      });
+      var writable=await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      avisar("📷 Guardado en el móvil: "+nom,3500);
+      return;
+    }catch(e){
+      // El usuario canceló o el navegador no lo permite: se sigue con la descarga
+    }
+  }
+  // 2. Descarga directa: queda en la carpeta Descargas del móvil, que la galería indexa
+  var url=URL.createObjectURL(blob);
   var a=document.createElement("a");
-  a.download=nom;a.href=c.toDataURL("image/png");
+  a.download=nom;a.href=url;
   document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
   avisar("📷 Captura guardada: "+nom,3500);
 }
 // Enciende o apaga «Picos» desde cualquier sitio: su botón, los filtros de pueblo

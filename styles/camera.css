@@ -684,14 +684,14 @@ body.on #zoom {
     min-width: auto;
 }
 
-/* Capturar: justo debajo de los botones de zoom, lado derecho */
+/* Capturar: justo debajo de los botones de zoom, lado derecho.
+   Oculto en la portada, solo visible (y activo) cuando la cámara está encendida. */
 #capturar {
     display: none;
     position: fixed;
     z-index: 6;
     right: 8px;
     bottom: calc(env(safe-area-inset-bottom, 0px) + 90px);
-    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -713,9 +713,7 @@ body.on #zoom {
 body.on #capturar {
     display: flex;
 }
-body.on main.plegado #capturar {
-    display: none;
-}
+/* El botón de captura solo se muestra en la pantalla de identificación (cámara activa) */
 #capturar .ic {
     font-size: 22px;
     line-height: 1;
