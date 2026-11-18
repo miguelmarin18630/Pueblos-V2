@@ -1845,6 +1845,61 @@ $("relb").onclick=function(){
   // Si la ventana de búsqueda está abierta, su lista se actualiza al momento
   try{if($("buscar").style.display==="flex")llenarBuscarLista($("buscarTexto").value)}catch(e){}
 };
+// Captura la vista actual: frame de la cámara + nombres de los pueblos visibles,
+// y la ofrece para descargar como PNG.
+$("capturar").onclick=function(){
+  if(!document.body.classList.contains("on")){avisar("No hay cámara activa para capturar.",3000);return}
+  capturarVista();
+};
+function capturarVista(){
+  var v=$("cam"),W=innerWidth,H=innerHeight;
+  if(!v||!v.videoWidth){avisar("La cámara aún no tiene imagen para capturar.",3000);return}
+  var c=document.createElement("canvas");
+  c.width=W;c.height=H;
+  var ctx=c.getContext("2d");
+  // Fondo negro por si el video no cubre todo
+  ctx.fillStyle="#000";ctx.fillRect(0,0,W,H);
+  // Dibuja el frame del vídeo con object-fit: cover (mismo que #cam en CSS)
+  var vw=v.videoWidth,vh=v.videoHeight,scale=Math.max(W/vw,H/vh),x=(W-vw*scale)/2,y=(H-vh*scale)/2;
+  ctx.drawImage(v,x,y,vw*scale,vh*scale);
+  // Dibuja la silueta del relieve si está activa
+  var s=$("sil");
+  if(s&&s.style.display!=="none"&&s.width&&s.height){
+    ctx.drawImage(s,0,0,W,H);
+  }
+  // Dibuja cada etiqueta visible sobre el frame
+  var ets=document.querySelectorAll("#etq > .et:not([style*='display: none'])");
+  ets.forEach(function(el){
+    var r=el.getBoundingClientRect();
+    if(r.width<1||r.height<1)return;
+    var txt=el.textContent||"";
+    if(!txt.trim())return;
+    // La etiqueta está centrada horizontalmente y anclada al fondo por CSS
+    var cx=r.left+r.width/2,cy=r.top+r.height;
+    // Color del borde (tipo de lugar) o blanco por defecto
+    var bc=el.style.borderColor||"#fff";
+    // Fondo: color del tipo si está seleccionado, negro semitransparente si no
+    var bg=el.style.backgroundColor||"rgba(0,0,0,.82)";
+    // Sombra para legibilidad
+    ctx.save();
+    ctx.translate(cx,cy);
+    ctx.translate(-r.width/2,-r.height);
+    ctx.shadowColor="rgba(0,0,0,.7)";ctx.shadowBlur=3;
+    ctx.fillStyle=bg;ctx.fillRect(0,0,r.width,r.height);
+    ctx.shadowColor="transparent";
+    ctx.strokeStyle=bc;ctx.lineWidth=2;ctx.strokeRect(0,0,r.width,r.height);
+    ctx.fillStyle="#fff";ctx.font="bold 15px system-ui,sans-serif";
+    ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.fillText(txt,r.width/2,r.height/2-1);
+    ctx.restore();
+  });
+  // Descarga la imagen
+  var nom="pueblos-"+new Date().toISOString().slice(0,16).replace(/[:]/g,"-")+".png";
+  var a=document.createElement("a");
+  a.download=nom;a.href=c.toDataURL("image/png");
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  avisar("📷 Captura guardada: "+nom,3500);
+}
 // Enciende o apaga «Picos» desde cualquier sitio: su botón, los filtros de pueblo
 // o la búsqueda. El botón, el cuerpo (clase «picos») y los otros dos filtros quedan
 // siempre coordinados; si se enciende, se descargan los picos de la zona.
