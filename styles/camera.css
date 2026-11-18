@@ -375,15 +375,11 @@ body.on * {
     display: none;
 }
 
-/* Barra inferior: los controles van en una línea horizontal, centrada.
-   Si no caben (móviles muy estrechos) se desplazan lateralmente; nunca saltan
-   a una segunda línea. El botón Capturar va en el centro del grupo. */
+/* Barra inferior: 5 huecos (Calibrar, Picos, Más lejos, Relieve y el grupo de aldeas) */
 body.on #bar {
-    display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    justify-content: center;
-    gap: 6px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
     position: fixed;
     z-index: 5;
     left: 0;
@@ -402,20 +398,18 @@ body.on #bar {
     align-items: center;
     justify-content: center;
     gap: 2px;
-    flex: 0 0 auto;
+    width: auto;
     min-width: 0;
-    min-height: 60px;
-    padding: 4px 2px;
+    min-height: 66px;
+    padding: 5px 2px;
     border: 2px solid rgba(255, 255, 255, .55);
-    border-radius: 12px;
+    border-radius: 14px;
     background: rgba(255, 255, 255, .14);
     box-shadow: none;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     line-height: 1.1;
     text-align: center;
-    /* Evita que el botón se encoga hasta desaparecer en pantallas estrechas */
-    min-width: 52px;
 }
 
 #bar .ic {
@@ -682,12 +676,49 @@ body.on #zoom {
     position: fixed;
     z-index: 6;
     right: 8px;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 92px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 150px);
     padding: 5px 4px;
     border-radius: 14px;
     background: rgba(0, 0, 0, .5);
     width: auto;
     min-width: auto;
+}
+
+/* Capturar: justo debajo de los botones de zoom, lado derecho */
+#capturar {
+    display: none;
+    position: fixed;
+    z-index: 6;
+    right: 8px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 90px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 0;
+    width: 56px;
+    min-height: 56px;
+    padding: 6px 2px;
+    border: 2px solid rgba(255, 255, 255, .6);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .18);
+    color: #fff;
+    font-weight: 700;
+    font-size: 11px;
+    line-height: 1.1;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,.4);
+}
+body.on #capturar {
+    display: flex;
+}
+body.on main.plegado #capturar {
+    display: none;
+}
+#capturar .ic {
+    font-size: 22px;
+    line-height: 1;
 }
 #zoom button {
     display: flex;
