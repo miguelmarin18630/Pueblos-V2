@@ -40,11 +40,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="¿Qué pueblo?">
 
-<link rel="stylesheet" href="styles/base.css?v=62">
-<link rel="stylesheet" href="styles/portada.css?v=62">
-<link rel="stylesheet" href="styles/layout.css?v=62">
-<link rel="stylesheet" href="styles/camera.css?v=62">
-<link rel="stylesheet" href="styles/ayuda.css?v=62">
+<link rel="stylesheet" href="styles/base.css?v=63">
+<link rel="stylesheet" href="styles/portada.css?v=63">
+<link rel="stylesheet" href="styles/layout.css?v=63">
+<link rel="stylesheet" href="styles/camera.css?v=63">
+<link rel="stylesheet" href="styles/ayuda.css?v=63">
 
 <!-- La base de pueblos se necesita siempre: que empiece a descargarse ya -->
 </head>
@@ -179,11 +179,11 @@
         <button id="lejosb" class="tg" type="button" aria-pressed="false" aria-label="Más lejos: alcance 40 km" title="Alcance 40 km. Pulsa para ampliar a 80 km">
             <span class="ic" aria-hidden="true">🔭</span><span>Más lejos</span><span class="est" aria-hidden="true"></span>
         </button>
-        <button id="relb" class="tg" type="button" aria-pressed="true" aria-label="Relieve activado" title="Relieve activado: se ocultan los lugares tapados por montañas">
-            <span class="ic" aria-hidden="true">🏔</span><span>Relieve</span><span class="est" aria-hidden="true"></span>
-        </button>
         <button id="capturar" type="button" title="Captura la vista actual con los nombres de los pueblos">
             <span class="ic" aria-hidden="true">📷</span><span>Capturar</span>
+        </button>
+        <button id="relb" class="tg" type="button" aria-pressed="true" aria-label="Relieve activado" title="Relieve activado: se ocultan los lugares tapados por montañas">
+            <span class="ic" aria-hidden="true">🏔</span><span>Relieve</span><span class="est" aria-hidden="true"></span>
         </button>
         <div id="aldeaGrupo" role="group" aria-label="Qué se muestra: solo pueblos o también aldeas">
             <button id="soloPueblos" class="tg" type="button" aria-pressed="true" title="Se ven solo pueblos (sin aldeas ni caseríos)">
@@ -497,7 +497,7 @@ setTimeout(__comprobarMotor, 9000);
 
 <!-- Datos: la base de pueblos (3,8 MB) se descarga una vez y queda guardada en el móvil.
      El motor (app.js) la pide por su cuenta y no bloquea la pantalla. -->
-<script defer src="scripts/app.js?v=62"></script>
+<script defer src="scripts/app.js?v=63"></script>
 
 <!-- ================= Diálogo de búsqueda: buscar pueblo o pico por nombre ================= -->
 <div id="buscar" role="dialog" aria-modal="true" aria-labelledby="buscarT" style="display:none;">
