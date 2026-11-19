@@ -1894,8 +1894,8 @@ function capturarVista(){
     ctx.restore();
   });
   // Guarda la imagen en el móvil para que la galería la muestre
-  var nom="pueblos-"+new Date().toISOString().slice(0,19).replace(/[:]/g,"-")+".png";
-  c.toBlob(function(blob){guardarEnGaleria(blob,nom)},"image/png");
+  var nom="pueblos-"+new Date().toISOString().slice(0,19).replace(/[:]/g,"-")+".jpg";
+  c.toBlob(function(blob){guardarEnGaleria(blob,nom)},"image/jpeg",0.92);
 }
 
 /* Guarda la imagen sin pedir carpeta ni nombre:
