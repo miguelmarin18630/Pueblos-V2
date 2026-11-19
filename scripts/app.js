@@ -2296,9 +2296,9 @@ function dibujarSilueta(hdc){
   }
   ctx.stroke();ctx.setLineDash([]);
   var v=$("cam");
-  if(hzDet&&Date.now()-hzDet.t<3000&&hzDet.ok&&v.videoWidth&&zoom<=1.05){
+  if(hzDet&&Date.now()-hzDet.t<3000&&v.videoWidth&&zoom<=1.05){
     var vw=v.videoWidth,vh=v.videoHeight,s=Math.max(W/vw,H/vh);
-    ctx.strokeStyle="rgba(255,226,89,.9)";ctx.beginPath();
+    ctx.strokeStyle=hzDet.ok?"rgba(255,226,89,.9)":"rgba(255,255,255,.35)";ctx.beginPath();
     for(x=0;x<hzDet.w;x++){
       var sx=W/2+((x+0.5)*vw/hzDet.w-vw/2)*s,sy=H/2+(hzDet.y[x]*vh/hzDet.h-vh/2)*s;
       if(x)ctx.lineTo(sx,sy);else ctx.moveTo(sx,sy);

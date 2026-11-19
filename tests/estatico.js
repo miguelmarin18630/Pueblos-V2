@@ -480,9 +480,9 @@ else mal('«¿Falta algún pueblo o pico?» no está plegado');
 // ---------- línea del horizonte de la cámara ----------
 console.log('\nhorizonte');
 const dib = (app.match(/function dibujarSilueta\([\s\S]*?\n\}/) || [''])[0];
-if (/hzDet\.ok&&/.test(dib) && !/255,255,255,\.35/.test(dib)) {
-  ok('la línea de la cámara solo se dibuja cuando es fiable (amarilla)');
-} else mal('se sigue dibujando la línea gris del horizonte sin validar');
+if (/hzDet\.ok\?"rgba\(255,226,89/.test(dib) && /:"rgba\(255,255,255,.35\)"/.test(dib)) {
+  ok('la línea del horizonte se dibuja en amarillo si es fiable y en gris si no');
+} else mal('falta la línea gris/amarilla del horizonte');
 
 // ---------- resultado ----------
 console.log('');
