@@ -1909,6 +1909,7 @@ async function guardarEnGaleria(blob,nom){
       var base64=await blobABase64(blob);
       if(AndroidApp.guardarImagen(base64,nom)==="1"){
         avisar("📷 Guardada en la galería: "+nom,3500);
+        recuperarCamara();
         return;
       }
     }catch(e){
@@ -1921,6 +1922,18 @@ async function guardarEnGaleria(blob,nom){
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   setTimeout(function(){URL.revokeObjectURL(url)},2000);
   avisar("📷 Captura guardada en Descargas: "+nom,3500);
+  recuperarCamara();
+}
+
+function recuperarCamara(){
+  // Tras guardar, el móvil puede haber suspendido la cámara: se reactiva si hace falta
+  setTimeout(function(){
+    try{
+      if(!document.body.classList.contains("on"))return;
+      var tr=stream&&stream.getVideoTracks&&stream.getVideoTracks()[0];
+      if(!tr||tr.readyState==="ended"){stream=null;pista=null;camara(true)}
+    }catch(e){}
+  },300);
 }
 
 function blobABase64(blob){
